@@ -223,15 +223,20 @@ const getCourseContent = async (req, res, next) => {
 
       const enrichedVideos = modVideos.map(v => {
         const vObj = v.toObject();
-        vObj.videoUrl = vObj.cloudinaryUrl || vObj.videoUrl || '';
+        let u = vObj.cloudinaryUrl || vObj.videoUrl || '';
+        u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+        vObj.videoUrl = u;
+        vObj.cloudinaryUrl = u;
         vObj.completed = completedVideoIds.has(v._id.toString());
         return vObj;
       });
 
       const enrichedNotes = modNotes.map(n => {
         const nObj = n.toObject();
-        nObj.pdfUrl = nObj.cloudinaryUrl || nObj.fileUrl || nObj.pdfUrl || '';
-        nObj.fileUrl = nObj.pdfUrl;
+        let u = nObj.cloudinaryUrl || nObj.fileUrl || nObj.pdfUrl || '';
+        u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+        nObj.pdfUrl = u;
+        nObj.fileUrl = u;
         return nObj;
       });
 

@@ -1353,7 +1353,9 @@ async function openCourseLearning(courseId) {
 
       const nItems = (mod.notes || []).map(n => {
         let nUrl = n.cloudinaryUrl || n.fileUrl || n.pdfUrl || '';
-        if (nUrl.startsWith('/') && !nUrl.startsWith('//')) {
+        if (nUrl.includes('localhost:') || nUrl.includes('127.0.0.1:')) {
+          nUrl = nUrl.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+        } else if (nUrl.startsWith('/') && !nUrl.startsWith('//')) {
           nUrl = window.location.origin + nUrl;
         }
         const safeTitle = (n.title || 'Study Material').replace(/'/g, "\\'");
@@ -1433,7 +1435,9 @@ function openPdfViewerModal(pdfUrl, title) {
     return;
   }
   let finalUrl = pdfUrl;
-  if (finalUrl.startsWith('/') && !finalUrl.startsWith('//')) {
+  if (finalUrl.includes('localhost:') || finalUrl.includes('127.0.0.1:')) {
+    finalUrl = finalUrl.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+  } else if (finalUrl.startsWith('/') && !finalUrl.startsWith('//')) {
     finalUrl = window.location.origin + finalUrl;
   }
 
@@ -1521,7 +1525,9 @@ async function openStudentVideoPlayer(courseId, moduleId, videoId) {
     const iframe = document.getElementById('stdVideoIframe');
     let videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
 
-    if (videoUrl.startsWith('/') && !videoUrl.startsWith('//')) {
+    if (videoUrl.includes('localhost:') || videoUrl.includes('127.0.0.1:')) {
+      videoUrl = videoUrl.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+    } else if (videoUrl.startsWith('/') && !videoUrl.startsWith('//')) {
       videoUrl = window.location.origin + videoUrl;
     }
 

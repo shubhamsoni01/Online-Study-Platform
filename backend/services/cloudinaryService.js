@@ -78,9 +78,8 @@ const uploadToCloudinary = async (buffer, folder = 'uploads', resourceType = 'au
   const filePath = path.join(targetDir, filename);
   fs.writeFileSync(filePath, buffer);
 
-  // Return server-hosted URL
-  const serverBase = process.env.SERVER_BASE_URL || 'http://localhost:5000';
-  const publicUrl = `${serverBase}/uploads/${cleanFolder}/${filename}`;
+  // Return server-hosted URL (clean relative path for mobile and web cross-platform compatibility)
+  const publicUrl = `/uploads/${cleanFolder}/${filename}`;
 
   return {
     secureUrl: publicUrl,
