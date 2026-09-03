@@ -5,3 +5,4 @@ uploads/
 backend/uploads/
 .DS_Store
 *.log
+cloudflared.exe
