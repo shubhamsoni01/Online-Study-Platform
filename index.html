@@ -6,6 +6,7 @@
 <title>Online Study Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="/assets/js/api-client.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -752,15 +753,30 @@ async function executeLogin() {
 
   try {
     let res;
-    if (targetRole === 'teacher') {
-      res = await LiveAPI.teacherLogin(email, password);
+    if (typeof LiveAPI !== 'undefined') {
+      if (targetRole === 'teacher') {
+        res = await LiveAPI.teacherLogin(email, password);
+      } else {
+        res = await LiveAPI.login(email, password, targetRole);
+      }
     } else {
-      res = await LiveAPI.login(email, password, targetRole);
+      // Direct Fetch Fallback
+      const endpoint = targetRole === 'teacher' ? '/api/auth/teacher/login' : '/api/auth/login';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role: targetRole }),
+      });
+      res = await response.json();
+      if (res && res.token) {
+        localStorage.setItem('osp_token', res.token);
+        localStorage.setItem('osp_user', JSON.stringify(res.user || res.data?.user));
+      }
     }
 
     const user = res.user || res.data?.user;
-    if (res.success && user) {
-      if (user.role === 'teacher' || targetRole === 'teacher') {
+    if (res && (res.success || res.token)) {
+      if (user && (user.role === 'teacher' || targetRole === 'teacher')) {
         sessionStorage.setItem('osp_active_teacher_id', user._id || user.id);
       }
 
@@ -774,7 +790,7 @@ async function executeLogin() {
       }
       return;
     } else {
-      throw new Error(res.message || 'Login failed.');
+      throw new Error(res.message || 'Login failed. Please check your credentials.');
     }
   } catch (err) {
     if (errEl) {
