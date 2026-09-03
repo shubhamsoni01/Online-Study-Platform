@@ -65,6 +65,7 @@ io.on('connection', (socket) => {
 });
 
 // Security & Parsing Middleware
+app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '50mb' }));
