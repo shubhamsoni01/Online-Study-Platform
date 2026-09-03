@@ -332,11 +332,36 @@ const AuthGuard = {
   },
 
   async submitRegister() {
-    const name = document.getElementById('regName')?.value.trim();
-    const email = document.getElementById('regEmail')?.value.trim();
-    const password = document.getElementById('regPassword')?.value.trim();
-    const department = document.getElementById('regDept')?.value.trim() || 'Information Technology';
-    const semester = document.getElementById('regSemester')?.value || 'Semester 5';
+    const name = (
+      document.getElementById('regName')?.value ||
+      document.getElementById('regFullName')?.value ||
+      document.querySelector('#studentRegisterForm [name="name"]')?.value ||
+      ''
+    ).trim();
+
+    const email = (
+      document.getElementById('regEmail')?.value ||
+      document.querySelector('#studentRegisterForm [name="email"]')?.value ||
+      ''
+    ).trim();
+
+    const password = (
+      document.getElementById('regPassword')?.value ||
+      document.querySelector('#studentRegisterForm [name="password"]')?.value ||
+      ''
+    ).trim();
+
+    const department = (
+      document.getElementById('regDept')?.value ||
+      document.getElementById('regDepartment')?.value ||
+      'Information Technology'
+    ).trim();
+
+    const semester = (
+      document.getElementById('regSemester')?.value ||
+      'Semester 5'
+    ).trim();
+
     const errEl = document.getElementById('authGateError');
     const submitBtn = document.getElementById('authRegSubmitBtn');
 
@@ -345,6 +370,14 @@ const AuthGuard = {
     if (!name || !email || !password) {
       if (errEl) {
         errEl.textContent = 'Please fill out Name, Email, and Password.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (password.length < 6) {
+      if (errEl) {
+        errEl.textContent = 'Password must be at least 6 characters long.';
         errEl.style.display = 'block';
       }
       return;
