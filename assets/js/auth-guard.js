@@ -26,6 +26,7 @@ const AuthGuard = {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding: 20px;
       box-sizing: border-box;
+      overflow-y: auto;
     `;
     overlay.innerHTML = `
       <style>
@@ -36,9 +37,10 @@ const AuthGuard = {
           border-radius: 12px;
           padding: 28px 24px;
           width: 100%;
-          max-width: 400px;
+          max-width: 420px;
           box-shadow: 0 16px 40px rgba(0,0,0,0.5);
           box-sizing: border-box;
+          margin: auto;
         }
         .auth-form-input {
           width: 100%;
@@ -76,7 +78,7 @@ const AuthGuard = {
         <div style="width:38px;height:38px;border:3px solid rgba(245,197,66,0.2);border-top:3px solid #F5C542;border-radius:50%;animation:authSpin 0.7s linear infinite;margin-bottom:14px;"></div>
         <div style="font-size:14px;color:#94a3b8;font-weight:600;">Verifying Session Access...</div>
       </div>
-      <div id="authGateContent" style="display:none;width:100%;max-width:400px;"></div>
+      <div id="authGateContent" style="display:none;width:100%;max-width:420px;"></div>
     `;
     document.body.appendChild(overlay);
   },
@@ -103,7 +105,14 @@ const AuthGuard = {
       return;
     }
 
-    // Unauthenticated
+    // Check if user came with ?mode=register
+    const urlParams = new URLSearchParams(window.location.search);
+    if (requiredRole === 'student' && urlParams.get('mode') === 'register') {
+      this.renderRegisterForm();
+      return;
+    }
+
+    // Unauthenticated -> Show Login
     this.renderLoginForm(requiredRole);
   },
 
@@ -149,7 +158,7 @@ const AuthGuard = {
             <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:6px;" for="authPassword">Password</label>
             <div style="position:relative;display:flex;align-items:center;">
               <input class="auth-form-input" type="password" name="password" id="authPassword" autocomplete="current-password" required placeholder="••••••••" style="padding-right:38px;" />
-              <button type="button" onclick="AuthGuard.togglePass()" style="position:absolute;right:8px;background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;display:flex;align-items:center;" title="Show/Hide Password">
+              <button type="button" onclick="AuthGuard.togglePass('authPassword')" style="position:absolute;right:8px;background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;display:flex;align-items:center;" title="Show/Hide Password">
                 👁
               </button>
             </div>
@@ -167,16 +176,89 @@ const AuthGuard = {
         </form>
 
         ${role === 'student' ? `
-          <div style="text-align:center;margin-top:14px;font-size:12px;color:#94a3b8;">
-            New student? <a href="student.html?mode=register" onclick="window.location.search='?mode=register';return false;" style="color:#F5C542;font-weight:700;text-decoration:underline;">Create Account</a>
+          <div style="text-align:center;margin-top:14px;font-size:12.5px;color:#94a3b8;">
+            New student? <a href="javascript:void(0)" onclick="AuthGuard.renderRegisterForm()" style="color:#F5C542;font-weight:700;text-decoration:underline;">Create Student Account</a>
           </div>
         ` : ''}
       </div>
     `;
   },
 
-  togglePass() {
-    const input = document.getElementById('authPassword');
+  renderRegisterForm() {
+    const spinner = document.getElementById('authGateSpinner');
+    const content = document.getElementById('authGateContent');
+    if (spinner) spinner.style.display = 'none';
+    if (!content) return;
+
+    content.style.display = 'block';
+
+    content.innerHTML = `
+      <div class="auth-card-box">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:32px;height:32px;background:rgba(245,197,66,0.12);color:#F5C542;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">
+            🎓
+          </div>
+          <div>
+            <div style="font-size:17px;font-weight:800;color:#FFF;">Create Student Account</div>
+            <div style="font-size:12px;color:#94a3b8;">Register to start learning & access courses</div>
+          </div>
+        </div>
+
+        <div id="authGateError" style="display:none;color:#ff5c5c;background:rgba(255,92,92,0.12);border:1px solid rgba(255,92,92,0.25);padding:9px 12px;border-radius:6px;margin-bottom:14px;font-size:12.5px;line-height:1.4;"></div>
+
+        <form id="studentRegisterForm" action="#" method="POST" autocomplete="on" onsubmit="event.preventDefault(); AuthGuard.submitRegister();">
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:4px;" for="regName">Full Name</label>
+            <input class="auth-form-input" type="text" name="name" id="regName" autocomplete="name" required placeholder="e.g. Rahul Sharma" />
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:4px;" for="regEmail">Email Address</label>
+            <input class="auth-form-input" type="email" name="email" id="regEmail" autocomplete="username" required placeholder="student@university.edu" />
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:4px;" for="regPassword">Password</label>
+            <div style="position:relative;display:flex;align-items:center;">
+              <input class="auth-form-input" type="password" name="password" id="regPassword" autocomplete="new-password" required placeholder="Create strong password" style="padding-right:38px;" />
+              <button type="button" onclick="AuthGuard.togglePass('regPassword')" style="position:absolute;right:8px;background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;display:flex;align-items:center;" title="Show/Hide Password">
+                👁
+              </button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:4px;" for="regDept">Branch / Dept</label>
+              <input class="auth-form-input" type="text" name="department" id="regDept" placeholder="e.g. IT / CS" value="Information Technology" />
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:4px;" for="regSemester">Semester</label>
+              <select class="auth-form-input" id="regSemester" style="padding:0 8px;">
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2">Semester 2</option>
+                <option value="Semester 3">Semester 3</option>
+                <option value="Semester 4">Semester 4</option>
+                <option value="Semester 5" selected>Semester 5</option>
+                <option value="Semester 6">Semester 6</option>
+                <option value="Semester 7">Semester 7</option>
+                <option value="Semester 8">Semester 8</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="auth-btn-submit" id="authRegSubmitBtn">Create Account & Enter Portal →</button>
+        </form>
+
+        <div style="text-align:center;margin-top:14px;font-size:12.5px;color:#94a3b8;">
+          Already have an account? <a href="javascript:void(0)" onclick="AuthGuard.renderLoginForm('student')" style="color:#F5C542;font-weight:700;text-decoration:underline;">Sign In here</a>
+        </div>
+      </div>
+    `;
+  },
+
+  togglePass(id = 'authPassword') {
+    const input = document.getElementById(id);
     if (!input) return;
     input.type = input.type === 'password' ? 'text' : 'password';
   },
@@ -204,15 +286,29 @@ const AuthGuard = {
 
     try {
       let res;
-      if (this.activeRole === 'teacher') {
-        res = await LiveAPI.teacherLogin(email, password);
+      if (typeof LiveAPI !== 'undefined') {
+        if (this.activeRole === 'teacher') {
+          res = await LiveAPI.teacherLogin(email, password);
+        } else {
+          res = await LiveAPI.login(email, password, this.activeRole);
+        }
       } else {
-        res = await LiveAPI.login(email, password, this.activeRole);
+        const endpoint = this.activeRole === 'teacher' ? '/api/auth/teacher/login' : '/api/auth/login';
+        const raw = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role: this.activeRole }),
+        });
+        res = await raw.json();
+        if (res.token) {
+          localStorage.setItem('osp_token', res.token);
+          localStorage.setItem('osp_user', JSON.stringify(res.user || res.data?.user));
+        }
       }
 
       const user = res.user || res.data?.user;
-      if (res.success && user) {
-        if (user.role === 'teacher' || this.activeRole === 'teacher') {
+      if (res && (res.success || res.token)) {
+        if (user && (user.role === 'teacher' || this.activeRole === 'teacher')) {
           sessionStorage.setItem('osp_active_teacher_id', user._id || user.id);
         }
         this.removeOverlay();
@@ -231,6 +327,71 @@ const AuthGuard = {
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = `Sign In to ${this.activeRole.charAt(0).toUpperCase() + this.activeRole.slice(1)} Panel →`;
+      }
+    }
+  },
+
+  async submitRegister() {
+    const name = document.getElementById('regName')?.value.trim();
+    const email = document.getElementById('regEmail')?.value.trim();
+    const password = document.getElementById('regPassword')?.value.trim();
+    const department = document.getElementById('regDept')?.value.trim() || 'Information Technology';
+    const semester = document.getElementById('regSemester')?.value || 'Semester 5';
+    const errEl = document.getElementById('authGateError');
+    const submitBtn = document.getElementById('authRegSubmitBtn');
+
+    if (errEl) errEl.style.display = 'none';
+
+    if (!name || !email || !password) {
+      if (errEl) {
+        errEl.textContent = 'Please fill out Name, Email, and Password.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Account...';
+    }
+
+    try {
+      let res;
+      if (typeof LiveAPI !== 'undefined') {
+        res = await LiveAPI.studentRegister({ name, email, password, department, semester });
+      } else {
+        const raw = await fetch('/api/auth/student/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, department, semester }),
+        });
+        res = await raw.json();
+        if (res.token) {
+          localStorage.setItem('osp_token', res.token);
+          localStorage.setItem('osp_user', JSON.stringify(res.user || res.data?.user));
+        }
+      }
+
+      const user = res.user || res.data?.user;
+      if (res && (res.success || res.token)) {
+        this.removeOverlay();
+        if (typeof this.onSuccess === 'function') {
+          this.onSuccess(user);
+        } else {
+          window.location.reload();
+        }
+      } else {
+        throw new Error(res.message || 'Account registration failed.');
+      }
+    } catch (err) {
+      if (errEl) {
+        errEl.textContent = `Registration failed: ${err.message || 'Error creating account'}`;
+        errEl.style.display = 'block';
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account & Enter Portal →';
       }
     }
   },
