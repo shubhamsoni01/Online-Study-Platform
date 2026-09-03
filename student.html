@@ -723,9 +723,11 @@ async function initStudentPanel() {
 
     if (token) {
       try {
-        const meRes = await LiveAPI.getStudentMe();
-        if (meRes && meRes.success && meRes.data) {
-          studentData = meRes.data;
+        const meRes = await LiveAPI.getMe();
+        if (meRes && meRes.user) {
+          studentData = meRes.user;
+        } else if (meRes && meRes.data) {
+          studentData = meRes.data.user || meRes.data;
         }
       } catch (err) {
         console.warn('Student me error:', err.message);
@@ -733,16 +735,21 @@ async function initStudentPanel() {
     }
 
     if (!studentData) {
-      openStudentLoginModal();
+      studentData = LiveAPI.getUser();
+    }
+
+    if (!studentData) {
+      AuthGuard.renderLoginForm('student');
       return;
     }
 
     currentAuthenticatedStudent = studentData;
+    AuthGuard.removeOverlay();
     closeStudentLoginModal();
     renderStudentViews(studentData);
   } catch (err) {
     console.error('Fatal Student Init Error:', err);
-    openStudentLoginModal();
+    AuthGuard.renderLoginForm('student');
   }
 }
 
@@ -775,18 +782,20 @@ function switchAuthTab(tab) {
   const boxUp = document.getElementById('authSignUpBox');
 
   if (tab === 'signin') {
-    btnIn.classList.add('active');
-    btnUp.classList.remove('active');
-    boxIn.style.display = 'block';
-    boxUp.style.display = 'none';
+    if (btnIn) btnIn.classList.add('active');
+    if (btnUp) btnUp.classList.remove('active');
+    if (boxIn) boxIn.style.display = 'block';
+    if (boxUp) boxUp.style.display = 'none';
   } else {
-    btnIn.classList.remove('active');
-    btnUp.classList.add('active');
-    boxIn.style.display = 'none';
-    boxUp.style.display = 'block';
+    if (btnIn) btnIn.classList.remove('active');
+    if (btnUp) btnUp.classList.add('active');
+    if (boxIn) boxIn.style.display = 'none';
+    if (boxUp) boxUp.style.display = 'block';
   }
-  document.getElementById('signInErrorAlert').style.display = 'none';
-  document.getElementById('signUpErrorAlert').style.display = 'none';
+  const sErr = document.getElementById('signInErrorAlert');
+  const uErr = document.getElementById('signUpErrorAlert');
+  if (sErr) sErr.style.display = 'none';
+  if (uErr) uErr.style.display = 'none';
 }
 
 async function handleStudentSignIn(e) {
@@ -797,29 +806,60 @@ async function handleStudentSignIn(e) {
   const errBox = document.getElementById('signInErrorAlert');
 
   if (!email || !password) {
-    errBox.textContent = 'Please enter both email and password.';
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.textContent = 'Please enter both email and password.';
+      errBox.style.display = 'block';
+    }
     return;
   }
 
   try {
-    btn.disabled = true;
-    btn.textContent = 'Authenticating...';
-    errBox.style.display = 'none';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+    }
+    if (errBox) errBox.style.display = 'none';
 
-    const res = await LiveAPI.studentLogin(email, password);
-    if (res && res.success) {
+    let res;
+    if (typeof LiveAPI !== 'undefined') {
+      res = await LiveAPI.login(email, password, 'student');
+    } else {
+      const raw = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role: 'student' }),
+      });
+      res = await raw.json();
+      if (res.token) {
+        localStorage.setItem('osp_token', res.token);
+        localStorage.setItem('osp_user', JSON.stringify(res.user || res.data?.user));
+      }
+    }
+
+    if (res && (res.success || res.token)) {
       showToast('Welcome back to your Student Portal!');
-      await initStudentPanel();
+      closeStudentLoginModal();
+      AuthGuard.removeOverlay();
+      const user = res.user || res.data?.user;
+      if (user) {
+        currentAuthenticatedStudent = user;
+        renderStudentViews(user);
+      } else {
+        await initStudentPanel();
+      }
     } else {
       throw new Error(res.message || 'Login failed');
     }
   } catch (err) {
-    errBox.textContent = err.message || 'Invalid email or password';
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.textContent = err.message || 'Invalid email or password';
+      errBox.style.display = 'block';
+    }
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign In to Portal →';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Sign In to Portal →';
+    }
   }
 }
 
@@ -828,58 +868,92 @@ async function handleStudentSignUp(e) {
   const name = document.getElementById('regFullName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value.trim();
-  const confirmPassword = document.getElementById('regConfirmPassword').value.trim();
-  const phone = document.getElementById('regPhone').value.trim();
-  const department = document.getElementById('regDepartment').value.trim() || 'Computer Science';
-  const semester = document.getElementById('regSemester').value.trim() || '1st Semester';
+  const confirmPassword = document.getElementById('regConfirmPassword')?.value.trim() || password;
+  const phone = document.getElementById('regPhone')?.value.trim() || '';
+  const department = document.getElementById('regDepartment')?.value.trim() || 'Information Technology';
+  const semester = document.getElementById('regSemester')?.value.trim() || '1st Semester';
   const btn = document.getElementById('btnSignUpSubmit');
   const errBox = document.getElementById('signUpErrorAlert');
 
   if (!name || !email || !password) {
-    errBox.textContent = 'Please fill out all required fields.';
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.textContent = 'Please fill out all required fields.';
+      errBox.style.display = 'block';
+    }
     return;
   }
 
   if (password.length < 6) {
-    errBox.textContent = 'Password must be at least 6 characters long.';
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.textContent = 'Password must be at least 6 characters long.';
+      errBox.style.display = 'block';
+    }
     return;
   }
 
-  if (password !== confirmPassword) {
-    errBox.textContent = 'Passwords do not match.';
-    errBox.style.display = 'block';
+  if (confirmPassword && password !== confirmPassword) {
+    if (errBox) {
+      errBox.textContent = 'Passwords do not match.';
+      errBox.style.display = 'block';
+    }
     return;
   }
 
   try {
-    btn.disabled = true;
-    btn.textContent = 'Creating Account...';
-    errBox.style.display = 'none';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Creating Account...';
+    }
+    if (errBox) errBox.style.display = 'none';
 
-    const res = await LiveAPI.studentRegister({
-      name,
-      email,
-      password,
-      confirmPassword,
-      phone,
-      department,
-      semester,
-    });
+    let res;
+    if (typeof LiveAPI !== 'undefined') {
+      res = await LiveAPI.studentRegister({
+        name,
+        email,
+        password,
+        confirmPassword,
+        phone,
+        department,
+        semester,
+      });
+    } else {
+      const raw = await fetch('/api/auth/student/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, confirmPassword, phone, department, semester }),
+      });
+      res = await raw.json();
+      if (res.token) {
+        localStorage.setItem('osp_token', res.token);
+        localStorage.setItem('osp_user', JSON.stringify(res.user || res.data?.user));
+      }
+    }
 
-    if (res && res.success) {
+    if (res && (res.success || res.token)) {
       showToast('Account created successfully! Welcome to the platform.');
-      await initStudentPanel();
+      closeStudentLoginModal();
+      AuthGuard.removeOverlay();
+      const user = res.user || res.data?.user;
+      if (user) {
+        currentAuthenticatedStudent = user;
+        renderStudentViews(user);
+      } else {
+        await initStudentPanel();
+      }
     } else {
       throw new Error(res.message || 'Registration failed');
     }
   } catch (err) {
-    errBox.textContent = err.message || 'Registration failed';
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.textContent = err.message || 'Registration failed';
+      errBox.style.display = 'block';
+    }
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Create Account ✓';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Create Account ✓';
+    }
   }
 }
 
