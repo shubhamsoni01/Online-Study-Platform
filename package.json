@@ -1,0 +1,39 @@
+{
+  "name": "online-study-platform",
+  "version": "1.0.0",
+  "description": "Online Study Platform - Full-stack LMS with Node.js, Express, MongoDB, Cloudinary, and Groq AI",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "npm install --prefix backend",
+    "postinstall": "npm install --prefix backend",
+    "server": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "seed": "node backend/scripts/seedAdmin.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "groq-sdk": "^0.9.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.1"
+  },
+  "keywords": [
+    "study-platform",
+    "lms",
+    "express",
+    "mongodb",
+    "groq",
+    "cloudinary",
+    "vercel"
+  ],
+  "author": "Shubham Kumar",
+  "license": "ISC"
+}

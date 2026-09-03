@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Online Study Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050505;
+  --bg2:#0A0A0A;
+  --card:#101010;
+  --border:#202020;
+  --text:#FFFFFF;
+  --text2:#9A9A9A;
+  --accent:#F5C542;
+  --accent-dim:rgba(245,197,66,0.12);
+  --radius:8px;
+  --radius-lg:12px;
+  --transition:0.2s ease;
+}
+html{font-size:15px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+}
+a{text-decoration:none;color:inherit}
+
+/* TOPBAR */
+.topbar{
+  height:60px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 36px;
+  gap:12px;
+  background:var(--bg2);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;letter-spacing:-0.03em}
+.brand-dot{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-dot svg{width:16px;height:16px;color:#000}
+.brand span{color:var(--accent)}
+.topbar-spacer{flex:1}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-link{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--transition)}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+.btn-login{
+  padding:8px 18px;
+  border-radius:var(--radius);
+  font-size:13px;
+  font-weight:600;
+  border:1px solid var(--border);
+  color:var(--text2);
+  background:transparent;
+  cursor:pointer;
+  transition:all var(--transition);
+}
+.btn-login:hover{border-color:var(--text2);color:var(--text)}
+
+/* HERO */
+.hero{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:72px 24px 56px;
+  position:relative;
+}
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:var(--accent-dim);
+  border:1px solid rgba(245,197,66,0.25);
+  color:var(--accent);
+  padding:5px 14px;
+  border-radius:99px;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+.hero-badge::before{content:'✦';font-size:9px}
+.hero-title{font-size:clamp(32px,5.5vw,64px);font-weight:900;letter-spacing:-0.04em;line-height:1.08;max-width:780px;margin-bottom:18px}
+.hero-title span{color:var(--accent)}
+.hero-subtitle{font-size:clamp(14px,1.8vw,17px);color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:36px}
+.hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn-primary{
+  padding:11px 26px;
+  border-radius:var(--radius);
+  background:var(--accent);
+  color:#000;
+  font-size:14px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  transition:all var(--transition);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-primary:hover{background:#E0B030;}
+.btn-secondary{
+  padding:11px 26px;
+  border-radius:var(--radius);
+  background:transparent;
+  color:var(--text2);
+  font-size:14px;
+  font-weight:600;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:all var(--transition);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-secondary:hover{border-color:#383838;color:var(--text);background:rgba(255,255,255,0.03)}
+
+/* STATS STRIP */
+.stats-strip{
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  padding:20px 40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:56px;
+  flex-wrap:wrap;
+  margin-bottom:60px;
+}
+.stat-item{text-align:center}
+.stat-num{font-size:26px;font-weight:900;letter-spacing:-0.04em;color:var(--text)}
+.stat-num span{color:var(--accent)}
+.stat-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-top:2px}
+
+/* PANELS SECTION */
+.panels-section{padding:0 24px 72px;max-width:1100px;margin:0 auto;width:100%}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);text-align:center;margin-bottom:8px}
+.section-title{font-size:clamp(22px,3.6vw,34px);font-weight:800;letter-spacing:-0.03em;text-align:center;margin-bottom:8px}
+.section-subtitle{font-size:13.5px;color:var(--text2);text-align:center;margin-bottom:36px}
+.panels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.panel-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:26px;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.panel-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.panel-icon{
+  width:48px;height:48px;
+  background:var(--accent-dim);
+  border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+}
+.panel-icon svg{width:24px;height:24px;color:var(--accent)}
+.panel-name{font-size:17px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+.panel-desc{font-size:12.5px;color:var(--text2);line-height:1.6}
+.panel-features{display:flex;flex-direction:column;gap:6px;}
+.panel-feature{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.panel-feature::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.panel-action{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  margin-top:auto;
+}
+.panel-enter{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 14px;
+  border-radius:var(--radius);
+  background:var(--accent);
+  color:#000;
+  font-size:12.5px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  transition:background var(--transition);
+}
+.panel-enter:hover{background:#E0B030}
+.panel-enter svg{width:14px;height:14px}
+
+/* FOOTER CREATOR CREDIT (SUBTLE & COMPACT) */
+.footer-creator-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.footer-creator-credit:hover {
+  background: rgba(245, 197, 66, 0.1);
+  border-color: rgba(245, 197, 66, 0.35);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.footer-creator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--accent);
+  display: block;
+  background: #181c26;
+}
+
+/* FULL-SCREEN CREATOR PROFILE MODAL (PREMIUM & CLEAN) */
+.creator-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 13, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  box-sizing: border-box;
+}
+.creator-modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+.creator-modal-card {
+  position: relative;
+  background: linear-gradient(180deg, #161c28 0%, #0d121c 100%);
+  border: 1px solid rgba(245, 197, 66, 0.28);
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(245, 197, 66, 0.08);
+  transform: scale(0.94) translateY(12px);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.creator-modal-overlay.open .creator-modal-card {
+  transform: scale(1) translateY(0);
+}
+.creator-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.creator-modal-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ff5c5c;
+  transform: rotate(90deg);
+}
+.creator-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 197, 66, 0.1);
+  border: 1px solid rgba(245, 197, 66, 0.25);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+.creator-modal-avatar-wrap {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 16px;
+}
+.creator-modal-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 10px 28px rgba(245, 197, 66, 0.3);
+  display: block;
+  background: #181c26;
+}
+.creator-modal-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #FFF;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.creator-modal-branch {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.creator-modal-info-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.creator-modal-college {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.creator-modal-university {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.creator-modal-session {
+  display: inline-block;
+  background: rgba(245, 197, 66, 0.08);
+  border: 1px solid rgba(245, 197, 66, 0.2);
+  color: var(--accent);
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.creator-modal-tagline {
+  font-size: 12.5px;
+  color: var(--text2);
+  font-style: italic;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.creator-modal-btn-close {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.creator-modal-btn-close:hover {
+  background: #E0B030;
+  transform: translateY(-1px);
+}
+
+/* FOOTER */
+footer{
+  border-top:1px solid var(--border);
+  padding:16px 40px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  background:#090c13;
+}
+.footer-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text)}
+.footer-brand span{color:var(--accent)}
+.footer-copy{font-size:12px;color:var(--text2)}
+
+/* LOGIN MODAL */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.8);
+  z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  opacity:0;visibility:hidden;
+  transition:all 0.2s;
+}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  width:100%;max-width:400px;
+  transform:translateY(10px);
+  transition:transform 0.2s;
+  overflow:hidden;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-head{padding:20px 22px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-head-title{font-size:17px;font-weight:800;letter-spacing:-0.02em;margin-bottom:3px}
+.modal-head-sub{font-size:12px;color:var(--text2)}
+.modal-close-btn{
+  background:rgba(255,255,255,0.05);border:none;width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);
+}
+.modal-close-btn:hover{background:rgba(255,255,255,0.1);color:#FFF}
+.modal-close-btn svg{width:14px;height:14px}
+.modal-body{padding:20px 22px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text2);margin-bottom:6px}
+.form-input{
+  width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-size:13.5px;padding:9px 12px;outline:none;transition:border-color 0.2s;
+}
+.form-input:focus{border-color:var(--accent)}
+.role-select{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.role-btn{
+  padding:9px 6px;border-radius:var(--radius);border:1px solid var(--border);
+  background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all 0.2s;text-align:center;
+}
+.role-btn:hover{border-color:var(--text2);color:var(--text)}
+.role-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.btn-login-submit{
+  width:100%;padding:10px;border-radius:var(--radius);background:var(--accent);
+  color:#000;font-size:13.5px;font-weight:700;border:none;cursor:pointer;transition:background 0.2s;
+}
+.btn-login-submit:hover{background:#E0B030}
+
+@media(max-width:768px){
+  .topbar{padding:0 18px}
+  .nav-links{display:none}
+  .panels-grid{grid-template-columns:1fr}
+  .stats-strip{gap:28px;padding:18px}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    Online <span>Study Platform</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <nav class="nav-links">
+    <a href="admin.html" class="nav-link">Admin</a>
+    <a href="teacher.html" class="nav-link">Teacher</a>
+    <a href="student.html" class="nav-link">Student</a>
+  </nav>
+  <button class="btn-login" onclick="document.getElementById('loginModal').classList.add('open')">Sign In</button>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Modern Learning Platform</div>
+  <h1 class="hero-title">A Unified Experience for<br/><span>Online Study</span></h1>
+  <p class="hero-subtitle">Modern, clean and premium architecture with dedicated portals for Administrators, Teachers, and Students.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('loginModal').classList.add('open')">
+      Access Platform
+    </button>
+    <a href="admin.html" class="btn-secondary">
+      Admin Preview
+    </a>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item"><div class="stat-num" id="homeStudentsCount">0</div><div class="stat-lbl">Active Students</div></div>
+  <div class="stat-item"><div class="stat-num" id="homeTeachersCount">0</div><div class="stat-lbl">Faculty Staff</div></div>
+  <div class="stat-item"><div class="stat-num" id="homeSubjectsCount">0</div><div class="stat-lbl">Curriculum Subjects</div></div>
+  <div class="stat-item"><div class="stat-num" id="homeCoursesCount">0</div><div class="stat-lbl">Active Courses</div></div>
+</div>
+
+<!-- 3 MAIN PANELS SECTION -->
+<div class="panels-section">
+  <div class="section-label">Three Dedicated Roles</div>
+  <h2 class="section-title">Built for Everyone</h2>
+  <p class="section-subtitle">Select any panel below to enter and interact with the platform.</p>
+
+  <div class="panels-grid">
+    <!-- Admin Panel -->
+    <div class="panel-card" onclick="window.location.href='admin.html'">
+      <div class="panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div>
+        <div class="panel-name">1. Admin Panel</div>
+        <div class="panel-desc">Manage teachers, subjects, teacher allocations, and schedules without clutter.</div>
+      </div>
+      <div class="panel-features">
+        <div class="panel-feature">Teacher Account Creation &amp; Management</div>
+        <div class="panel-feature">Curriculum Subject Management</div>
+        <div class="panel-feature">Teacher Allocation (Multi-Subject)</div>
+        <div class="panel-feature">Dedicated Class Schedule Management</div>
+        <div class="panel-feature">Student Directory &amp; Settings</div>
+      </div>
+      <div class="panel-action">
+        <span style="font-size:11.5px;color:var(--text2);">Admin Access</span>
+        <button class="panel-enter">Enter Panel <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Teacher Panel -->
+    <div class="panel-card" onclick="window.location.href='teacher.html'">
+      <div class="panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div>
+        <div class="panel-name">2. Teacher Panel</div>
+        <div class="panel-desc">Content-management hub. Teachers only see subjects assigned to them by Admin.</div>
+      </div>
+      <div class="panel-features">
+        <div class="panel-feature">Assigned Subjects &amp; Module Creator</div>
+        <div class="panel-feature">4 Content Types: Video, Notes, Quiz, AI</div>
+        <div class="panel-feature">Video Comments &amp; Instructor Discussion</div>
+        <div class="panel-feature">Common Announcements Publisher</div>
+        <div class="panel-feature">E-Library Uploads &amp; Student Chat</div>
+      </div>
+      <div class="panel-action">
+        <span style="font-size:11.5px;color:var(--text2);">Teacher Access</span>
+        <button class="panel-enter">Enter Panel <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Student Panel -->
+    <div class="panel-card" onclick="window.location.href='student.html'">
+      <div class="panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div>
+        <div class="panel-name">3. Student Panel</div>
+        <div class="panel-desc">Focused learning environment. Browse all courses, enroll, watch lectures, and test skills.</div>
+      </div>
+      <div class="panel-features">
+        <div class="panel-feature">Browse All Courses &amp; "Enroll Now"</div>
+        <div class="panel-feature">Module-by-Module Video Lectures</div>
+        <div class="panel-feature">Lecture Video Questions &amp; Comments</div>
+        <div class="panel-feature">Interactive Quiz Runner with Scores</div>
+        <div class="panel-feature">E-Library Book Search &amp; Faculty Chat</div>
+      </div>
+      <div class="panel-action">
+        <span style="font-size:11.5px;color:var(--text2);">Student Access</span>
+        <button class="panel-enter">Enter Panel <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER (COMPACT & CLEAN) -->
+<footer>
+  <div class="footer-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;color:#F5C542"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Online <span>Study Platform</span></div>
+  
+  <!-- Subtle Small Clickable Creator Credit -->
+  <div class="footer-creator-credit" onclick="openCreatorProfileModal()" title="View Creator Profile &amp; Academic Details">
+    <img src="assets/images/shubham-kumar.png" alt="Shubham Kumar" class="footer-creator-avatar" onerror="this.onerror=null;this.src='public/images/shubham-kumar.png';" />
+    <span>Designed &amp; Developed by <strong style="color:#FFF;">Shubham Kumar</strong></span>
+  </div>
+
+  <div class="footer-copy">© 2026 Online Study Platform. All rights reserved.</div>
+</footer>
+
+<!-- FULL-SCREEN CREATOR PROFILE MODAL -->
+<div class="creator-modal-overlay" id="creatorProfileModal" onclick="if(event.target===this)closeCreatorProfileModal()">
+  <div class="creator-modal-card">
+    <button class="creator-modal-close" type="button" onclick="closeCreatorProfileModal()" aria-label="Close Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <div class="creator-modal-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Developer &amp; Platform Architect
+    </div>
+
+    <div class="creator-modal-avatar-wrap">
+      <img src="assets/images/shubham-kumar.png" alt="Shubham Kumar" class="creator-modal-avatar" onerror="this.onerror=null;this.src='public/images/shubham-kumar.png';" />
+    </div>
+
+    <div class="creator-modal-name">Shubham Kumar</div>
+    <div class="creator-modal-branch">B.Tech — Information Technology (IT)</div>
+
+    <div class="creator-modal-info-block">
+      <div class="creator-modal-college">
+        University College of Engineering and Technology (UCET), Hazaribagh
+      </div>
+      <div class="creator-modal-university">
+        Vinoba Bhave University (VBU), Hazaribagh
+      </div>
+      <div class="creator-modal-session">
+        Session: 2024–2027
+      </div>
+    </div>
+
+    <div class="creator-modal-tagline">
+      "Designed &amp; Developed this digital learning platform"
+    </div>
+
+    <button type="button" class="creator-modal-btn-close" onclick="closeCreatorProfileModal()">
+      ← Return to Platform
+    </button>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title">Sign In</div>
+        <div class="modal-head-sub">Select your user role to enter the portal</div>
+      </div>
+      <button class="modal-close-btn" type="button" onclick="document.getElementById('loginModal').classList.remove('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="loginErrorMessage" style="display:none;color:#ff5c5c;background:rgba(255,92,92,0.12);border:1px solid rgba(255,92,92,0.25);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.4;"></div>
+
+      <div class="form-label" style="margin-bottom:8px;">Sign In Role</div>
+      <div class="role-select" style="margin-bottom:16px;">
+        <button type="button" class="role-btn selected" onclick="selectLoginRole(this, 'admin.html', 'kumarshubham3187@gmail.com')">Admin</button>
+        <button type="button" class="role-btn" onclick="selectLoginRole(this, 'teacher.html', '')">Teacher</button>
+        <button type="button" class="role-btn" onclick="selectLoginRole(this, 'student.html', '')">Student</button>
+      </div>
+
+      <form id="portalLoginForm" action="#" method="POST" autocomplete="on" onsubmit="event.preventDefault(); executeLogin();">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email Address</label>
+          <input class="form-input" type="email" name="email" id="loginEmail" placeholder="Enter your email" autocomplete="username" required value="kumarshubham3187@gmail.com"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password</label>
+          <div style="position:relative;display:flex;align-items:center;">
+            <input class="form-input" type="password" name="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required style="padding-right:40px;width:100%;"/>
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" style="position:absolute;right:10px;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center;" title="Toggle Password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:13px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text2);">
+            <input type="checkbox" id="loginRememberMe" checked style="accent-color:var(--accent);cursor:pointer;width:15px;height:15px;"/>
+            <span>Remember login session</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-login-submit" id="loginSubmitBtn" style="width:100%;">Enter Panel →</button>
+      </form>
+
+      <div id="studentRegisterPrompt" style="display:none;text-align:center;margin-top:14px;font-size:13px;color:var(--text2);">
+        Don't have an account? <a href="student.html?mode=register" style="color:var(--accent);font-weight:700;text-decoration:underline;">Create Student Account</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/api-client.js"></script>
+<script>
+let targetUrl = 'admin.html';
+let targetRole = 'admin';
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.style.color = 'var(--accent)';
+  } else {
+    input.type = 'password';
+    btn.style.color = 'var(--text2)';
+  }
+}
+
+function selectLoginRole(btn, url, defaultEmail) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  targetUrl = url;
+  const regPrompt = document.getElementById('studentRegisterPrompt');
+  if (url === 'admin.html') {
+    targetRole = 'admin';
+    if (regPrompt) regPrompt.style.display = 'none';
+  } else if (url === 'teacher.html') {
+    targetRole = 'teacher';
+    if (regPrompt) regPrompt.style.display = 'none';
+  } else {
+    targetRole = 'student';
+    if (regPrompt) regPrompt.style.display = 'block';
+  }
+  const emailInput = document.getElementById('loginEmail');
+  if (emailInput) {
+    emailInput.value = defaultEmail || '';
+  }
+  const errEl = document.getElementById('loginErrorMessage');
+  if (errEl) errEl.style.display = 'none';
+}
+
+async function executeLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errEl = document.getElementById('loginErrorMessage');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+
+  if (errEl) errEl.style.display = 'none';
+
+  if (!email || !password) {
+    if (errEl) {
+      errEl.textContent = 'Please enter both email and password.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+  }
+
+  try {
+    let res;
+    if (targetRole === 'teacher') {
+      res = await LiveAPI.teacherLogin(email, password);
+    } else {
+      res = await LiveAPI.login(email, password, targetRole);
+    }
+
+    const user = res.user || res.data?.user;
+    if (res.success && user) {
+      if (user.role === 'teacher' || targetRole === 'teacher') {
+        sessionStorage.setItem('osp_active_teacher_id', user._id || user.id);
+      }
+
+      // Check for saved redirect destination
+      const savedRedirect = sessionStorage.getItem('osp_redirect_url');
+      if (savedRedirect && !savedRedirect.includes('index.html')) {
+        sessionStorage.removeItem('osp_redirect_url');
+        window.location.href = savedRedirect;
+      } else {
+        window.location.href = targetUrl;
+      }
+      return;
+    } else {
+      throw new Error(res.message || 'Login failed.');
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.textContent = `Login failed: ${err.message || 'Invalid credentials'}`;
+      errEl.style.display = 'block';
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enter Panel →';
+    }
+  }
+}
+
+// Fetch real database counts dynamically
+async function loadHomeStats() {
+  try {
+    const res = await LiveAPI.request('/admins/stats');
+    if (res && res.data) {
+      document.getElementById('homeStudentsCount').textContent = res.data.totalStudents || 0;
+      document.getElementById('homeTeachersCount').textContent = res.data.totalTeachers || 0;
+      document.getElementById('homeSubjectsCount').textContent = res.data.totalSubjects || 0;
+      document.getElementById('homeCoursesCount').textContent = res.data.totalCourses || 0;
+      return;
+    }
+  } catch (err) {}
+
+  try {
+    const [stRes, tRes, subRes, cRes] = await Promise.allSettled([
+      LiveAPI.getStudents(),
+      LiveAPI.getTeachers(),
+      LiveAPI.getSubjects(),
+      LiveAPI.getCourses(),
+    ]);
+    if (stRes.status === 'fulfilled' && stRes.value?.data) {
+      document.getElementById('homeStudentsCount').textContent = stRes.value.data.length;
+    }
+    if (tRes.status === 'fulfilled' && tRes.value?.data) {
+      document.getElementById('homeTeachersCount').textContent = tRes.value.data.length;
+    }
+    if (subRes.status === 'fulfilled' && subRes.value?.data) {
+      document.getElementById('homeSubjectsCount').textContent = subRes.value.data.length;
+    }
+    if (cRes.status === 'fulfilled' && cRes.value?.data) {
+      document.getElementById('homeCoursesCount').textContent = cRes.value.data.length;
+    }
+  } catch (e) {}
+}
+// Creator Full-Screen Profile Modal
+function openCreatorProfileModal() {
+  const modal = document.getElementById('creatorProfileModal');
+  if (modal) {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeCreatorProfileModal() {
+  const modal = document.getElementById('creatorProfileModal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeCreatorProfileModal();
+  }
+});
+
+loadHomeStats();
+</script>
+</body>
+</html>

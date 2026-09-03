@@ -1,0 +1,312 @@
+{
+  "info": {
+    "name": "Online Study Platform API Collection",
+    "description": "Comprehensive REST API collection for Admin, Teacher, and Student workflows",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "adminToken", "value": "" },
+    { "key": "teacherToken", "value": "" },
+    { "key": "studentToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"kumarshubham3187@gmail.com\",\n  \"password\": \"Admin@SecurePass2026!\",\n  \"role\": \"admin\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Teacher Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahul.kumar@studyplatform.edu\",\n  \"password\": \"password123\",\n  \"role\": \"teacher\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Student Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aryan.nair@student.edu\",\n  \"password\": \"password123\",\n  \"role\": \"student\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Admin Management",
+      "item": [
+        {
+          "name": "Get Platform Statistics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admins/stats",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Get Enrollment Analysis",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admins/enrollment-analysis",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Get All Teachers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/teachers",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/teachers",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prof. Neha Gupta\",\n  \"email\": \"neha.gupta@studyplatform.edu\",\n  \"password\": \"password123\",\n  \"department\": \"Information Technology\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Sync Teacher Allocations (Multi-Subject)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/allocations/sync",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"<TEACHER_ID>\",\n  \"subjectIds\": [\"<SUBJECT_ID_1>\", \"<SUBJECT_ID_2>\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get All Subjects",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subjects",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/subjects",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Machine Learning Foundations\",\n  \"code\": \"CS601\",\n  \"semester\": \"5th Semester\",\n  \"description\": \"Supervised and unsupervised learning, gradient descent, neural networks\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/schedules",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"<SUBJECT_ID>\",\n  \"teacherId\": \"<TEACHER_ID>\",\n  \"date\": \"2026-09-05\",\n  \"startTime\": \"10:00 AM\",\n  \"endTime\": \"11:30 AM\",\n  \"topic\": \"Module 2: Binary Search Trees\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Teacher Workspace",
+      "item": [
+        {
+          "name": "Get Teacher Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/teachers/dashboard/my-stats",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }]
+          }
+        },
+        {
+          "name": "Get My Assigned Subjects",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/teachers/my-subjects",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }]
+          }
+        },
+        {
+          "name": "Create Module",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/modules",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"<SUBJECT_ID>\",\n  \"title\": \"Module 3: Linked Lists\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Generate AI Quiz with Groq",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/ai/generate-quiz",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Red-Black Tree Rotations\",\n  \"numQuestions\": 2,\n  \"difficulty\": \"Medium\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Publish Reviewed Quiz",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quizzes",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"moduleId\": \"<MODULE_ID>\",\n  \"title\": \"Module 2 Assessment\",\n  \"questions\": [\n    {\n      \"question\": \"What is the time complexity of insert in a balanced BST?\",\n      \"options\": [\"O(1)\", \"O(log n)\", \"O(n)\", \"O(n log n)\"],\n      \"correctAnswer\": \"O(log n)\",\n      \"marks\": 1\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Publish Announcement",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/announcements",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lab Assignment 3 Extended\",\n  \"message\": \"Submission deadline is extended to next Monday.\",\n  \"subjectName\": \"Data Structures\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Upload E-Library Book",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/books",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookName\": \"Operating Systems In Practice\",\n  \"author\": \"Silberschatz\",\n  \"category\": \"OS\",\n  \"description\": \"Comprehensive operating systems manual.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Student Learning",
+      "item": [
+        {
+          "name": "Browse All Courses",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/courses",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }]
+          }
+        },
+        {
+          "name": "Enroll in Course (Enroll Now)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/enrollments",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"<COURSE_ID>\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get My Enrolled Courses",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/enrollments/my-courses",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }]
+          }
+        },
+        {
+          "name": "Submit Quiz Attempt",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quiz-attempts",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": \"<QUIZ_ID>\",\n  \"answers\": [\n    {\n      \"questionId\": \"<QUESTION_ID>\",\n      \"selectedAnswer\": \"O(log n)\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Post Video Comment / Doubt",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/comments",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoId\": \"<VIDEO_ID>\",\n  \"text\": \"Sir, could you explain the worst-case proof step again?\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Send Chat Message to Teacher",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"<TEACHER_ID>\",\n  \"message\": \"Good afternoon Sir, I had a question about the assignment.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

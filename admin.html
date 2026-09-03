@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel — Online Study Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/main.css"/>
+<style>
+.page { display: none; }
+.page.active { display: block; }
+.allocation-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+.alloc-item-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 12px; transition: border-color var(--transition); }
+.alloc-item-card:hover { border-color: #383838; }
+.alloc-teacher-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.alloc-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.alloc-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid rgba(245,197,66,0.25); color: var(--accent); padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; }
+@media (max-width: 900px) { .allocation-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<div class="sidebar-overlay"></div>
+
+<!-- ====== ADMIN SIDEBAR ====== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="brand-text">Online <span>Study Platform</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Administration</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="teachers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Teachers
+      </div>
+      <div class="nav-item" data-page="subjects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Subjects
+      </div>
+      <div class="nav-item" data-page="courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Courses
+      </div>
+      <div class="nav-item" data-page="allocation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Teacher Allocation
+      </div>
+      <div class="nav-item" data-page="schedule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedule
+      </div>
+      <div class="nav-item" data-page="students">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Students
+      </div>
+      <div class="nav-item" data-page="enrollment-analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Enrollment Analysis
+      </div>
+      <div class="nav-item" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users &amp; Roles
+      </div>
+      <div class="nav-item" data-page="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat Rooms
+      </div>
+      <div class="nav-item" data-page="admin-management">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin Management
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-widget" onclick="window.location.href='index.html'" title="Switch Portal">
+      <div class="user-avatar">AD</div>
+      <div class="user-info">
+        <div class="user-name">Administrator</div>
+        <div class="user-role">System Admin</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--text-secondary);"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- ====== MAIN CONTENT ====== -->
+<div class="main-content">
+  <header class="topbar">
+    <button class="hamburger-btn" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="topbar-title">Dashboard</span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="globalAdminSearch" placeholder="Search platform..."/>
+    </div>
+    <div class="topbar-btn" title="Alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-dot"></span>
+    </div>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="margin-left:4px;">Switch Panel</a>
+    <button onclick="AuthGuard.logout()" class="btn btn-secondary btn-sm" style="margin-left:4px;color:#ef4444;" title="Sign out of Admin Panel">Sign Out</button>
+  </header>
+
+  <!-- ======================================================
+       PAGE: DASHBOARD (Clean, 4 Useful Stats Only)
+  ====================================================== -->
+  <div class="page active" id="page-dashboard" data-title="Admin Dashboard">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Admin Dashboard</div>
+          <div class="page-subtitle">Minimal, uncluttered academic operations overview.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="addTeacherModal">+ Add Teacher</button>
+          <button class="btn btn-secondary btn-sm" data-modal="addSubjectModal">+ Add Subject</button>
+        </div>
+      </div>
+
+      <!-- Exactly 4 Useful Statistics Cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="badge badge-pending">Staff</span>
+          </div>
+          <div class="stat-value" id="statTeachersCount">0</div>
+          <div class="stat-label">Total Teachers</div>
+          <div class="stat-change">Active faculty accounts</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="badge badge-active">Active</span>
+          </div>
+          <div class="stat-value" id="statStudentsCount">0</div>
+          <div class="stat-label">Total Students</div>
+          <div class="stat-change">Enrolled across semesters</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+            <span class="badge badge-pending">Curriculum</span>
+          </div>
+          <div class="stat-value" id="statSubjectsCount">0</div>
+          <div class="stat-label">Total Subjects</div>
+          <div class="stat-change">Active syllabus tracks</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+            <span class="badge badge-active">Offerings</span>
+          </div>
+          <div class="stat-value" id="statCoursesCount">0</div>
+          <div class="stat-label">Total Courses</div>
+          <div class="stat-change">Assigned &amp; published</div>
+        </div>
+      </div>
+
+      <!-- Quick Operations Section -->
+      <div style="display:grid;grid-template-columns: 1.4fr 1fr; gap: 20px; margin-top: 10px;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Teacher Allocations</span>
+            <button class="btn btn-ghost btn-sm" onclick="document.querySelector('[data-page=allocation]').click()">Manage Allocations →</button>
+          </div>
+          <div class="card-body" style="padding: 12px 20px;" id="dashboardAllocSummary">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Upcoming Schedule Sessions</span>
+            <button class="btn btn-ghost btn-sm" onclick="document.querySelector('[data-page=schedule]').click()">View Schedule →</button>
+          </div>
+          <div class="card-body" style="padding: 12px 20px;" id="dashboardScheduleSummary">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: TEACHERS
+  ====================================================== -->
+  <div class="page" id="page-teachers" data-title="Teacher Management">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Teacher Management</div>
+          <div class="page-subtitle">Create and manage teacher credentials, photos, departments, and assigned subjects.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="addTeacherModal">+ Add Teacher</button>
+        </div>
+      </div>
+
+      <div class="card" style="overflow:hidden;border-radius:12px;width:100%;max-width:100%;">
+        <div class="table-wrap" style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table class="data-table" style="width:100%;min-width:920px;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="min-width:180px;">Teacher</th>
+                <th style="min-width:190px;">Email ID (Login)</th>
+                <th style="min-width:140px;">Department</th>
+                <th style="min-width:180px;">Assigned Subjects</th>
+                <th style="min-width:110px;">Status</th>
+                <th style="text-align:right;min-width:320px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="teachersTableBody">
+              <!-- Rendered via JS from Store -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: SUBJECTS
+  ====================================================== -->
+  <div class="page" id="page-subjects" data-title="Subject Management">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Subject Management</div>
+          <div class="page-subtitle">Define university curriculum subjects with code, semester, and course outline.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="addSubjectModal">+ Add Subject</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>Subject Code</th>
+                <th>Semester</th>
+                <th>Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subjectsTableBody">
+              <!-- Rendered via JS from Store -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: TEACHER ALLOCATION
+  ====================================================== -->
+  <div class="page" id="page-allocation" data-title="Teacher Allocation">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Teacher Allocation</div>
+          <div class="page-subtitle">Assign one or multiple subjects to each teacher. Teacher panel dynamically displays only assigned subjects.</div>
+        </div>
+      </div>
+
+      <div class="allocation-grid">
+        <!-- Allocation Edit Form -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" id="allocFormTitle">Allocate Subjects to Teacher</span>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Select Teacher</label>
+              <select class="form-control" id="allocTeacherSelect" onchange="loadTeacherAllocationForm()">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assign Subjects</label>
+              <div class="subject-tag-input-container" id="allocSubjectTagContainer">
+                <div class="subject-tags-list" id="allocSelectedTags"></div>
+                <div class="subject-input-wrapper">
+                  <input type="text" class="form-control subject-search-input" id="allocSubjectInput" placeholder="Search or type subject..." autocomplete="off" oninput="onSearchAllocSubjectInput(this.value)" onfocus="onSearchAllocSubjectInput(this.value)" />
+                  <div class="subject-suggestions-dropdown" id="allocSubjectDropdown" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="saveAllocationFromForm()">
+              Save Teacher Allocation
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Allocations Directory -->
+        <div>
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <span>Current Teacher Allocations</span>
+            <span style="font-size:12px;color:var(--text-secondary);">Select "Edit" to modify any teacher's assigned subjects</span>
+          </div>
+          <div id="allocationsListContainer">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: SCHEDULE
+  ====================================================== -->
+  <div class="page" id="page-schedule" data-title="Class Schedule">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Schedule Management</div>
+          <div class="page-subtitle">Dedicated timetable manager. Scheduled classes automatically appear for the assigned teacher and enrolled students.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="addScheduleModal">+ Add Schedule</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Teacher</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Module / Topic</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="schedulesTableBody">
+              <!-- Rendered via JS from Store -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: STUDENTS
+  ====================================================== -->
+  <div class="page" id="page-students" data-title="Students Directory">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Enrolled Students</div>
+          <div class="page-subtitle">Active student profiles and their enrolled subjects.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Roll Number</th>
+                <th>Email Address</th>
+                <th>Semester</th>
+                <th>Enrolled Courses</th>
+                <th style="text-align:right;">Role Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+              <!-- Rendered via JS from Store -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: COURSES
+  ====================================================== -->
+  <div class="page" id="page-courses" data-title="Course Offerings">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Course Offerings</div>
+          <div class="page-subtitle">Manage curriculum courses students enroll into.</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddCourseModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Course
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Course Name</th>
+                <th>Course Code</th>
+                <th>Related Subject</th>
+                <th>Assigned Teacher</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="coursesTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: ENROLLMENT ANALYSIS
+  ====================================================== -->
+  <div class="page" id="page-enrollment-analysis" data-title="Enrollment Analysis">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Course Enrollment Analysis</div>
+          <div class="page-subtitle">Track course-wise student enrollment numbers and details.</div>
+        </div>
+      </div>
+
+      <!-- Course Wise Enrollment Summary Cards -->
+      <div class="stats-grid" id="enrollmentCourseCards" style="margin-bottom:20px;">
+        <!-- Dynamic cards -->
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <span class="card-title">Detailed Student Enrollments</span>
+          <div style="display:flex;gap:8px;">
+            <select class="form-control" id="filterEnrollmentCourse" onchange="filterEnrollmentAnalysisTable()" style="max-width:200px;font-size:12.5px;">
+              <option value="">All Courses</option>
+            </select>
+            <input class="form-control" id="searchEnrollmentStudent" placeholder="Search student..." oninput="filterEnrollmentAnalysisTable()" style="max-width:200px;font-size:12.5px;"/>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Student Email</th>
+                <th>Course</th>
+                <th>Enrollment Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="enrollmentTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: ADMIN MANAGEMENT
+  ====================================================== -->
+  <div class="page" id="page-admin-management" data-title="Admin Accounts">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Administrator Accounts</div>
+          <div class="page-subtitle">Create and manage additional platform administrators.</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddAdminModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Admin
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Admin Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: USER & ROLE MANAGEMENT
+  ====================================================== -->
+  <div class="page" id="page-users" data-title="User &amp; Role Management">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">User &amp; Role Management</div>
+          <div class="page-subtitle">Unified multi-role directory. A single email can have Student, Teacher, and Administrator access simultaneously.</div>
+        </div>
+        <div class="page-actions" style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="openAssignTeacherRoleModal()">+ Assign as Teacher</button>
+          <button class="btn btn-secondary" onclick="openMakeAdminModal()">+ Make Admin</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-header-custom" style="padding:16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color);">
+          <input type="text" class="form-control" id="usersSearchInput" placeholder="Search by name, email, or role..." style="max-width:320px;" oninput="renderUsersTable()" />
+          <span id="usersTableCount" style="font-size:12px;color:var(--text-secondary);">Loading accounts...</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table" style="width:100%;">
+            <thead>
+              <tr>
+                <th>User / Name</th>
+                <th>Email Address</th>
+                <th>Current Roles</th>
+                <th>Teacher Status</th>
+                <th>Admin Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: CHAT (COMMUNITY & STAFF CHAT)
+  ====================================================== -->
+  <div class="page" id="page-chat" data-title="Chat Rooms">
+    <div class="page-content">
+      <div class="page-header" style="margin-bottom:12px;">
+        <div class="page-header-left">
+          <div class="page-title" id="chatRoomTitle">💬 Common Chat</div>
+          <div class="page-subtitle" id="chatRoomSubtitle">Public discussion room for Admin, Teachers &amp; Students</div>
+        </div>
+      </div>
+
+      <!-- 2-Box Tabs -->
+      <div class="chat-room-tabs" id="chatRoomTabs">
+        <button class="chat-room-tab active" onclick="window.platformChat.setRoom('common')">
+          <span>💬</span> Common Chat
+        </button>
+        <button class="chat-room-tab" onclick="window.platformChat.setRoom('staff')">
+          <span>🔒</span> Admin &amp; Teachers
+        </button>
+      </div>
+
+      <div class="chat-box-card">
+        <div class="chat-messages" id="chatMessagesBox">
+          <div style="color:var(--text-secondary);text-align:center;padding:40px;">Loading chat messages...</div>
+        </div>
+
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatMessageInput" placeholder="Type a message as Administrator..." />
+          <button class="chat-send-btn" id="chatSendBtn" title="Send Message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: SETTINGS
+  ====================================================== -->
+  <div class="page" id="page-settings" data-title="System Settings">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Platform Settings</div>
+          <div class="page-subtitle">Configure core platform properties and options.</div>
+        </div>
+      </div>
+
+      <div style="max-width: 640px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">General Platform Information</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Platform Name</label>
+              <input class="form-control" value="Online Study Platform" disabled/>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Academic Year</label>
+                <input class="form-control" value="2026 – 2027"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Admin Support Email</label>
+                <input class="form-control" value="admin@studyplatform.edu"/>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;">
+              <div>
+                <div style="font-size:13px;font-weight:600;">Allow Teacher AI Quiz Generation</div>
+                <div style="font-size:11.5px;color:var(--text-secondary);">Permit teachers to use AI assistance for creating MCQs</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="card-footer" style="display:flex;justify-content:flex-end;">
+            <button class="btn btn-primary btn-sm" onclick="showToast('Settings saved successfully!')">Save Changes</button>
+          </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><span class="card-title">Change Admin Password</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input class="form-control" type="password" id="adminCurrentPassword" placeholder="Enter current password"/>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input class="form-control" type="password" id="adminNewPassword" placeholder="Minimum 6 characters"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input class="form-control" type="password" id="adminConfirmPassword" placeholder="Re-enter new password"/>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer" style="display:flex;justify-content:flex-end;">
+            <button class="btn btn-primary btn-sm" onclick="submitChangeAdminPassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- end main-content -->
+
+<!-- ====== MODALS ====== -->
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="addTeacherModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Create Teacher Account</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teacher Name</label>
+          <input class="form-control" id="addTeacherName" placeholder="e.g. Professor Name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher Profile Photo (Upload)</label>
+          <input class="form-control" type="file" id="addTeacherPhotoFile" accept="image/*" onchange="handleAddTeacherPhotoFile(this)"/>
+          <div id="addTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload profile photo (Mobile &amp; Laptop)</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email ID (Used for Login)</label>
+          <input class="form-control" type="email" id="addTeacherEmail" placeholder="faculty@university.edu"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password (Used for Login)</label>
+          <input class="form-control" type="password" id="addTeacherPassword" placeholder="••••••••"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-control" id="addTeacherDept">
+            <option>Computer Science</option>
+            <option>Information Technology</option>
+            <option>Electronics</option>
+            <option>Applied Mathematics</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Initial Assigned Subjects</label>
+          <div class="subject-tag-input-container" id="addTeacherSubjectTagContainer">
+            <div class="subject-tags-list" id="addTeacherSelectedTags"></div>
+            <div class="subject-input-wrapper">
+              <input type="text" class="form-control subject-search-input" id="addTeacherSubjectInput" placeholder="Search or type subject..." autocomplete="off" oninput="onSearchTeacherSubjectInput(this.value)" onfocus="onSearchTeacherSubjectInput(this.value)" />
+              <div class="subject-suggestions-dropdown" id="addTeacherSubjectDropdown" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-hint">Note: You can select multiple existing subjects or type a new one. All subjects are saved globally.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddTeacher()">Create Teacher</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Teacher Modal -->
+<div class="modal-overlay" id="editTeacherModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Edit Teacher Account</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTeacherId"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teacher Name</label>
+          <input class="form-control" id="editTeacherName"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher Profile Photo (Change)</label>
+          <input class="form-control" type="file" id="editTeacherPhotoFile" accept="image/*" onchange="handleEditTeacherPhotoFile(this)"/>
+          <div id="editTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload new photo to replace current</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email ID</label>
+          <input class="form-control" type="email" id="editTeacherEmail"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password (or keep current)</label>
+          <input class="form-control" type="password" id="editTeacherPassword" placeholder="Leave blank to keep current"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-control" id="editTeacherDept">
+            <option>Computer Science</option>
+            <option>Information Technology</option>
+            <option>Electronics</option>
+            <option>Applied Mathematics</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="editTeacherStatus">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditTeacher()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Subject Modal -->
+<div class="modal-overlay" id="addSubjectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Curriculum Subject</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject Name</label>
+          <input class="form-control" id="addSubjectName" placeholder="e.g. Cloud Computing"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject Code</label>
+          <input class="form-control" id="addSubjectCode" placeholder="e.g. CS501"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Semester</label>
+        <select class="form-control" id="addSubjectSem">
+          <option>1st Semester</option>
+          <option>2nd Semester</option>
+          <option selected>3rd Semester</option>
+          <option>4th Semester</option>
+          <option>5th Semester</option>
+          <option>6th Semester</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="addSubjectDesc" placeholder="Brief outline of syllabus..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddSubject()">Create Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Subject Modal -->
+<div class="modal-overlay" id="editSubjectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Subject</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editSubjectId"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject Name</label>
+          <input class="form-control" id="editSubjectName"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject Code</label>
+          <input class="form-control" id="editSubjectCode"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Semester</label>
+        <select class="form-control" id="editSubjectSem">
+          <option>1st Semester</option>
+          <option>2nd Semester</option>
+          <option>3rd Semester</option>
+          <option>4th Semester</option>
+          <option>5th Semester</option>
+          <option>6th Semester</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="editSubjectDesc"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditSubject()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div class="modal-overlay" id="addScheduleModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Create Class Schedule</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select class="form-control" id="addSchSubject">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher</label>
+          <select class="form-control" id="addSchTeacher">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-control" type="date" id="addSchDate" value="2026-09-02"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Slot</label>
+          <input class="form-control" id="addSchTime" placeholder="e.g. 09:00 AM – 10:30 AM"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Module / Topic</label>
+        <input class="form-control" id="addSchTopic" placeholder="e.g. Module 1: Introduction to Time Complexity"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddSchedule()">Save Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Course Modal -->
+<div class="modal-overlay" id="addCourseModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Create Course Offering</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Course Title</label>
+          <input class="form-control" id="addCourseTitle" placeholder="e.g. Data Structures &amp; Algorithms Mastery"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Course Code</label>
+          <input class="form-control" id="addCourseCode" placeholder="e.g. CS301-A"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Related Subject</label>
+          <select class="form-control" id="addCourseSubject">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Semester</label>
+          <select class="form-control" id="addCourseSemester">
+            <option>1st Semester</option>
+            <option>2nd Semester</option>
+            <option selected>3rd Semester</option>
+            <option>4th Semester</option>
+            <option>5th Semester</option>
+            <option>6th Semester</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="addCourseDesc" placeholder="Complete course curriculum description..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddCourse()">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Admin Modal -->
+<div class="modal-overlay" id="addAdminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create Administrator Account</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Administrator Name</label>
+        <input class="form-control" id="addAdminName" placeholder="e.g. System Administrator 2"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-control" type="email" id="addAdminEmail" placeholder="admin2@studyplatform.edu"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" id="addAdminPassword" placeholder="Minimum 6 characters"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddAdmin()">Create Admin</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Admin Modal -->
+<div class="modal-overlay" id="editAdminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Administrator Account</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editAdminId"/>
+      <div class="form-group">
+        <label class="form-label">Administrator Name</label>
+        <input class="form-control" id="editAdminName"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-control" type="email" id="editAdminEmail"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reset Password (leave empty to keep current)</label>
+        <input class="form-control" type="password" id="editAdminPassword" placeholder="Enter new password if updating"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account Status</label>
+        <select class="form-control" id="editAdminStatus">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditAdmin()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Make Admin Modal -->
+<div class="modal-overlay" id="makeAdminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Grant Administrator Privileges</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">User Email Address</label>
+        <input class="form-control" type="email" id="makeAdminEmail" placeholder="user@university.edu"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Administrator Full Name</label>
+        <input class="form-control" type="text" id="makeAdminName" placeholder="e.g. Rahul Sharma"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin Login Password</label>
+        <input class="form-control" type="password" id="makeAdminPassword" placeholder="•••••••• (Min 6 characters)"/>
+        <div class="form-hint" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">This password allows logging into the Admin Panel. Any existing Student or Teacher passwords remain completely independent.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitMakeAdmin()">Grant Admin Access</button>
+    </div>
+  </div>
+</div>
+
+<!-- Permanent Delete Teacher Modal -->
+<div class="modal-overlay" id="deleteTeacherModal">
+  <div class="modal" style="max-width: 440px;">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#ef4444;display:flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Confirm Permanent Deletion
+      </span>
+      <button class="modal-close" onclick="closeModal('deleteTeacherModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text-primary);line-height:1.6;margin-bottom:8px;">Are you sure? This will permanently remove this teacher and their teacher account. This action cannot be undone.</p>
+      <div id="deleteTeacherTargetName" style="font-size:12.5px;color:var(--text-secondary);background:var(--bg-secondary);padding:8px 12px;border-radius:6px;border:1px solid var(--border);margin-top:8px;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn btn-secondary modal-cancel" onclick="closeModal('deleteTeacherModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteTeacherBtn" onclick="executeDeleteTeacher()">Delete Permanently</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal" style="max-width: 420px;">
+    <div class="modal-header">
+      <span class="modal-title">Confirm Deletion</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p id="deleteConfirmMessage" style="font-size:13.5px;color:var(--text-secondary);line-height:1.6;">Are you sure you want to permanently delete this item?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn">Delete Permanently</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="assets/js/platform-store.js"></script>
+<script src="assets/js/api-client.js"></script>
+<script src="assets/js/auth-guard.js"></script>
+<script src="assets/js/chat-manager.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+// --- Admin Page Logic & Sync with Store & Backend LiveAPI ---
+async function renderAdmin() {
+  let teachers = Store.getTeachers();
+  let subjects = Store.getSubjects();
+  let schedules = Store.getSchedules();
+  let students = Store.getStudents();
+
+  // Attempt live sync from backend
+  try {
+    const [tRes, sRes, schRes, stRes, statRes] = await Promise.all([
+      LiveAPI.getTeachers().catch(() => null),
+      LiveAPI.getSubjects().catch(() => null),
+      LiveAPI.getSchedules().catch(() => null),
+      LiveAPI.getStudents().catch(() => null),
+      LiveAPI.getAdminStats().catch(() => null),
+    ]);
+
+    if (tRes && tRes.data) {
+      teachers = tRes.data.map(t => ({
+        id: t._id,
+        name: t.name,
+        email: t.email,
+        department: t.department,
+        photo: t.photo || t.name.split(' ').map(n=>n[0]).join(''),
+        status: t.status,
+        assignedSubjects: (t.allocatedSubjects || []).map(s => s._id || s),
+      }));
+    }
+    if (sRes && sRes.data) {
+      subjects = sRes.data.map(s => ({
+        id: s._id,
+        name: s.name,
+        code: s.code,
+        semester: s.semester,
+        description: s.description,
+      }));
+    }
+    if (schRes && schRes.data) {
+      schedules = schRes.data.map(sch => ({
+        id: sch._id,
+        subjectName: sch.subjectName,
+        teacherName: sch.teacherName,
+        date: sch.date,
+        time: sch.startTime + (sch.endTime ? ' – ' + sch.endTime : ''),
+        topic: sch.topic,
+      }));
+    }
+    if (stRes && stRes.data) {
+      students = stRes.data.map(st => ({
+        id: st._id,
+        name: st.name,
+        roll: st.rollNumber || 'CS-2024-001',
+        email: st.email,
+        semester: st.semester,
+        enrolledSubjects: (st.enrolledCourses || []).map(c => c._id || c),
+      }));
+    }
+
+    if (statRes && statRes.data) {
+      document.getElementById('statTeachersCount').textContent = statRes.data.totalTeachers;
+      document.getElementById('statStudentsCount').textContent = statRes.data.totalStudents;
+      document.getElementById('statSubjectsCount').textContent = statRes.data.totalSubjects;
+      document.getElementById('statCoursesCount').textContent = statRes.data.totalCourses;
+    } else {
+      document.getElementById('statTeachersCount').textContent = teachers.length;
+      document.getElementById('statStudentsCount').textContent = students.length;
+      document.getElementById('statSubjectsCount').textContent = subjects.length;
+      document.getElementById('statCoursesCount').textContent = subjects.length;
+    }
+  } catch (err) {
+    console.warn('[Admin] Offline or fallback to local store');
+    document.getElementById('statTeachersCount').textContent = teachers.length;
+    document.getElementById('statStudentsCount').textContent = students.length;
+    document.getElementById('statSubjectsCount').textContent = subjects.length;
+    document.getElementById('statCoursesCount').textContent = subjects.length;
+  }
+
+  // Teachers Table
+  const tbody = document.getElementById('teachersTableBody');
+  tbody.innerHTML = '';
+  if (teachers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">No teachers found</td></tr>';
+  } else {
+    teachers.forEach(t => {
+      const assignedIds = (t.assignedSubjects || []).map(id => (id._id || id).toString());
+      const assignedNames = assignedIds.map(id => {
+        const s = subjects.find(sub => (sub.id || sub._id).toString() === id);
+        return s ? `<span class="badge badge-pending">${s.name}</span>` : '';
+      }).join(' ') || '<span style="color:var(--text-secondary);font-size:12px;">None</span>';
+
+      const isSuperAdmin = t.email === 'kumarshubham3187@gmail.com' || t.role === 'super_admin';
+      const isActive = t.status === 'Active';
+
+      const statusBadge = isActive
+        ? `<span class="badge" style="background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.3);font-weight:600;"><span class="badge-dot" style="background:#10b981;"></span>Active</span>`
+        : `<span class="badge" style="background:rgba(148,163,184,0.12);color:#94a3b8;border:1px solid rgba(148,163,184,0.3);font-weight:600;"><span class="badge-dot" style="background:#64748b;"></span>Inactive</span>`;
+
+      let toggleBtn = '';
+      let deleteBtn = '';
+
+      if (isSuperAdmin) {
+        deleteBtn = `<span class="badge" style="background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:10.5px;">🛡️ Super Admin</span>`;
+      } else {
+        toggleBtn = isActive
+          ? `<button class="btn btn-secondary btn-xs" onclick="toggleTeacherStatus('${t.id}')" style="white-space:nowrap;color:#f59e0b;border-color:rgba(245,158,11,0.3);">Deactivate</button>`
+          : `<button class="btn btn-secondary btn-xs" onclick="toggleTeacherStatus('${t.id}')" style="white-space:nowrap;color:#10b981;border-color:rgba(16,185,129,0.3);">Activate</button>`;
+        deleteBtn = `<button class="btn btn-danger btn-xs" onclick="openDeleteTeacherConfirm('${t.id}', '${t.name.replace(/'/g, "\\'")}', '${t.email}')" style="white-space:nowrap;">Delete Permanently</button>`;
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.photo, t.name, 'TR')}</div>
+            <div>
+              <div style="font-weight:700;font-size:13.5px;">${t.name}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color:var(--text-secondary);font-size:13px;">${t.email}</td>
+        <td style="font-size:13px;">${t.department}</td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${assignedNames}</div></td>
+        <td>${statusBadge}</td>
+        <td class="actions" style="white-space: nowrap; text-align:right;">
+          <div class="actions-row" style="display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap;white-space:nowrap;">
+            <a class="btn btn-secondary btn-xs" href="teacher.html?teacherId=${t.id}" target="_blank" style="color:var(--accent);text-decoration:none;white-space:nowrap;">Open Panel ↗</a>
+            <button class="btn btn-secondary btn-xs" onclick="openEditTeacher('${t.id}')" style="white-space:nowrap;">Edit</button>
+            ${toggleBtn}
+            ${deleteBtn}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Subjects Table
+  const subTbody = document.getElementById('subjectsTableBody');
+  subTbody.innerHTML = '';
+  if (subjects.length === 0) {
+    subTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:24px;">No subjects found</td></tr>';
+  } else {
+    subjects.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;">${s.name}</td>
+        <td style="color:var(--accent);font-weight:700;font-size:12.5px;">${s.code}</td>
+        <td style="font-size:13px;">${s.semester}</td>
+        <td style="color:var(--text-secondary);font-size:12.5px;max-width:320px;">${s.description}</td>
+        <td class="actions" style="white-space:nowrap;">
+          <div class="actions-row" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap;">
+            <button class="btn btn-secondary btn-xs" onclick="openEditSubject('${s.id}')" style="white-space:nowrap;">Edit</button>
+            <button class="btn btn-danger btn-xs" onclick="confirmDeleteSubject('${s.id}', '${s.name.replace(/'/g, "\\'")}')" style="white-space:nowrap;">Delete</button>
+          </div>
+        </td>
+      `;
+      subTbody.appendChild(tr);
+    });
+  }
+
+  // Schedules Table
+  const schTbody = document.getElementById('schedulesTableBody');
+  schTbody.innerHTML = '';
+  if (schedules.length === 0) {
+    schTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">No scheduled classes yet</td></tr>';
+  } else {
+    schedules.forEach(sch => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;">${sch.subjectName}</td>
+        <td>${sch.teacherName}</td>
+        <td style="font-size:13px;">${sch.date}</td>
+        <td style="color:var(--accent);font-weight:700;font-size:12px;">${sch.time}</td>
+        <td style="font-size:13px;">${sch.topic}</td>
+        <td class="actions" style="white-space:nowrap;">
+          <div class="actions-row" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap;">
+            <button class="btn btn-danger btn-xs" onclick="confirmDeleteSchedule('${sch.id}')" style="white-space:nowrap;">Delete</button>
+          </div>
+        </td>
+      `;
+      schTbody.appendChild(tr);
+    });
+  }
+
+  // Students Table
+  const stdTbody = document.getElementById('studentsTableBody');
+  stdTbody.innerHTML = '';
+  if (students.length === 0) {
+    stdTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">No students found</td></tr>';
+  } else {
+    students.forEach(st => {
+      const courseNames = (st.enrolledSubjects || []).map(id => {
+        const s = subjects.find(sub => (sub.id || sub._id).toString() === (id || '').toString());
+        return s ? s.name : id;
+      }).join(', ');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;">${st.name}</td>
+        <td style="color:var(--accent);font-weight:700;font-size:12.5px;">${st.roll || '-'}</td>
+        <td style="color:var(--text-secondary);font-size:13px;">${st.email}</td>
+        <td>${st.semester || '-'}</td>
+        <td style="color:var(--text-secondary);font-size:12.5px;">${courseNames || 'None'}</td>
+        <td class="actions" style="white-space: nowrap; text-align:right;">
+          <div class="actions-row" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap;">
+            <button class="btn btn-secondary btn-xs" onclick="openAssignTeacherRoleModal('${st.email}', '${st.name.replace(/'/g, "\\'")}')" style="white-space:nowrap;">+ Assign Teacher</button>
+            <button class="btn btn-secondary btn-xs" onclick="openMakeAdminModal('${st.email}', '${st.name.replace(/'/g, "\\'")}')" style="white-space:nowrap;">+ Make Admin</button>
+          </div>
+        </td>
+      `;
+      stdTbody.appendChild(tr);
+    });
+  }
+
+  // Teacher Allocation Dropdown & List
+  renderTeacherAllocationSection();
+
+  // Dashboard Summaries
+  renderDashboardSummaries();
+}
+
+function renderTeacherAllocationSection() {
+  const teachers = Store.getTeachers();
+  const subjects = Store.getSubjects();
+
+  // Teacher Select
+  const select = document.getElementById('allocTeacherSelect');
+  select.innerHTML = '';
+  teachers.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = `${t.name} (${t.department})`;
+    select.appendChild(opt);
+  });
+
+  // Subject Checkboxes in Form
+  loadTeacherAllocationForm();
+
+  // List of current allocations
+  const container = document.getElementById('allocationsListContainer');
+  container.innerHTML = '';
+  if (teachers.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-secondary);padding:24px;text-align:center;">No teachers found in database.</div>';
+    return;
+  }
+
+  teachers.forEach(t => {
+    const assignedIds = (t.assignedSubjects || []).map(id => (id._id || id).toString());
+    const assignedSubs = assignedIds.map(id => subjects.find(s => (s.id || s._id).toString() === id)).filter(Boolean);
+    const pills = assignedSubs.map(s => `<span class="alloc-badge">${s.name} (${s.code})</span>`).join('') || '<span style="font-size:12px;color:var(--text-secondary);">No subjects assigned yet</span>';
+
+    const card = document.createElement('div');
+    card.className = 'alloc-item-card';
+    card.innerHTML = `
+      <div class="alloc-teacher-title">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.photo, t.name, 'TR')}</div>
+          <div>
+            <div>${t.name}</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);font-weight:normal;">${t.department} · ${t.email}</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-xs" onclick="selectTeacherForAllocation('${t.id}')">Edit Allocation</button>
+      </div>
+      <div class="alloc-pills">${pills}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// --- Add Teacher Multi-Subject Tag Input Logic ---
+window.createTeacherSelectedSubjects = [];
+
+function renderCreateTeacherSelectedTags() {
+  const container = document.getElementById('addTeacherSelectedTags');
+  if (!container) return;
+  container.innerHTML = '';
+  window.createTeacherSelectedSubjects.forEach((sub, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'subject-chip';
+    chip.innerHTML = `
+      <span>${sub.name} <span style="font-size:10px;opacity:0.8;">(${sub.code || ''})</span></span>
+      <button type="button" class="chip-remove" onclick="removeCreateTeacherSubject(${idx})">×</button>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+function removeCreateTeacherSubject(idx) {
+  window.createTeacherSelectedSubjects.splice(idx, 1);
+  renderCreateTeacherSelectedTags();
+}
+
+function onSearchTeacherSubjectInput(query) {
+  const dropdown = document.getElementById('addTeacherSubjectDropdown');
+  if (!dropdown) return;
+  const q = (query || '').trim().toLowerCase();
+  const allSubjects = Store.getSubjects() || [];
+  const selectedIds = window.createTeacherSelectedSubjects.map(s => (s.id || s._id || s.name).toString().toLowerCase());
+
+  const available = allSubjects.filter(s => {
+    const sId = (s.id || s._id || '').toString().toLowerCase();
+    const sName = (s.name || '').toLowerCase();
+    return !selectedIds.includes(sId) && !selectedIds.includes(sName);
+  });
+
+  const matches = q
+    ? available.filter(s => s.name.toLowerCase().includes(q) || (s.code && s.code.toLowerCase().includes(q)))
+    : available;
+
+  const hasExact = allSubjects.some(s => (s.name || '').trim().toLowerCase() === q);
+
+  let html = '';
+  if (matches.length > 0) {
+    html += '<div class="subject-suggestion-header">Existing Subjects</div>';
+    matches.forEach(s => {
+      html += `
+        <div class="subject-suggestion-item" onclick="selectCreateTeacherSubject('${s.id || s._id}')">
+          <span><strong>${s.name}</strong> <span style="color:var(--accent);font-size:11px;">(${s.code || 'SUB'})</span></span>
+          <span style="font-size:11px;color:var(--text-secondary);">${s.semester || '1st Sem'}</span>
+        </div>
+      `;
+    });
+  }
+
+  if (q && !hasExact) {
+    const escapedQuery = query.replace(/'/g, "\\'");
+    html += `
+      <div class="subject-create-item" onclick="createAndSelectTeacherSubject('${escapedQuery}')">
+        <span>+ Create "<strong>${query.replace(/</g, '&lt;')}</strong>"</span>
+      </div>
+    `;
+  }
+
+  if (!html) {
+    html = '<div style="padding:10px;font-size:12px;color:var(--text-secondary);text-align:center;">Type to search or create new subject...</div>';
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'flex';
+}
+
+function selectCreateTeacherSubject(subjectId) {
+  const allSubjects = Store.getSubjects() || [];
+  const sub = allSubjects.find(s => (s.id || s._id).toString() === subjectId.toString());
+  if (sub && !window.createTeacherSelectedSubjects.some(s => (s.id || s._id) === (sub.id || sub._id))) {
+    window.createTeacherSelectedSubjects.push(sub);
+    renderCreateTeacherSelectedTags();
+  }
+  const input = document.getElementById('addTeacherSubjectInput');
+  if (input) input.value = '';
+  const dropdown = document.getElementById('addTeacherSubjectDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+}
+
+async function createAndSelectTeacherSubject(rawName) {
+  const name = (rawName || '').trim();
+  if (!name) return;
+
+  try {
+    showToast(`Creating subject "${name}" in global database...`);
+    const res = await LiveAPI.createSubject({ name });
+    await Store.syncWithBackend();
+    const createdSub = res.data || { name };
+    if (!window.createTeacherSelectedSubjects.some(s => (s.name || '').toLowerCase() === name.toLowerCase())) {
+      window.createTeacherSelectedSubjects.push(createdSub);
+      renderCreateTeacherSelectedTags();
+    }
+    const input = document.getElementById('addTeacherSubjectInput');
+    if (input) input.value = '';
+    const dropdown = document.getElementById('addTeacherSubjectDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    showToast(`Subject "${name}" saved globally!`);
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Failed to create subject: ${err.message}`);
+  }
+}
+
+// --- Teacher Allocation Multi-Subject Tag Input Logic ---
+window.allocSelectedSubjects = [];
+
+function loadTeacherAllocationForm() {
+  const teacherId = document.getElementById('allocTeacherSelect')?.value;
+  const teachers = Store.getTeachers() || [];
+  const teacher = teachers.find(t => (t.id || t._id).toString() === (teacherId || '').toString());
+  const allSubjects = Store.getSubjects() || [];
+
+  window.allocSelectedSubjects = [];
+  if (teacher && teacher.assignedSubjects) {
+    const assignedIds = teacher.assignedSubjects.map(id => (id._id || id).toString());
+    window.allocSelectedSubjects = allSubjects.filter(s => assignedIds.includes((s.id || s._id).toString()));
+  }
+
+  renderAllocSelectedTags();
+}
+
+function renderAllocSelectedTags() {
+  const container = document.getElementById('allocSelectedTags');
+  if (!container) return;
+  container.innerHTML = '';
+  if (window.allocSelectedSubjects.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-secondary);padding:4px 0;">No subjects assigned yet. Search or type to assign subjects.</span>';
+    return;
+  }
+  window.allocSelectedSubjects.forEach((sub, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'subject-chip';
+    chip.innerHTML = `
+      <span>${sub.name} <span style="font-size:10px;opacity:0.8;">(${sub.code || ''})</span></span>
+      <button type="button" class="chip-remove" onclick="removeAllocSubject(${idx})">×</button>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+function removeAllocSubject(idx) {
+  window.allocSelectedSubjects.splice(idx, 1);
+  renderAllocSelectedTags();
+}
+
+function onSearchAllocSubjectInput(query) {
+  const dropdown = document.getElementById('allocSubjectDropdown');
+  if (!dropdown) return;
+  const q = (query || '').trim().toLowerCase();
+  const allSubjects = Store.getSubjects() || [];
+  const selectedIds = window.allocSelectedSubjects.map(s => (s.id || s._id || s.name).toString().toLowerCase());
+
+  const available = allSubjects.filter(s => {
+    const sId = (s.id || s._id || '').toString().toLowerCase();
+    const sName = (s.name || '').toLowerCase();
+    return !selectedIds.includes(sId) && !selectedIds.includes(sName);
+  });
+
+  const matches = q
+    ? available.filter(s => s.name.toLowerCase().includes(q) || (s.code && s.code.toLowerCase().includes(q)))
+    : available;
+
+  const hasExact = allSubjects.some(s => (s.name || '').trim().toLowerCase() === q);
+
+  let html = '';
+  if (matches.length > 0) {
+    html += '<div class="subject-suggestion-header">Existing Subjects</div>';
+    matches.forEach(s => {
+      html += `
+        <div class="subject-suggestion-item" onclick="selectAllocSubject('${s.id || s._id}')">
+          <span><strong>${s.name}</strong> <span style="color:var(--accent);font-size:11px;">(${s.code || 'SUB'})</span></span>
+          <span style="font-size:11px;color:var(--text-secondary);">${s.semester || '1st Sem'}</span>
+        </div>
+      `;
+    });
+  }
+
+  if (q && !hasExact) {
+    const escapedQuery = query.replace(/'/g, "\\'");
+    html += `
+      <div class="subject-create-item" onclick="createAndSelectAllocSubject('${escapedQuery}')">
+        <span>+ Create "<strong>${query.replace(/</g, '&lt;')}</strong>"</span>
+      </div>
+    `;
+  }
+
+  if (!html) {
+    html = '<div style="padding:10px;font-size:12px;color:var(--text-secondary);text-align:center;">Type to search or create new subject...</div>';
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'flex';
+}
+
+function selectAllocSubject(subjectId) {
+  const allSubjects = Store.getSubjects() || [];
+  const sub = allSubjects.find(s => (s.id || s._id).toString() === subjectId.toString());
+  if (sub && !window.allocSelectedSubjects.some(s => (s.id || s._id) === (sub.id || sub._id))) {
+    window.allocSelectedSubjects.push(sub);
+    renderAllocSelectedTags();
+  }
+  const input = document.getElementById('allocSubjectInput');
+  if (input) input.value = '';
+  const dropdown = document.getElementById('allocSubjectDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+}
+
+async function createAndSelectAllocSubject(rawName) {
+  const name = (rawName || '').trim();
+  if (!name) return;
+
+  try {
+    showToast(`Creating subject "${name}" in global database...`);
+    const res = await LiveAPI.createSubject({ name });
+    await Store.syncWithBackend();
+    const createdSub = res.data || { name };
+    if (!window.allocSelectedSubjects.some(s => (s.name || '').toLowerCase() === name.toLowerCase())) {
+      window.allocSelectedSubjects.push(createdSub);
+      renderAllocSelectedTags();
+    }
+    const input = document.getElementById('allocSubjectInput');
+    if (input) input.value = '';
+    const dropdown = document.getElementById('allocSubjectDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    showToast(`Subject "${name}" saved globally!`);
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Failed to create subject: ${err.message}`);
+  }
+}
+
+function selectTeacherForAllocation(teacherId) {
+  document.getElementById('allocTeacherSelect').value = teacherId;
+  loadTeacherAllocationForm();
+  document.getElementById('allocTeacherSelect').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveAllocationFromForm() {
+  const teacherId = document.getElementById('allocTeacherSelect').value;
+  if (!teacherId) {
+    showToast('Please select a teacher');
+    return;
+  }
+
+  const subjectIds = window.allocSelectedSubjects.map(s => s.id || s._id || s.name);
+
+  showToast('Saving allocation to database...');
+  try {
+    await LiveAPI.syncTeacherAllocations(teacherId, subjectIds);
+    await Store.syncWithBackend();
+    showToast('Teacher allocation saved in MongoDB!');
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Allocation failed: ${err.message}`);
+  }
+}
+
+function renderDashboardSummaries() {
+  const teachers = Store.getTeachers();
+  const subjects = Store.getSubjects();
+  const schedules = Store.getSchedules();
+
+  const allocBox = document.getElementById('dashboardAllocSummary');
+  if (allocBox) {
+    allocBox.innerHTML = '';
+    teachers.slice(0, 3).forEach(t => {
+      const subs = (t.assignedSubjects || []).map(id => subjects.find(s=> (s.id || s._id).toString() === (id._id || id).toString())).filter(Boolean);
+      const subNames = subs.map(s => s.name).join(', ') || 'No subjects assigned';
+      const div = document.createElement('div');
+      div.style.padding = '8px 0';
+      div.style.borderBottom = '1px solid var(--border)';
+      div.innerHTML = `
+        <div style="font-size:13px;font-weight:700;">${t.name} <span style="font-size:11px;color:var(--text-secondary);font-weight:normal;">(${t.department})</span></div>
+        <div style="font-size:12px;color:var(--accent);margin-top:2px;">${subNames}</div>
+      `;
+      allocBox.appendChild(div);
+    });
+  }
+
+  const schBox = document.getElementById('dashboardScheduleSummary');
+  if (schBox) {
+    schBox.innerHTML = '';
+    schedules.slice(0, 3).forEach(sch => {
+      const div = document.createElement('div');
+      div.style.padding = '8px 0';
+      div.style.borderBottom = '1px solid var(--border)';
+      div.innerHTML = `
+        <div style="font-size:13px;font-weight:700;">${sch.subjectName} <span style="font-size:11px;color:var(--accent);">${sch.time}</span></div>
+        <div style="font-size:12px;color:var(--text-secondary);">${sch.teacherName} · ${sch.date}</div>
+      `;
+      schBox.appendChild(div);
+    });
+  }
+}
+
+// Modal Form Fillers
+function populateModalDropdowns() {
+  const subjects = Store.getSubjects();
+  const teachers = Store.getTeachers();
+
+  renderCreateTeacherSelectedTags();
+
+  const schSub = document.getElementById('addSchSubject');
+  if (schSub) {
+    schSub.innerHTML = '';
+    subjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id || s._id;
+      opt.textContent = `${s.name} (${s.code})`;
+      schSub.appendChild(opt);
+    });
+  }
+
+  const schTeach = document.getElementById('addSchTeacher');
+  if (schTeach) {
+    schTeach.innerHTML = '';
+    teachers.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.name;
+      opt.textContent = `${t.name} (${t.department})`;
+      schTeach.appendChild(opt);
+    });
+  }
+}
+
+// Global click listener to dismiss search dropdowns
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#addTeacherSubjectTagContainer')) {
+    const d = document.getElementById('addTeacherSubjectDropdown');
+    if (d) d.style.display = 'none';
+  }
+  if (!e.target.closest('#allocSubjectTagContainer')) {
+    const d = document.getElementById('allocSubjectDropdown');
+    if (d) d.style.display = 'none';
+  }
+});
+
+let selectedAddTeacherPhotoFile = null;
+let selectedEditTeacherPhotoFile = null;
+
+function handleAddTeacherPhotoFile(input) {
+  if (input.files && input.files[0]) {
+    selectedAddTeacherPhotoFile = input.files[0];
+    const info = document.getElementById('addTeacherPhotoInfo');
+    info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+    info.style.color = 'var(--accent)';
+  }
+}
+
+function handleEditTeacherPhotoFile(input) {
+  if (input.files && input.files[0]) {
+    selectedEditTeacherPhotoFile = input.files[0];
+    const info = document.getElementById('editTeacherPhotoInfo');
+    info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+    info.style.color = 'var(--accent)';
+  }
+}
+
+// Add Teacher
+async function submitAddTeacher() {
+  const name = document.getElementById('addTeacherName').value.trim();
+  const email = document.getElementById('addTeacherEmail').value.trim();
+  const password = document.getElementById('addTeacherPassword').value.trim();
+  const dept = document.getElementById('addTeacherDept').value;
+
+  if (!name || !email || !password) {
+    showToast('Please fill in teacher name, email and password');
+    return;
+  }
+
+  const subjectIds = window.createTeacherSelectedSubjects.map(s => s.id || s._id || s.name);
+
+  showToast('Creating teacher account in database...');
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('department', dept);
+    if (subjectIds.length > 0) {
+      formData.append('subjectIds', JSON.stringify(subjectIds));
+    }
+    if (selectedAddTeacherPhotoFile) {
+      formData.append('photo', selectedAddTeacherPhotoFile);
+    }
+
+    await LiveAPI.createTeacher(formData);
+    await Store.syncWithBackend();
+
+    closeModal('addTeacherModal');
+    selectedAddTeacherPhotoFile = null;
+    window.createTeacherSelectedSubjects = [];
+    renderCreateTeacherSelectedTags();
+    document.getElementById('addTeacherPhotoFile').value = '';
+    document.getElementById('addTeacherName').value = '';
+    document.getElementById('addTeacherEmail').value = '';
+    document.getElementById('addTeacherPassword').value = '';
+    if (document.getElementById('addTeacherSubjectInput')) {
+      document.getElementById('addTeacherSubjectInput').value = '';
+    }
+    showToast(`Teacher ${name} created successfully!`);
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Teacher creation error: ${err.message}`);
+  }
+}
+
+// Edit Teacher
+function openEditTeacher(id) {
+  const t = Store.getTeachers().find(tea => tea.id === id);
+  if (!t) return;
+  document.getElementById('editTeacherId').value = t.id;
+  document.getElementById('editTeacherName').value = t.name;
+  document.getElementById('editTeacherEmail').value = t.email;
+  document.getElementById('editTeacherPassword').value = '';
+  document.getElementById('editTeacherDept').value = t.department;
+  document.getElementById('editTeacherStatus').value = t.status;
+  selectedEditTeacherPhotoFile = null;
+  document.getElementById('editTeacherPhotoFile').value = '';
+  document.getElementById('editTeacherPhotoInfo').textContent = t.photo ? 'Current photo loaded' : 'No photo uploaded yet';
+  document.getElementById('editTeacherPhotoInfo').style.color = 'var(--text-secondary)';
+  openModal('editTeacherModal');
+}
+
+async function submitEditTeacher() {
+  const id = document.getElementById('editTeacherId').value;
+  const name = document.getElementById('editTeacherName').value.trim();
+  const email = document.getElementById('editTeacherEmail').value.trim();
+  const dept = document.getElementById('editTeacherDept').value;
+  const status = document.getElementById('editTeacherStatus').value;
+  const pwd = document.getElementById('editTeacherPassword').value.trim();
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('department', dept);
+    formData.append('status', status);
+    if (pwd) formData.append('password', pwd);
+    if (selectedEditTeacherPhotoFile) {
+      formData.append('photo', selectedEditTeacherPhotoFile);
+    }
+
+    await LiveAPI.updateTeacher(id, formData);
+    await Store.syncWithBackend();
+    closeModal('editTeacherModal');
+    selectedEditTeacherPhotoFile = null;
+    showToast('Teacher profile updated in database!');
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Update failed: ${err.message}`);
+  }
+}
+
+async function toggleTeacherStatus(id) {
+  try {
+    showToast('Updating teacher status...');
+    const res = await LiveAPI.toggleTeacherStatus(id);
+    await Store.syncWithBackend();
+    showToast(res.message || 'Teacher status updated successfully');
+    await renderAdmin();
+    if (typeof renderUsersTable === 'function') renderUsersTable();
+  } catch (err) {
+    showToast(`Status change failed: ${err.message}`);
+  }
+}
+
+let pendingDeleteTeacherId = null;
+
+function openDeleteTeacherConfirm(id, name, email) {
+  pendingDeleteTeacherId = id;
+  const targetDiv = document.getElementById('deleteTeacherTargetName');
+  if (targetDiv) {
+    targetDiv.innerHTML = `<strong>${name}</strong> (${email || 'No email'})`;
+  }
+  openModal('deleteTeacherModal');
+}
+
+async function executeDeleteTeacher() {
+  if (!pendingDeleteTeacherId) return;
+  const id = pendingDeleteTeacherId;
+  pendingDeleteTeacherId = null;
+
+  try {
+    showToast('Permanently deleting teacher account...');
+    await LiveAPI.deleteTeacher(id);
+    await Store.syncWithBackend();
+    closeModal('deleteTeacherModal');
+    showToast('✓ Teacher permanently removed.');
+    await renderAdmin();
+    if (typeof renderUsersTable === 'function') renderUsersTable();
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`);
+  }
+}
+
+// Add Subject
+async function submitAddSubject() {
+  const name = document.getElementById('addSubjectName').value.trim();
+  const code = document.getElementById('addSubjectCode').value.trim();
+  const semester = document.getElementById('addSubjectSem').value;
+  const description = document.getElementById('addSubjectDesc').value.trim();
+
+  if (!name) {
+    showToast('Please enter subject name');
+    return;
+  }
+
+  showToast('Creating subject in database...');
+  try {
+    await LiveAPI.createSubject({ name, code, semester, description });
+    await Store.syncWithBackend();
+    closeModal('addSubjectModal');
+    document.getElementById('addSubjectName').value = '';
+    document.getElementById('addSubjectCode').value = '';
+    document.getElementById('addSubjectDesc').value = '';
+    showToast(`Subject "${name}" saved in MongoDB!`);
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Error creating subject: ${err.message}`);
+  }
+}
+
+// Edit Subject
+function openEditSubject(id) {
+  const s = Store.getSubjects().find(sub => (sub.id || sub._id).toString() === id.toString());
+  if (!s) return;
+  document.getElementById('editSubjectId').value = s.id || s._id;
+  document.getElementById('editSubjectName').value = s.name;
+  document.getElementById('editSubjectCode').value = s.code;
+  document.getElementById('editSubjectSem').value = s.semester;
+  document.getElementById('editSubjectDesc').value = s.description || '';
+  openModal('editSubjectModal');
+}
+
+async function submitEditSubject() {
+  const id = document.getElementById('editSubjectId').value;
+  const updates = {
+    name: document.getElementById('editSubjectName').value.trim(),
+    code: document.getElementById('editSubjectCode').value.trim(),
+    semester: document.getElementById('editSubjectSem').value,
+    description: document.getElementById('editSubjectDesc').value.trim()
+  };
+  try {
+    await LiveAPI.updateSubject(id, updates);
+    await Store.syncWithBackend();
+    closeModal('editSubjectModal');
+    showToast('Subject updated successfully in MongoDB!');
+    await renderAdmin();
+  } catch (err) {
+    showToast(`Update failed: ${err.message}`);
+  }
+}
+
+function confirmDeleteSubject(id, name) {
+  document.getElementById('deleteConfirmMessage').textContent = `Are you sure you want to delete subject "${name}"? It will also be removed from assigned teachers.`;
+  document.getElementById('deleteConfirmBtn').onclick = async () => {
+    try {
+      await LiveAPI.deleteSubject(id);
+      await Store.syncWithBackend();
+      closeModal('deleteConfirmModal');
+      showToast(`Subject "${name}" deleted from database`);
+      await renderAdmin();
+    } catch (err) {
+      showToast(`Delete failed: ${err.message}`);
+    }
+  };
+  openModal('deleteConfirmModal');
+}
+
+// Add Schedule
+function submitAddSchedule() {
+  const subSelect = document.getElementById('addSchSubject');
+  const subjectId = subSelect.value;
+  const subjectName = subSelect.options[subSelect.selectedIndex].text.split(' (')[0];
+  const teacherName = document.getElementById('addSchTeacher').value;
+  const date = document.getElementById('addSchDate').value;
+  const time = document.getElementById('addSchTime').value.trim() || '10:00 AM – 11:30 AM';
+  const topic = document.getElementById('addSchTopic').value.trim() || 'General Class Lecture';
+
+  Store.addSchedule({ subjectId, subjectName, teacherName, date, time, topic });
+  closeModal('addScheduleModal');
+  showToast('Class schedule saved!');
+  renderAdmin();
+}
+
+function confirmDeleteSchedule(id) {
+  document.getElementById('deleteConfirmMessage').textContent = 'Are you sure you want to delete this scheduled class session?';
+  document.getElementById('deleteConfirmBtn').onclick = () => {
+    Store.deleteSchedule(id);
+    closeModal('deleteConfirmModal');
+    showToast('Schedule entry removed');
+    renderAdmin();
+  };
+  openModal('deleteConfirmModal');
+}
+
+// --- Courses Management ---
+async function renderCourses() {
+  const tbody = document.getElementById('coursesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);">Loading course catalog...</td></tr>';
+
+  try {
+    const res = await LiveAPI.getCourses();
+    const courses = (res && res.data) ? res.data : [];
+    if (courses.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">No courses found</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    courses.forEach(c => {
+      const subjectName = c.subjectId ? (c.subjectId.name || c.subjectId) : 'Curriculum Subject';
+      const teacherName = c.primaryTeacher ? c.primaryTeacher.name : 'Unassigned';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;font-size:13.5px;">${c.title}</td>
+        <td><span class="badge badge-pending">${c.courseCode}</span></td>
+        <td style="font-size:13px;">${subjectName}</td>
+        <td style="font-size:13px;color:var(--text-secondary);">${teacherName}</td>
+        <td>
+          <span class="badge ${c.status === 'Active' ? 'badge-active' : 'badge-inactive'}">
+            <span class="badge-dot"></span>${c.status || 'Active'}
+          </span>
+        </td>
+        <td class="actions" style="text-align:right;">
+          <button class="btn btn-secondary btn-xs" onclick="toggleCourseStatus('${c._id}', '${c.status}')">${c.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteCourseEntry('${c._id}', '${c.title}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.warn('[Courses] Failed to load courses', err.message);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);">Course data synced locally.</td></tr>';
+  }
+}
+
+function openAddCourseModal() {
+  const subjects = Store.getSubjects();
+  const select = document.getElementById('addCourseSubject');
+  select.innerHTML = '';
+  subjects.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.code})`;
+    select.appendChild(opt);
+  });
+  document.getElementById('addCourseTitle').value = '';
+  document.getElementById('addCourseCode').value = '';
+  document.getElementById('addCourseDesc').value = '';
+  openModal('addCourseModal');
+}
+
+async function submitAddCourse() {
+  const title = document.getElementById('addCourseTitle').value.trim();
+  const courseCode = document.getElementById('addCourseCode').value.trim();
+  const subjectId = document.getElementById('addCourseSubject').value;
+  const semester = document.getElementById('addCourseSemester').value;
+  const description = document.getElementById('addCourseDesc').value.trim();
+
+  if (!title || !courseCode || !subjectId) {
+    showToast('Course title, course code, and related subject are required');
+    return;
+  }
+
+  try {
+    await LiveAPI.request('/courses', {
+      method: 'POST',
+      body: JSON.stringify({ title, courseCode, subjectId, semester, description }),
+    });
+    showToast(`Course "${title}" created successfully!`);
+    closeModal('addCourseModal');
+    renderCourses();
+    renderEnrollmentAnalysis();
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+}
+
+async function toggleCourseStatus(courseId, currentStatus) {
+  try {
+    const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    await LiveAPI.request(`/courses/${courseId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: newStatus }),
+    });
+    showToast(`Course status set to ${newStatus}`);
+    renderCourses();
+  } catch (err) {
+    showToast(`Failed to update status: ${err.message}`);
+  }
+}
+
+async function deleteCourseEntry(courseId, title) {
+  if (!confirm(`Are you sure you want to delete course "${title}"?`)) return;
+  try {
+    await LiveAPI.request(`/courses/${courseId}`, { method: 'DELETE' });
+    showToast(`Course "${title}" deleted`);
+    renderCourses();
+    renderEnrollmentAnalysis();
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+}
+
+// --- Enrollment Analysis ---
+let allEnrollmentRecords = [];
+
+async function renderEnrollmentAnalysis() {
+  const containerCards = document.getElementById('enrollmentCourseCards');
+  const tbody = document.getElementById('enrollmentTableBody');
+  const filterSelect = document.getElementById('filterEnrollmentCourse');
+  if (!containerCards || !tbody) return;
+
+  try {
+    const res = await LiveAPI.request('/admins/enrollment-analysis');
+    const data = res.data || {};
+    const summaries = data.courseSummary || [];
+    allEnrollmentRecords = data.enrollments || [];
+
+    // Render course summary cards
+    containerCards.innerHTML = '';
+    summaries.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'stat-card';
+      card.innerHTML = `
+        <div class="stat-header">
+          <span class="stat-label">${c.courseTitle}</span>
+          <span class="badge badge-pending">${c.courseCode}</span>
+        </div>
+        <div class="stat-value" style="margin-top:8px;">${c.enrolledCount}</div>
+        <div class="stat-change" style="color:var(--accent);">Total Enrolled Students</div>
+      `;
+      containerCards.appendChild(card);
+    });
+
+    // Populate course filter dropdown
+    filterSelect.innerHTML = '<option value="">All Courses</option>';
+    summaries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.courseTitle;
+      opt.textContent = `${c.courseTitle} (${c.enrolledCount})`;
+      filterSelect.appendChild(opt);
+    });
+
+    filterEnrollmentAnalysisTable();
+  } catch (err) {
+    console.warn('[EnrollmentAnalysis] Load note:', err.message);
+  }
+}
+
+function filterEnrollmentAnalysisTable() {
+  const tbody = document.getElementById('enrollmentTableBody');
+  const courseFilter = document.getElementById('filterEnrollmentCourse')?.value.toLowerCase() || '';
+  const searchFilter = document.getElementById('searchEnrollmentStudent')?.value.toLowerCase() || '';
+
+  const filtered = allEnrollmentRecords.filter(e => {
+    const matchCourse = !courseFilter || (e.courseTitle && e.courseTitle.toLowerCase().includes(courseFilter));
+    const matchSearch = !searchFilter || 
+      (e.studentName && e.studentName.toLowerCase().includes(searchFilter)) ||
+      (e.studentEmail && e.studentEmail.toLowerCase().includes(searchFilter));
+    return matchCourse && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:18px;">No matching student enrollments found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  filtered.forEach(e => {
+    const d = e.enrollmentDate ? new Date(e.enrollmentDate).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'Recent';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:700;font-size:13.5px;">${e.studentName}</td>
+      <td style="color:var(--text-secondary);font-size:13px;">${e.studentEmail}</td>
+      <td style="font-size:13px;">${e.courseTitle} <span style="font-size:11px;color:var(--accent);">(${e.courseCode})</span></td>
+      <td style="font-size:12.5px;color:var(--text-secondary);">${d}</td>
+      <td>
+        <span class="badge ${e.status === 'Active' ? 'badge-active' : 'badge-inactive'}">
+          <span class="badge-dot"></span>${e.status || 'Active'}
+        </span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Admin Management ---
+async function renderAdmins() {
+  const tbody = document.getElementById('adminsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">Loading administrators...</td></tr>';
+
+  try {
+    const res = await LiveAPI.request('/admins');
+    const admins = (res && res.data) ? res.data : [];
+    if (admins.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">No additional admins configured.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    admins.forEach(a => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar avatar-sm">${Store.formatAvatarHtml(a.photo, a.name, 'AD')}</div>
+            <div style="font-weight:700;font-size:13.5px;">${a.name}</div>
+          </div>
+        </td>
+        <td style="color:var(--text-secondary);font-size:13px;">${a.email}</td>
+        <td>
+          <span class="badge ${a.status === 'Active' ? 'badge-active' : 'badge-inactive'}">
+            <span class="badge-dot"></span>${a.status || 'Active'}
+          </span>
+        </td>
+        <td class="actions" style="text-align:right;">
+          <button class="btn btn-secondary btn-xs" onclick="openEditAdmin('${a._id}', '${a.name.replace(/'/g, "\\'")}', '${a.email}', '${a.status || 'Active'}')">Edit</button>
+          <button class="btn btn-secondary btn-xs" onclick="toggleAdminStatus('${a._id}', '${a.status}')">${a.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteAdminAccount('${a._id}', '${a.name.replace(/'/g, "\\'")}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.warn('[Admins] Load note:', err.message);
+  }
+}
+
+function openEditAdmin(id, name, email, status) {
+  document.getElementById('editAdminId').value = id;
+  document.getElementById('editAdminName').value = name;
+  document.getElementById('editAdminEmail').value = email;
+  document.getElementById('editAdminPassword').value = '';
+  document.getElementById('editAdminStatus').value = status || 'Active';
+  openModal('editAdminModal');
+}
+
+async function submitEditAdmin() {
+  const id = document.getElementById('editAdminId').value;
+  const name = document.getElementById('editAdminName').value.trim();
+  const email = document.getElementById('editAdminEmail').value.trim();
+  const password = document.getElementById('editAdminPassword').value.trim();
+  const status = document.getElementById('editAdminStatus').value;
+
+  if (!name || !email) {
+    showToast('Name and email are required');
+    return;
+  }
+
+  const payload = { name, email, status };
+  if (password) payload.password = password;
+
+  try {
+    await LiveAPI.request(`/admins/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    showToast(`Administrator ${name} updated successfully!`);
+    closeModal('editAdminModal');
+    renderAdmins();
+  } catch (err) {
+    showToast(`Failed to update admin: ${err.message}`);
+  }
+}
+
+function openAddAdminModal() {
+  document.getElementById('addAdminName').value = '';
+  document.getElementById('addAdminEmail').value = '';
+  document.getElementById('addAdminPassword').value = '';
+  openModal('addAdminModal');
+}
+
+async function submitAddAdmin() {
+  const name = document.getElementById('addAdminName').value.trim();
+  const email = document.getElementById('addAdminEmail').value.trim();
+  const password = document.getElementById('addAdminPassword').value.trim();
+
+  if (!name || !email || !password) {
+    showToast('Name, email, and password are required');
+    return;
+  }
+
+  try {
+    await LiveAPI.request('/admins', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
+    showToast(`Administrator ${name} created successfully!`);
+    closeModal('addAdminModal');
+    renderAdmins();
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+}
+
+async function toggleAdminStatus(adminId, currentStatus) {
+  try {
+    const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    await LiveAPI.request(`/admins/${adminId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: newStatus }),
+    });
+    showToast(`Admin status updated to ${newStatus}`);
+    renderAdmins();
+  } catch (err) {
+    showToast(`Failed: ${err.message}`);
+  }
+}
+
+async function deleteAdminAccount(adminId, name) {
+  if (!confirm(`Are you sure you want to delete administrator account "${name}"?`)) return;
+  try {
+    await LiveAPI.request(`/admins/${adminId}`, { method: 'DELETE' });
+    showToast(`Administrator "${name}" deleted`);
+    renderAdmins();
+  } catch (err) {
+    showToast(`Failed: ${err.message}`);
+  }
+}
+
+// --- Admin Settings: Change Password ---
+async function submitChangeAdminPassword() {
+  const currentPassword = document.getElementById('adminCurrentPassword').value;
+  const newPassword = document.getElementById('adminNewPassword').value;
+  const confirmPassword = document.getElementById('adminConfirmPassword').value;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    showToast('Please fill all password fields');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    showToast('New password and confirmation do not match');
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    showToast('New password must be at least 6 characters');
+    return;
+  }
+
+  try {
+    const res = await LiveAPI.request('/admins/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+    });
+    showToast(res.message || 'Password changed successfully!');
+    document.getElementById('adminCurrentPassword').value = '';
+    document.getElementById('adminNewPassword').value = '';
+    document.getElementById('adminConfirmPassword').value = '';
+  } catch (err) {
+    showToast(`Password update failed: ${err.message}`);
+  }
+}
+
+// --- User & Multi-Role Management ---
+let allUsersData = [];
+
+async function renderUsersTable() {
+  const tbody = document.getElementById('usersTableBody');
+  const countSpan = document.getElementById('usersTableCount');
+  if (!tbody) return;
+
+  try {
+    const res = await LiveAPI.getUsers();
+    if (res && res.data) {
+      allUsersData = res.data;
+    }
+  } catch (err) {
+    console.warn('[Users] Failed to fetch users:', err.message);
+  }
+
+  const query = (document.getElementById('usersSearchInput')?.value || '').toLowerCase().trim();
+  const filtered = allUsersData.filter(u => {
+    if (!query) return true;
+    const nameMatch = (u.name || '').toLowerCase().includes(query);
+    const emailMatch = (u.email || '').toLowerCase().includes(query);
+    const roleMatch = (u.roles || []).some(r => r.toLowerCase().includes(query));
+    return nameMatch || emailMatch || roleMatch;
+  });
+
+  if (countSpan) {
+    countSpan.textContent = `Showing ${filtered.length} of ${allUsersData.length} accounts`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">No user accounts found matching query.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  filtered.forEach(u => {
+    const isStudent = u.roles.includes('student');
+    const isTeacher = u.roles.includes('teacher');
+    const isAdmin = u.roles.includes('admin') || u.roles.includes('super_admin');
+
+    const roleBadges = (u.roles || []).map(r => {
+      if (r === 'student') return '<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-weight:700;">STUDENT</span>';
+      if (r === 'teacher') return '<span class="badge" style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);font-weight:700;">TEACHER</span>';
+      if (r === 'admin' || r === 'super_admin') return '<span class="badge" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);font-weight:700;">ADMIN</span>';
+      return `<span class="badge">${r.toUpperCase()}</span>`;
+    }).join(' ');
+
+    const teacherStatusBadge = isTeacher
+      ? `<span class="badge badge-active"><span class="badge-dot"></span>Active</span>`
+      : `<span style="color:var(--text-secondary);font-size:12px;">Not Assigned</span>`;
+
+    const adminStatusBadge = isAdmin
+      ? `<span class="badge badge-active"><span class="badge-dot"></span>Active</span>`
+      : `<span style="color:var(--text-secondary);font-size:12px;">Not Assigned</span>`;
+
+    let actionButtons = '';
+    if (!isTeacher) {
+      actionButtons += `<button class="btn btn-secondary btn-xs" onclick="openAssignTeacherRoleModal('${u.email}', '${u.name.replace(/'/g, "\\'")}', '${u.department || 'Computer Science'}')">+ Assign Teacher</button>`;
+    } else {
+      actionButtons += `<button class="btn btn-secondary btn-xs" onclick="openAssignTeacherRoleModal('${u.email}', '${u.name.replace(/'/g, "\\'")}', '${u.department || 'Computer Science'}')">Manage Teacher</button>`;
+      actionButtons += `<button class="btn btn-secondary btn-xs" onclick="confirmRemoveTeacher('${u.email}')">Remove Teacher</button>`;
+    }
+
+    if (!isAdmin) {
+      actionButtons += `<button class="btn btn-secondary btn-xs" onclick="openMakeAdminModal('${u.email}', '${u.name.replace(/'/g, "\\'")}')">+ Make Admin</button>`;
+    } else {
+      actionButtons += `<button class="btn btn-secondary btn-xs" onclick="confirmRemoveAdmin('${u.email}')">Remove Admin</button>`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar avatar-sm">${Store.formatAvatarHtml(u.photo, u.name, 'UR')}</div>
+          <div>
+            <div style="font-weight:700;font-size:13.5px;">${u.name}</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);">${u.department || 'General'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--text-secondary);font-size:13px;">${u.email}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${roleBadges}</div></td>
+      <td>${teacherStatusBadge}</td>
+      <td>${adminStatusBadge}</td>
+      <td class="actions" style="white-space:nowrap;text-align:right;">
+        <div class="actions-row" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;">
+          ${actionButtons}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openAssignTeacherRoleModal(prefillEmail, prefillName, prefillDept) {
+  if (prefillEmail) {
+    document.getElementById('addTeacherEmail').value = prefillEmail;
+    document.getElementById('addTeacherName').value = prefillName || '';
+    if (prefillDept) document.getElementById('addTeacherDept').value = prefillDept;
+  }
+  openModal('addTeacherModal');
+}
+
+function openMakeAdminModal(prefillEmail, prefillName) {
+  document.getElementById('makeAdminEmail').value = prefillEmail || '';
+  document.getElementById('makeAdminName').value = prefillName || '';
+  document.getElementById('makeAdminPassword').value = '';
+  openModal('makeAdminModal');
+}
+
+async function submitMakeAdmin() {
+  const email = document.getElementById('makeAdminEmail').value.trim();
+  const name = document.getElementById('makeAdminName').value.trim();
+  const password = document.getElementById('makeAdminPassword').value.trim();
+
+  if (!email) {
+    showToast('Email address is required');
+    return;
+  }
+  if (!password || password.length < 6) {
+    showToast('Admin password must be at least 6 characters');
+    return;
+  }
+
+  try {
+    showToast(`Granting Admin privileges to ${email}...`);
+    const res = await LiveAPI.makeAdmin({ email, name: name || 'Administrator', password });
+    showToast(res.message || `Admin privileges granted to ${email}!`);
+    closeModal('makeAdminModal');
+    await Store.syncWithBackend();
+    await renderAdmin();
+    renderAdmins();
+    renderUsersTable();
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+}
+
+async function confirmRemoveTeacher(email) {
+  if (!confirm(`Are you sure you want to remove the Teacher role from ${email}? Uploaded content will remain preserved.`)) return;
+
+  try {
+    showToast(`Removing Teacher role from ${email}...`);
+    const res = await LiveAPI.removeTeacherRole(email);
+    showToast(res.message || `Teacher role removed from ${email}`);
+    await Store.syncWithBackend();
+    await renderAdmin();
+    renderUsersTable();
+  } catch (err) {
+    showToast(`Failed: ${err.message}`);
+  }
+}
+
+async function confirmRemoveAdmin(email) {
+  if (!confirm(`Are you sure you want to remove Administrator privileges from ${email}?`)) return;
+
+  try {
+    showToast(`Removing Admin privileges from ${email}...`);
+    const res = await LiveAPI.removeAdminRole(email);
+    showToast(res.message || `Admin role removed from ${email}`);
+    await Store.syncWithBackend();
+    await renderAdmin();
+    renderAdmins();
+    renderUsersTable();
+  } catch (err) {
+    showToast(`Failed: ${err.message}`);
+  }
+}
+
+// ==========================================
+// 2-BOX CHAT SYSTEM (COMMON & STAFF CHAT)
+// ==========================================
+async function initAdminChat() {
+  const adminObj = {
+    _id: 'admin',
+    id: 'admin',
+    name: 'Super Administrator',
+    role: 'admin',
+  };
+
+  if (!window.platformChat) {
+    window.platformChat = new ChatManager({
+      containerId: 'chatMessagesBox',
+      inputId: 'chatMessageInput',
+      sendBtnId: 'chatSendBtn',
+      tabsContainerId: 'chatRoomTabs',
+      roomTitleId: 'chatRoomTitle',
+      roomSubtitleId: 'chatRoomSubtitle',
+      currentUser: adminObj,
+      currentRole: 'admin',
+      defaultRoom: 'common',
+      allowedRooms: ['common', 'staff'],
+    });
+    window.platformChat.init();
+  } else {
+    window.platformChat.setRoleAndUser('admin', adminObj);
+    window.platformChat.fetchMessages(true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  AuthGuard.init('admin', async (user) => {
+    await Store.syncWithBackend();
+    await renderAdmin();
+    await renderCourses();
+    renderEnrollmentAnalysis();
+    renderAdmins();
+    renderUsersTable();
+    initAdminChat();
+    populateModalDropdowns();
+  });
+});
+</script>
+</body>
+</html>

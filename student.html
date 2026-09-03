@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Portal — Online Study Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/main.css"/>
+<style>
+.page { display: none; }
+.page.active { display: block; }
+.material-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; transition: border-color var(--transition); }
+.material-item:hover { border-color: var(--accent); }
+.video-screen { background: #000; border-radius: var(--radius-lg); padding: 48px 24px; text-align: center; border: 1px solid var(--border); margin-bottom: 20px; }
+.quiz-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 760px; margin: 0 auto; }
+.quiz-head { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+.score-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; text-align: center; }
+.score-summary-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.score-summary-val { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+.score-summary-val.highlight { color: var(--accent); }
+.score-summary-lbl { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; }
+.auth-tab-btn { flex: 1; padding: 10px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+.auth-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+@media (max-width: 600px) { .score-summary-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<div class="sidebar-overlay"></div>
+
+<!-- ====== STUDENT SIDEBAR ====== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="brand-text">Online <span>Study Platform</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Learning Area</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="all-courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        All Courses
+      </div>
+      <div class="nav-item" data-page="my-courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        My Courses
+        <span class="nav-badge" id="myCoursesBadge">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Resources</div>
+      <div class="nav-item" data-page="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </div>
+      <div class="nav-item" data-page="elibrary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        E-Library
+      </div>
+      <div class="nav-item" data-page="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Community Chat
+      </div>
+      <div class="nav-item" data-page="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Profile
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-widget" onclick="navigateToProfile()" title="View Student Profile">
+      <div class="user-avatar" id="stdSidebarAvatar">ST</div>
+      <div class="user-info">
+        <div class="user-name" id="stdSidebarName">Student</div>
+        <div class="user-role" id="stdSidebarRoll">Role: Student</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--text-secondary);"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- ====== MAIN CONTENT ====== -->
+<div class="main-content">
+  <header class="topbar">
+    <button class="hamburger-btn" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="topbar-title">Student Dashboard</span>
+    <div class="topbar-spacer"></div>
+
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="stdGlobalSearch" placeholder="Search my courses, notes..."/>
+    </div>
+
+    <!-- Top-Right Student Profile Avatar & Dropdown -->
+    <div class="top-profile-wrapper" style="position:relative;margin-left:8px;">
+      <div class="user-avatar" id="stdTopNavAvatar" onclick="toggleStudentProfileDropdown()" style="cursor:pointer;width:36px;height:36px;border:2px solid var(--accent);" title="Student Account">
+        ST
+      </div>
+      <div class="profile-dropdown" id="stdProfileDropdown" style="display:none;position:absolute;top:46px;right:0;width:250px;background:#101010;border:1px solid #282828;border-radius:10px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,0.8);z-index:9999;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #202020;">
+          <div class="user-avatar" id="stdDropdownAvatar" style="width:40px;height:40px;flex-shrink:0;">ST</div>
+          <div style="overflow:hidden;">
+            <div style="font-weight:700;font-size:13.5px;color:#FFF;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;" id="stdDropdownName">Student</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;" id="stdDropdownEmail">student@university.edu</div>
+            <div style="font-size:11px;color:var(--accent);margin-top:2px;" id="stdDropdownDept">Computer Science</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Account Role: Student</div>
+        <button class="btn btn-secondary btn-sm" onclick="navigateToProfile();toggleStudentProfileDropdown();" style="width:100%;justify-content:center;margin-bottom:8px;font-size:12px;">
+          👤 View Profile
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="logoutStudent()" style="width:100%;justify-content:center;font-size:12px;">
+          🚪 Sign Out
+        </button>
+      </div>
+    </div>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="margin-left:8px;">Switch Panel</a>
+    <button onclick="AuthGuard.logout()" class="btn btn-secondary btn-sm" style="margin-left:4px;color:#ef4444;" title="Sign out of Student Portal">Sign Out</button>
+  </header>
+
+  <!-- ======================================================
+       PAGE: DASHBOARD
+  ====================================================== -->
+  <div class="page active" id="page-dashboard" data-title="Student Dashboard">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title" id="stdDashWelcome">Student Dashboard</div>
+          <div class="page-subtitle">Pick up where you left off or browse university curriculum offerings.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" onclick="showPage('all-courses')">Explore All Courses →</button>
+        </div>
+      </div>
+
+      <!-- Continue Learning Hero Card -->
+      <div class="card" style="margin-bottom:24px;border-color:rgba(245,197,66,0.25);" id="continueLearningBox">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Dashboard Sections -->
+      <div style="display:grid;grid-template-columns: 1.2fr 1fr; gap: 20px;">
+        <!-- Left: My Enrolled Courses & Available Courses -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">My Enrolled Courses</span>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('my-courses')">View All My Courses →</button>
+            </div>
+            <div class="card-body" style="padding:14px;" id="dashEnrolledList">
+              <div style="color:var(--text-secondary);font-size:12.5px;">Loading enrolled courses...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Available Courses to Enroll</span>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('all-courses')">Browse All →</button>
+            </div>
+            <div class="card-body" style="padding:14px;" id="dashAvailableList">
+              <div style="color:var(--text-secondary);font-size:12.5px;">Loading available courses...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Recent Announcements -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent Announcements</span>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('announcements')">View Feed →</button>
+            </div>
+            <div class="card-body" style="padding:14px;" id="dashAnnounceList">
+              <div style="color:var(--text-secondary);font-size:12.5px;">Loading announcements...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Upcoming Scheduled Classes</span>
+            </div>
+            <div class="card-body" style="padding:14px;" id="dashScheduleList">
+              <div style="color:var(--text-secondary);font-size:12.5px;">No upcoming classes scheduled.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: ALL COURSES (BROWSE & ENROLL)
+  ====================================================== -->
+  <div class="page" id="page-all-courses" data-title="All Available Courses">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">All Available Courses</div>
+          <div class="page-subtitle">Browse university courses. Click "Enroll Now" to immediately add any course into your active learning workspace.</div>
+        </div>
+      </div>
+
+      <div class="subject-grid" id="allCoursesGrid">
+        <div style="color:var(--text-secondary);padding:24px;text-align:center;">Loading available courses...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: MY COURSES (ENROLLED COURSES)
+  ====================================================== -->
+  <div class="page" id="page-my-courses" data-title="My Enrolled Courses">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">My Courses</div>
+          <div class="page-subtitle">All courses in which you are actively enrolled. Click "Continue Learning" to access modules, lectures, and quizzes.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm" onclick="showPage('all-courses')">+ Browse &amp; Enroll More Courses</button>
+        </div>
+      </div>
+
+      <div class="subject-grid" id="myCoursesGrid">
+        <div style="color:var(--text-secondary);padding:24px;text-align:center;">Loading your enrolled courses...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: COURSE LEARNING PAGE (MODULE-WISE CONTENT)
+  ====================================================== -->
+  <div class="page" id="page-course-learning" data-title="Course Learning">
+    <div class="page-content">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('my-courses')" style="margin-bottom:14px;">
+        ← Back to My Courses
+      </button>
+
+      <div class="card" style="margin-bottom:20px;border-color:rgba(245,197,66,0.3);">
+        <div class="card-body">
+          <div style="font-size:20px;font-weight:800;" id="learnCourseTitle">Course Modules</div>
+          <div style="font-size:13px;color:var(--accent);font-weight:600;margin-top:2px;" id="learnCourseTeacher">Teacher: Faculty Member</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;" id="learnCourseMeta">Curriculum</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);margin-top:8px;line-height:1.5;" id="learnCourseDesc">Course description</div>
+          <div id="learnCourseProgressWrap" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);"></div>
+        </div>
+      </div>
+
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Course Modules &amp; Study Content</div>
+      <div class="module-list" id="learnModulesContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: VIDEO LEARNING & COMMENTS
+  ====================================================== -->
+  <div class="page" id="page-video-learning" data-title="Lecture Video">
+    <div class="page-content">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('course-learning')" style="margin-bottom:14px;">
+        ← Back to Course Modules
+      </button>
+
+      <div style="position:relative;width:100%;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:16px;">
+        <video id="stdVideoPlayer" controls playsinline style="width:100%;max-height:480px;display:block;background:#000;">
+          <source id="stdVideoSource" src="" type="video/mp4"/>
+          Your browser does not support HTML5 video playback.
+        </video>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+          <div style="font-size:18px;font-weight:800;" id="stdVideoTitle">Lecture Video Stream</div>
+          <div style="font-size:12.5px;color:var(--accent);font-weight:600;margin-top:4px;" id="stdVideoTeacher">Faculty Member</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.6;" id="stdVideoDesc">Watch the lecture and post your doubts below.</div>
+        </div>
+      </div>
+
+      <!-- Dynamic AI Doubt Assistant Card for Every Video -->
+      <div class="card" style="margin-bottom:24px;border:1px solid rgba(139,92,246,0.3);background:radial-gradient(ellipse at top, rgba(139,92,246,0.08), transparent 70%), var(--bg-surface);">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(139,92,246,0.2);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg, #8b5cf6, #3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">✨</div>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+                AI Doubt Assistant
+                <span style="font-size:10.5px;padding:2px 8px;border-radius:12px;background:rgba(139,92,246,0.2);color:#a78bfa;font-weight:600;">Active for this Lecture</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);" id="aiVideoContextHint">Ask questions, request examples, or get step-by-step explanations for this video topic.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-xs" onclick="clearVideoAIChat()" title="Clear Conversation">Clear Chat</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:16px 20px;">
+          <!-- Quick prompt chips -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;" id="aiQuickChips">
+            <button class="btn btn-secondary btn-xs" onclick="sendQuickAIPrompt('Is topic ko simple language me samjhao')">💡 Is topic ko simple language me samjhao</button>
+            <button class="btn btn-secondary btn-xs" onclick="sendQuickAIPrompt('Is lecture ka real-world example do')">🔍 Real-world example do</button>
+            <button class="btn btn-secondary btn-xs" onclick="sendQuickAIPrompt('Important exam points aur key formulas summarize karo')">📝 Key points summarize karo</button>
+            <button class="btn btn-secondary btn-xs" onclick="sendQuickAIPrompt('Is topic par 2 practice questions solve karo')">✏️ 2 Practice questions solve karo</button>
+          </div>
+
+          <!-- AI Chat Messages Scroll Container -->
+          <div id="videoAIChatBox" style="min-height:140px;max-height:360px;overflow-y:auto;padding:12px;background:var(--bg-primary);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+            <!-- Populated dynamically via JS per video -->
+          </div>
+
+          <!-- AI Chat Input Box -->
+          <div style="display:flex;gap:10px;">
+            <input type="text" class="form-control" id="videoAIInput" placeholder="Ask AI anything about this lecture topic..." onkeypress="if(event.key==='Enter')submitVideoAIQuestion()" />
+            <button class="btn btn-primary" id="btnVideoAISend" onclick="submitVideoAIQuestion()" style="flex-shrink:0;background:linear-gradient(135deg, #8b5cf6, #6366f1);border:none;">
+              <span>Ask AI ✨</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="comments-section">
+        <div class="comments-header">
+          <span class="comments-title">Lecture Discussion &amp; Doubts (<span id="stdVideoCommentCount">0</span>)</span>
+          <span style="font-size:12px;color:var(--text-secondary);">Ask questions or reply to classmates &amp; teachers</span>
+        </div>
+
+        <div class="comment-input-box">
+          <div class="avatar avatar-sm" id="stdMyCommentAvatar">ST</div>
+          <textarea class="comment-textarea" id="stdCommentInput" placeholder="Ask a question or share notes regarding this video..."></textarea>
+          <button class="btn btn-primary" style="height:42px;align-self:flex-end;" onclick="postStudentVideoComment()">Ask Question</button>
+        </div>
+
+        <div class="comment-list" id="stdVideoCommentsList">
+          <!-- Comments rendered via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: QUIZ PAGE (ATTEMPT & SUBMISSION RESULTS)
+  ====================================================== -->
+  <div class="page" id="page-quiz" data-title="Quiz Assessment">
+    <div class="page-content">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('course-learning')" style="margin-bottom:14px;">
+        ← Back to Course Modules
+      </button>
+
+      <div class="quiz-box" id="quizRunnerContainer">
+        <div class="quiz-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:18px;font-weight:800;" id="runnerQuizTitle">Module Assessment Quiz</div>
+            <div style="font-size:12px;color:var(--text-secondary);" id="runnerQuizSubject">Course Assessment</div>
+          </div>
+          <span class="badge badge-pending" id="quizCounterText">Question 1 of 5</span>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div style="margin:14px 0 16px 0;">
+          <div class="progress-bar-wrap">
+            <div id="quizProgressBar" class="progress-bar" style="width:20%;transition:width 0.3s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Question Area -->
+        <div id="quizQuestionsArea"></div>
+
+        <!-- Navigation Controls: Prev, Next, Submit -->
+        <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <button class="btn btn-secondary btn-sm" id="btnPrevQuestion" onclick="prevQuizQuestion()">← Previous Question</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="btnNextQuestion" onclick="nextQuizQuestion()">Next Question →</button>
+            <button class="btn btn-primary btn-sm" id="btnSubmitQuiz" onclick="confirmSubmitQuiz()">Submit Quiz ✓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Results Panel -->
+      <div class="quiz-box" id="quizResultsContainer" style="display:none;">
+        <div style="text-align:center;padding:12px 0;">
+          <span class="badge badge-active">Assessment Evaluation Report</span>
+          <div style="font-size:24px;font-weight:800;margin-top:10px;" id="resultQuizTitle">Quiz Result</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);">Your attempt has been scored and permanently recorded in MongoDB.</div>
+
+          <div class="score-summary-grid" style="margin-top:16px;">
+            <div class="score-summary-card">
+              <div class="score-summary-val highlight" id="resScoreVal">0 / 0</div>
+              <div class="score-summary-lbl">Final Score</div>
+            </div>
+            <div class="score-summary-card">
+              <div class="score-summary-val" style="color:#4BB543;" id="resCorrectVal">0</div>
+              <div class="score-summary-lbl">Correct Answers</div>
+            </div>
+            <div class="score-summary-card">
+              <div class="score-summary-val" style="color:#ff5c5c;" id="resWrongVal">0</div>
+              <div class="score-summary-lbl">Wrong Answers</div>
+            </div>
+            <div class="score-summary-card">
+              <div class="score-summary-val highlight" id="resPercentVal">0%</div>
+              <div class="score-summary-lbl">Percentage</div>
+            </div>
+          </div>
+
+          <div id="quizAnswersReviewList" style="text-align:left;margin-top:24px;"></div>
+
+          <div style="display:flex;justify-content:center;gap:10px;margin-top:24px;">
+            <button class="btn btn-secondary btn-sm" onclick="showPage('course-learning')">Return to Course Modules</button>
+            <button class="btn btn-primary btn-sm" onclick="retakeActiveQuiz()">Retake Quiz</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: ANNOUNCEMENTS
+  ====================================================== -->
+  <div class="page" id="page-announcements" data-title="Teacher Announcements">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Announcements</div>
+          <div class="page-subtitle">Official academic updates and notices published by professors.</div>
+        </div>
+      </div>
+      <div id="stdAnnouncementsList"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: E-LIBRARY
+  ====================================================== -->
+  <div class="page" id="page-elibrary" data-title="Digital E-Library">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Digital E-Library</div>
+          <div class="page-subtitle">Search and read textbooks and reference monographs uploaded by teachers.</div>
+        </div>
+      </div>
+
+      <div class="topbar-search" style="width:100%;margin-bottom:14px;padding:10px 14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="stdElibrarySearch" placeholder="Search books, authors, subjects..." oninput="filterStudentBooks()"/>
+      </div>
+
+      <div class="filter-bar" id="bookFilterChips">
+        <div class="filter-chip active" onclick="setStdBookFilter(this, 'All')">All</div>
+        <div class="filter-chip" onclick="setStdBookFilter(this, 'Computer Science')">Computer Science</div>
+        <div class="filter-chip" onclick="setStdBookFilter(this, 'Engineering')">Engineering</div>
+      </div>
+
+      <div class="library-grid" id="stdBooksGrid"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: CHAT (COMMUNITY CHAT)
+  ====================================================== -->
+  <div class="page" id="page-chat" data-title="Community Chat">
+    <div class="page-content">
+      <div class="page-header" style="margin-bottom:16px;">
+        <div class="page-header-left">
+          <div class="page-title" id="chatRoomTitle">💬 Common Chat</div>
+          <div class="page-subtitle" id="chatRoomSubtitle">Public discussion room for Admin, Teachers &amp; Students</div>
+        </div>
+      </div>
+
+      <div class="chat-box-card">
+        <div class="chat-messages" id="chatMessagesBox">
+          <div style="color:var(--text-secondary);text-align:center;padding:40px;">Loading community chat...</div>
+        </div>
+
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatMessageInput" placeholder="Type a message to everyone in the community..." />
+          <button class="chat-send-btn" id="chatSendBtn" title="Send Message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: PROFILE
+  ====================================================== -->
+  <div class="page" id="page-profile" data-title="Student Profile">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">My Student Profile</div>
+          <div class="page-subtitle">Your personal account details and registered university course enrollments.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px;">
+        <!-- Left: Profile Info Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Student Details</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+              <div class="avatar avatar-lg" id="profileAvatar" style="font-size:22px;">ST</div>
+              <div>
+                <div style="font-size:18px;font-weight:700;" id="profileStudentName">Student Name</div>
+                <div style="font-size:13px;color:var(--accent);font-weight:600;" id="profileStudentDept">Department: Computer Science</div>
+                <div style="font-size:12px;color:var(--text-secondary);" id="profileStudentEmail">student@university.edu</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Active Course Enrollments</label>
+              <div id="profileEnrolledBadges" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+            </div>
+
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-secondary);">
+              <span>Account Role: <strong style="color:var(--text-primary);">Student</strong></span>
+              <span>Account Status: <strong style="color:#4BB543;" id="profileStudentStatus">Active</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Edit Profile Form -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Edit Profile Information</span>
+          </div>
+          <div class="card-body">
+            <form id="editProfileForm" onsubmit="handleUpdateProfile(event)">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input class="form-input" id="editProfileName" required placeholder="Enter full name"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input class="form-input" id="editProfilePhone" placeholder="+91 9876543210"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department</label>
+                <input class="form-input" id="editProfileDept" placeholder="Computer Science"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Semester</label>
+                <input class="form-input" id="editProfileSemester" placeholder="1st Semester"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Password (optional)</label>
+                <input class="form-input" type="password" id="editProfilePassword" placeholder="Leave blank to keep current"/>
+              </div>
+              <button type="submit" class="btn btn-primary" id="btnSaveProfile" style="width:100%;justify-content:center;">Save Profile Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- end main-content -->
+
+<!-- ======================================================
+     STUDENT AUTH MODAL: SIGN IN & CREATE ACCOUNT
+====================================================== -->
+<div class="modal-overlay" id="studentLoginPromptModal" style="display:none;z-index:10000;">
+  <div class="modal" style="max-width:440px;padding:0;overflow:hidden;border:1px solid var(--border);">
+    <div style="display:flex;background:var(--bg-secondary);border-bottom:1px solid var(--border);">
+      <button class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+      <button class="auth-tab-btn" id="tabBtnSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+
+    <!-- 1. SIGN IN FORM -->
+    <div id="authSignInBox" style="padding:22px;">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;">Student Sign In</div>
+      <div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:18px;">Enter your student email and password to access courses.</div>
+
+      <div id="signInErrorAlert" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.3);border-radius:var(--radius);font-size:12.5px;color:#ff5c5c;"></div>
+
+      <form onsubmit="handleStudentSignIn(event)">
+        <div class="form-group">
+          <label class="form-label">Student Email ID</label>
+          <input class="form-input" type="email" id="modalStudentEmail" required placeholder="student@university.edu"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="modalStudentPassword" required placeholder="••••••••"/>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSignInSubmit" style="width:100%;justify-content:center;height:42px;font-size:14px;">Sign In to Portal →</button>
+      </form>
+
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+        Don't have an account? <a href="javascript:void(0)" onclick="switchAuthTab('signup')" style="color:var(--accent);font-weight:700;text-decoration:underline;">Create Account</a>
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <a href="index.html" style="font-size:12px;color:var(--text-secondary);text-decoration:none;">← Return to Main Portal</a>
+      </div>
+    </div>
+
+    <!-- 2. CREATE ACCOUNT FORM -->
+    <div id="authSignUpBox" style="display:none;padding:22px;max-height:85vh;overflow-y:auto;">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;">Create Student Account</div>
+      <div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:18px;">Register with your details to enroll in university curriculum courses.</div>
+
+      <div id="signUpErrorAlert" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.3);border-radius:var(--radius);font-size:12.5px;color:#ff5c5c;"></div>
+
+      <form onsubmit="handleStudentSignUp(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" type="text" id="regFullName" required placeholder="e.g. John Doe"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input class="form-input" type="email" id="regEmail" required placeholder="e.g. john.doe@university.edu"/>
+        </div>
+        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label class="form-label">Password *</label>
+            <input class="form-input" type="password" id="regPassword" required minlength="6" placeholder="Min 6 characters"/>
+          </div>
+          <div>
+            <label class="form-label">Confirm Password *</label>
+            <input class="form-input" type="password" id="regConfirmPassword" required minlength="6" placeholder="Repeat password"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number (optional)</label>
+          <input class="form-input" type="tel" id="regPhone" placeholder="+91 9876543210"/>
+        </div>
+        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label class="form-label">Department</label>
+            <input class="form-input" type="text" id="regDepartment" placeholder="Computer Science" value="Computer Science"/>
+          </div>
+          <div>
+            <label class="form-label">Semester</label>
+            <input class="form-input" type="text" id="regSemester" placeholder="1st Semester" value="1st Semester"/>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSignUpSubmit" style="width:100%;justify-content:center;height:42px;font-size:14px;margin-top:6px;">Create Account ✓</button>
+      </form>
+
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+        Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color:var(--accent);font-weight:700;text-decoration:underline;">Sign In</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz Submit Confirmation Modal -->
+<div class="modal-overlay" id="submitQuizConfirmModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title">Submit Quiz Assessment?</span>
+      <button class="modal-close" onclick="closeModal('submitQuizConfirmModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.6;">
+        Are you sure you want to submit this quiz? Your score will be evaluated and permanently recorded in MongoDB.
+      </p>
+      <div id="quizUnansweredWarning" style="display:none;margin-top:10px;font-size:12px;color:var(--accent);background:rgba(245,197,66,0.1);padding:8px 12px;border-radius:var(--radius);border:1px solid rgba(245,197,66,0.2);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel" onclick="closeModal('submitQuizConfirmModal')">Review Answers</button>
+      <button class="btn btn-primary" onclick="proceedSubmitQuiz()">Yes, Submit Quiz ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="assets/js/api-client.js"></script>
+<script src="assets/js/platform-store.js"></script>
+<script src="assets/js/auth-guard.js"></script>
+<script src="assets/js/chat-manager.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+let currentAuthenticatedStudent = null;
+let cachedAllCourses = [];
+let cachedMyEnrollments = [];
+let activeLearnCourseId = null;
+let activeLearnVideoContext = { courseId: null, moduleId: null, videoId: null };
+let activeQuizData = null;
+let currentStdBookFilter = 'All';
+let activeChatTeacherId = null;
+
+// ==========================================
+// 1. INITIALIZATION & AUTHENTICATION
+// ==========================================
+async function initStudentPanel() {
+  try {
+    let studentData = null;
+    const token = LiveAPI.getToken();
+
+    if (token) {
+      try {
+        const meRes = await LiveAPI.getStudentMe();
+        if (meRes && meRes.success && meRes.data) {
+          studentData = meRes.data;
+        }
+      } catch (err) {
+        console.warn('Student me error:', err.message);
+      }
+    }
+
+    if (!studentData) {
+      openStudentLoginModal();
+      return;
+    }
+
+    currentAuthenticatedStudent = studentData;
+    closeStudentLoginModal();
+    renderStudentViews(studentData);
+  } catch (err) {
+    console.error('Fatal Student Init Error:', err);
+    openStudentLoginModal();
+  }
+}
+
+function openStudentLoginModal() {
+  const modal = document.getElementById('studentLoginPromptModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('open');
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('mode') === 'register') {
+    switchAuthTab('signup');
+  } else {
+    switchAuthTab('signin');
+  }
+}
+
+function closeStudentLoginModal() {
+  const modal = document.getElementById('studentLoginPromptModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('open');
+  }
+}
+
+function switchAuthTab(tab) {
+  const btnIn = document.getElementById('tabBtnSignIn');
+  const btnUp = document.getElementById('tabBtnSignUp');
+  const boxIn = document.getElementById('authSignInBox');
+  const boxUp = document.getElementById('authSignUpBox');
+
+  if (tab === 'signin') {
+    btnIn.classList.add('active');
+    btnUp.classList.remove('active');
+    boxIn.style.display = 'block';
+    boxUp.style.display = 'none';
+  } else {
+    btnIn.classList.remove('active');
+    btnUp.classList.add('active');
+    boxIn.style.display = 'none';
+    boxUp.style.display = 'block';
+  }
+  document.getElementById('signInErrorAlert').style.display = 'none';
+  document.getElementById('signUpErrorAlert').style.display = 'none';
+}
+
+async function handleStudentSignIn(e) {
+  e.preventDefault();
+  const email = document.getElementById('modalStudentEmail').value.trim();
+  const password = document.getElementById('modalStudentPassword').value.trim();
+  const btn = document.getElementById('btnSignInSubmit');
+  const errBox = document.getElementById('signInErrorAlert');
+
+  if (!email || !password) {
+    errBox.textContent = 'Please enter both email and password.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Authenticating...';
+    errBox.style.display = 'none';
+
+    const res = await LiveAPI.studentLogin(email, password);
+    if (res && res.success) {
+      showToast('Welcome back to your Student Portal!');
+      await initStudentPanel();
+    } else {
+      throw new Error(res.message || 'Login failed');
+    }
+  } catch (err) {
+    errBox.textContent = err.message || 'Invalid email or password';
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In to Portal →';
+  }
+}
+
+async function handleStudentSignUp(e) {
+  e.preventDefault();
+  const name = document.getElementById('regFullName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  const confirmPassword = document.getElementById('regConfirmPassword').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const department = document.getElementById('regDepartment').value.trim() || 'Computer Science';
+  const semester = document.getElementById('regSemester').value.trim() || '1st Semester';
+  const btn = document.getElementById('btnSignUpSubmit');
+  const errBox = document.getElementById('signUpErrorAlert');
+
+  if (!name || !email || !password) {
+    errBox.textContent = 'Please fill out all required fields.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  if (password.length < 6) {
+    errBox.textContent = 'Password must be at least 6 characters long.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    errBox.textContent = 'Passwords do not match.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Creating Account...';
+    errBox.style.display = 'none';
+
+    const res = await LiveAPI.studentRegister({
+      name,
+      email,
+      password,
+      confirmPassword,
+      phone,
+      department,
+      semester,
+    });
+
+    if (res && res.success) {
+      showToast('Account created successfully! Welcome to the platform.');
+      await initStudentPanel();
+    } else {
+      throw new Error(res.message || 'Registration failed');
+    }
+  } catch (err) {
+    errBox.textContent = err.message || 'Registration failed';
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account ✓';
+  }
+}
+
+function toggleStudentProfileDropdown() {
+  const dd = document.getElementById('stdProfileDropdown');
+  if (!dd) return;
+  dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
+}
+
+document.addEventListener('click', (e) => {
+  const wrapper = document.querySelector('.top-profile-wrapper');
+  const dd = document.getElementById('stdProfileDropdown');
+  if (wrapper && dd && !wrapper.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+
+function logoutStudent() {
+  LiveAPI.clearToken();
+  currentAuthenticatedStudent = null;
+  cachedMyEnrollments = [];
+  cachedAllCourses = [];
+  showToast('You have been signed out.');
+  openStudentLoginModal();
+}
+
+function navigateToProfile() {
+  showPage('profile');
+}
+
+// ==========================================
+// 2. RENDER STUDENT DATA & DASHBOARD
+// ==========================================
+async function renderStudentViews(student) {
+  const initials = student.name ? student.name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'ST';
+  const avatarHtml = student.photo 
+    ? `<img src="${student.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+    : initials;
+
+  // Sidebar
+  document.getElementById('stdSidebarAvatar').innerHTML = avatarHtml;
+  document.getElementById('stdSidebarName').textContent = student.name;
+  document.getElementById('stdSidebarRoll').textContent = `Role: Student · ${student.semester || 'Semester 1'}`;
+
+  // Topbar Dropdown
+  document.getElementById('stdTopNavAvatar').innerHTML = avatarHtml;
+  document.getElementById('stdDropdownAvatar').innerHTML = avatarHtml;
+  document.getElementById('stdDropdownName').textContent = student.name;
+  document.getElementById('stdDropdownEmail').textContent = student.email;
+  document.getElementById('stdDropdownDept').textContent = student.department || 'Computer Science';
+
+  // Dashboard Welcome
+  document.getElementById('stdDashWelcome').textContent = `Welcome back, ${student.name.split(' ')[0]}!`;
+  if (document.getElementById('stdMyCommentAvatar')) {
+    document.getElementById('stdMyCommentAvatar').innerHTML = avatarHtml;
+  }
+
+  // Profile Page
+  document.getElementById('profileAvatar').innerHTML = avatarHtml;
+  document.getElementById('profileStudentName').textContent = student.name;
+  document.getElementById('profileStudentDept').textContent = `Department: ${student.department || 'Computer Science'} · ${student.semester || '1st Semester'}`;
+  document.getElementById('profileStudentEmail').textContent = student.email;
+  document.getElementById('profileStudentStatus').textContent = student.status || 'Active';
+
+  // Populate Edit Form Inputs
+  document.getElementById('editProfileName').value = student.name || '';
+  document.getElementById('editProfilePhone').value = student.phone || '';
+  document.getElementById('editProfileDept').value = student.department || 'Computer Science';
+  document.getElementById('editProfileSemester').value = student.semester || '1st Semester';
+
+  // Load Live Enrolled Courses, Books & Community Chat
+  await Promise.all([
+    loadMyEnrollments(),
+    loadAllCourses(),
+    renderStudentAnnouncements(),
+    loadStudentBooks(),
+    initCommunityChat(),
+  ]);
+}
+
+// ==========================================
+// 3. LOAD ALL COURSES & MY ENROLLMENTS
+// ==========================================
+async function loadMyEnrollments() {
+  try {
+    const res = await LiveAPI.getMyEnrolledCourses();
+    cachedMyEnrollments = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+    document.getElementById('myCoursesBadge').textContent = cachedMyEnrollments.length;
+
+    renderMyCourses();
+    renderDashboardEnrollments();
+    renderProfileBadges();
+  } catch (err) {
+    console.warn('Load enrollments error:', err.message);
+    cachedMyEnrollments = [];
+    renderMyCourses();
+  }
+}
+
+async function loadAllCourses() {
+  try {
+    const res = await LiveAPI.getCourses();
+    cachedAllCourses = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+    renderAllCourses();
+    renderDashboardAvailable();
+  } catch (err) {
+    console.warn('Load courses error:', err.message);
+    cachedAllCourses = [];
+    renderAllCourses();
+  }
+}
+
+function renderAllCourses() {
+  const grid = document.getElementById('allCoursesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (cachedAllCourses.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-secondary);padding:32px;text-align:center;grid-column:1/-1;">No courses available yet.</div>';
+    return;
+  }
+
+  const enrolledCourseIds = cachedMyEnrollments.map(e => e.course?._id || e.courseId?._id || e.courseId).filter(Boolean);
+
+  cachedAllCourses.forEach(c => {
+    const courseId = c._id || c.id;
+    const isEnrolled = enrolledCourseIds.some(id => id.toString() === courseId.toString());
+    const subName = c.subjectId?.name || c.subject?.name || c.subject || 'General Curriculum';
+    const subCode = c.subjectId?.code || c.subject?.code || c.courseCode || 'CS';
+    const teacherName = c.primaryTeacher?.name || c.teacherId?.name || 'Faculty Instructor';
+    const modulesCount = c.modulesCount !== undefined ? c.modulesCount : (c.modules?.length || 0);
+    const videosCount = c.lecturesCount !== undefined ? c.lecturesCount : (c.videos?.length || 0);
+    const notesCount = c.notesCount !== undefined ? c.notesCount : 0;
+    const quizzesCount = c.quizzesCount !== undefined ? c.quizzesCount : 0;
+
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <div class="subject-card-icon">🎓</div>
+      <div>
+        <div class="subject-card-name">${c.title}</div>
+        <div class="subject-card-meta">Subject: ${subName} (${subCode}) · ${c.semester || 'Semester 1'}</div>
+        <div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px;">Instructor: ${teacherName}</div>
+      </div>
+      <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;">${c.description || 'University academic syllabus curriculum course.'}</div>
+      
+      <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-secondary);margin:8px 0;">
+        <span><strong>${modulesCount}</strong> Modules</span>
+        <span><strong>${videosCount}</strong> Videos</span>
+        ${notesCount ? `<span><strong>${notesCount}</strong> Notes</span>` : ''}
+        ${quizzesCount ? `<span><strong>${quizzesCount}</strong> Quizzes</span>` : ''}
+      </div>
+
+      <div class="subject-card-footer" style="margin-top:auto;">
+        <span class="badge badge-pending">${c.department || 'Computer Science'}</span>
+        ${isEnrolled ? 
+          `<button class="btn btn-secondary btn-xs" onclick="openCourseLearning('${courseId}')">Enrolled ✓ (Go to Course)</button>` : 
+          `<button class="btn btn-primary btn-xs" onclick="enrollInCourse('${courseId}', '${c.title.replace(/'/g, "\\'")}')">Enroll Now →</button>`
+        }
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function enrollInCourse(courseId, courseTitle) {
+  try {
+    const res = await LiveAPI.enrollCourse(courseId);
+    if (res && res.success) {
+      showToast(`Enrolled in ${courseTitle || 'course'}!`);
+      await loadMyEnrollments();
+      renderAllCourses();
+      openCourseLearning(courseId);
+    } else {
+      throw new Error(res.message || 'Enrollment failed');
+    }
+  } catch (err) {
+    showToast(`Enrollment note: ${err.message}`);
+    await loadMyEnrollments();
+    renderAllCourses();
+  }
+}
+
+function renderMyCourses() {
+  const grid = document.getElementById('myCoursesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (cachedMyEnrollments.length === 0) {
+    grid.innerHTML = `
+      <div style="color:var(--text-secondary);padding:36px;text-align:center;grid-column:1/-1;">
+        You haven't enrolled in any course yet.
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="showPage('all-courses')">Browse All Courses</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  cachedMyEnrollments.forEach(item => {
+    const c = item.course || item.courseId;
+    if (!c) return;
+    const courseId = c._id || c.id;
+    const teacherName = c.primaryTeacher?.name || 'Faculty Instructor';
+    const progress = item.progressPercentage || 0;
+
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <div class="subject-card-icon">📖</div>
+      <div>
+        <div class="subject-card-name">${c.title}</div>
+        <div class="subject-card-meta">Instructor: ${teacherName} · Code: ${c.courseCode || 'CS'}</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:6px;">
+          <span style="color:var(--text-secondary);">Course Progress</span>
+          <span style="font-weight:700;color:var(--accent);">${progress}%</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${progress}%;"></div></div>
+      </div>
+      <div class="subject-card-footer" style="margin-top:auto;">
+        <span style="font-size:12px;color:var(--text-secondary);">${c.semester || 'Semester 1'}</span>
+        <button class="btn btn-primary btn-xs" onclick="openCourseLearning('${courseId}')">Continue Learning →</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderDashboardEnrollments() {
+  const continueBox = document.getElementById('continueLearningBox');
+  const dashEnrolled = document.getElementById('dashEnrolledList');
+
+  if (cachedMyEnrollments.length > 0) {
+    const first = cachedMyEnrollments[0].course || cachedMyEnrollments[0].courseId;
+    const firstTeacher = first?.primaryTeacher?.name || 'Faculty Member';
+    const firstProgress = cachedMyEnrollments[0].progressPercentage || 0;
+
+    continueBox.innerHTML = `
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <span class="badge badge-pending">Active Course</span>
+          <div style="font-size:18px;font-weight:800;margin-top:6px;">${first.title}</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">Instructor: ${firstTeacher} · Progress: ${firstProgress}%</div>
+        </div>
+        <button class="btn btn-primary" onclick="openCourseLearning('${first._id}')">Continue Learning →</button>
+      </div>
+    `;
+
+    dashEnrolled.innerHTML = '';
+    cachedMyEnrollments.slice(0, 4).forEach(item => {
+      const c = item.course || item.courseId;
+      if (!c) return;
+      const div = document.createElement('div');
+      div.className = 'material-item';
+      div.innerHTML = `
+        <div>
+          <div style="font-weight:700;font-size:13.5px;">${c.title}</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);">${c.primaryTeacher?.name || 'Faculty'} · ${c.semester || ''}</div>
+        </div>
+        <button class="btn btn-secondary btn-xs" onclick="openCourseLearning('${c._id}')">Open →</button>
+      `;
+      dashEnrolled.appendChild(div);
+    });
+  } else {
+    continueBox.innerHTML = `
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:800;">Explore University Courses</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">You are not enrolled in any course yet. Select a course to begin learning.</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('all-courses')">Browse All Courses →</button>
+      </div>
+    `;
+    dashEnrolled.innerHTML = '<div style="color:var(--text-secondary);font-size:12.5px;">You have not enrolled in any course yet.</div>';
+  }
+}
+
+function renderDashboardAvailable() {
+  const dashAvail = document.getElementById('dashAvailableList');
+  if (!dashAvail) return;
+  dashAvail.innerHTML = '';
+
+  const enrolledCourseIds = cachedMyEnrollments.map(e => e.course?._id || e.courseId?._id || e.courseId).filter(Boolean);
+  const unEnrolled = cachedAllCourses.filter(c => !enrolledCourseIds.some(id => id.toString() === c._id.toString()));
+
+  if (unEnrolled.length === 0) {
+    dashAvail.innerHTML = '<div style="color:var(--text-secondary);font-size:12.5px;">You are enrolled in all available courses.</div>';
+    return;
+  }
+
+  unEnrolled.slice(0, 4).forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'material-item';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:700;font-size:13.5px;">${c.title}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">${c.courseCode || 'CS'} · ${c.semester || ''}</div>
+      </div>
+      <button class="btn btn-primary btn-xs" onclick="enrollInCourse('${c._id}', '${c.title.replace(/'/g, "\\'")}')">Enroll →</button>
+    `;
+    dashAvail.appendChild(div);
+  });
+}
+
+function renderProfileBadges() {
+  const badgesEl = document.getElementById('profileEnrolledBadges');
+  if (!badgesEl) return;
+  if (cachedMyEnrollments.length === 0) {
+    badgesEl.innerHTML = '<span style="color:var(--text-secondary);font-size:12.5px;">No active enrollments yet.</span>';
+    return;
+  }
+  badgesEl.innerHTML = cachedMyEnrollments.map(e => {
+    const c = e.course || e.courseId;
+    return `<span class="badge badge-pending" style="font-size:11.5px;">${c?.title || 'Course'}</span>`;
+  }).join(' ');
+}
+
+// ==========================================
+// 4. COURSE LEARNING WORKSPACE
+// ==========================================
+async function openCourseLearning(courseId) {
+  activeLearnCourseId = courseId;
+  const container = document.getElementById('learnModulesContainer');
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-secondary);">Loading modules and curriculum content from database...</div>';
+
+  showPage('course-learning');
+
+  try {
+    const res = await LiveAPI.getCourseContent(courseId);
+    if (!res || !res.success || !res.data) {
+      throw new Error(res?.message || 'Failed to load course content');
+    }
+
+    const data = res.data;
+    const course = data.course || data;
+    const teacher = data.primaryTeacher;
+    const modules = data.modules || [];
+    const overallProgress = data.overallProgress || 0;
+    const totalVideos = data.totalVideos || 0;
+    const totalCompleted = data.totalCompletedVideos || 0;
+
+    document.getElementById('learnCourseTitle').textContent = course.title || 'Course Syllabus';
+    document.getElementById('learnCourseTeacher').textContent = `Instructor: ${teacher?.name || 'Faculty Member'}${teacher?.department ? ' (' + teacher.department + ')' : ''}`;
+    document.getElementById('learnCourseMeta').textContent = `${course.courseCode || 'CS'} · ${course.semester || 'Curriculum'}`;
+    document.getElementById('learnCourseDesc').textContent = course.description || 'Access video lectures, reading notes, and quizzes for this course.';
+
+    // Update Progress Header UI
+    const progWrap = document.getElementById('learnCourseProgressWrap');
+    if (progWrap) {
+      progWrap.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px;">
+          <span style="font-weight:700;">Overall Progress: <strong style="color:var(--accent);">${overallProgress}%</strong></span>
+          <span style="color:var(--text-secondary);font-size:12px;">${totalCompleted} / ${totalVideos} Lectures Completed</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${overallProgress}%;"></div></div>
+      `;
+    }
+
+    container.innerHTML = '';
+    if (modules.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-secondary);padding:36px;text-align:center;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);">No modules or lectures have been published by the instructor for this course yet.</div>';
+      return;
+    }
+
+    modules.forEach((mod, idx) => {
+      const modId = mod.moduleId || mod._id || mod.id;
+      const planned = mod.plannedClasses || 4;
+      const completedLectures = mod.completedVideosCount || 0;
+      const actualLectures = (mod.videos || []).length;
+
+      const vItems = (mod.videos || []).map(v => {
+        const vidId = v._id || v.id;
+        const isDone = v.completed === true;
+        return `
+          <div class="material-item" style="border-left: 3px solid ${isDone ? '#10B981' : 'var(--accent)'};">
+            <div>
+              <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
+                <span>${isDone ? '✓' : '▶'}</span>
+                <span>Lecture: ${v.title}</span>
+                ${isDone ? '<span class="badge badge-active" style="font-size:10px;padding:2px 6px;">Completed</span>' : ''}
+              </div>
+              <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
+                ${v.description || ''} · ${(v.comments||[]).length} Questions &amp; Comments
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn ${isDone ? 'btn-secondary' : 'btn-primary'} btn-xs" onclick="openStudentVideoPlayer('${courseId}', '${modId}', '${vidId}')">
+                ${isDone ? 'Re-watch Lecture' : 'Watch Lecture →'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const nItems = (mod.notes || []).map(n => {
+        const nUrl = n.cloudinaryUrl || n.fileUrl || n.pdfUrl || '#';
+        return `
+          <div class="material-item">
+            <div>
+              <div style="font-size:13px;font-weight:700;">📄 Notes: ${n.title}</div>
+              <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">${n.description || 'PDF study material'}</div>
+            </div>
+            <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank">View / Download PDF 📄</a>
+          </div>
+        `;
+      }).join('');
+
+      const qItems = (mod.quizzes || []).map(q => {
+        const qId = q._id || q.id;
+        return `
+          <div class="material-item">
+            <div>
+              <div style="font-size:13px;font-weight:700;">📝 Assessment: ${q.title}</div>
+              <div style="font-size:11.5px;color:var(--accent);margin-top:2px;">${(q.questions||[]).length} MCQs Assessment</div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="startStudentQuiz('${courseId}', '${modId}', '${qId}')">Attempt Quiz →</button>
+          </div>
+        `;
+      }).join('');
+
+      const item = document.createElement('div');
+      item.className = 'module-item ' + (idx === 0 ? 'open' : '');
+      item.innerHTML = `
+        <div class="module-header" onclick="this.closest('.module-item').classList.toggle('open')">
+          <div class="module-num">M${idx + 1}</div>
+          <div style="flex:1;">
+            <div class="module-title">${mod.title}</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
+              ${completedLectures} / ${actualLectures} Lectures Completed · Target: ${planned} Classes
+            </div>
+          </div>
+          <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="module-body" style="padding-top:14px;">
+          ${vItems ? `<div style="font-size:11.5px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">LECTURE VIDEOS</div>${vItems}` : ''}
+          ${nItems ? `<div style="font-size:11.5px;font-weight:700;color:var(--text-secondary);margin:10px 0 6px;">READING NOTES</div>${nItems}` : ''}
+          ${qItems ? `<div style="font-size:11.5px;font-weight:700;color:var(--text-secondary);margin:10px 0 6px;">ASSESSMENT QUIZZES</div>${qItems}` : ''}
+          ${(!vItems && !nItems && !qItems) ? '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No materials published yet under this module.</div>' : ''}
+        </div>
+      `;
+      container.appendChild(item);
+    });
+
+  } catch (err) {
+    console.error('Error loading course content:', err);
+    container.innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${err.message || 'Course access restricted'}</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Please make sure you are enrolled in this course to view lectures and materials.</div>
+        <button class="btn btn-primary btn-sm" onclick="showPage('all-courses')">Back to Courses</button>
+      </div>
+    `;
+  }
+}
+
+// ==========================================
+// 5. VIDEO LECTURE STREAMING & COMMENTS
+// ==========================================
+// ==========================================
+// 5. VIDEO LECTURE STREAMING, AI DOUBT & COMMENTS
+// ==========================================
+let videoProgressRecorded = false;
+let activeVideoMetadata = { courseTitle: '', moduleTitle: '', videoTitle: '' };
+const videoAIConversationStore = {};
+
+async function openStudentVideoPlayer(courseId, moduleId, videoId) {
+  activeLearnVideoContext = { courseId, moduleId, videoId };
+  videoProgressRecorded = false;
+
+  try {
+    const res = await LiveAPI.getCourseContent(courseId);
+    const mod = (res && res.data && res.data.modules) ? res.data.modules.find(m => (m.moduleId || m._id || m.id) === moduleId) : null;
+    const vid = mod ? (mod.videos || []).find(v => (v._id === videoId || v.id === videoId)) : null;
+
+    if (!vid) {
+      showToast('Video lecture not found');
+      return;
+    }
+
+    const courseTitle = res?.data?.course?.title || 'Academic Course';
+    const moduleTitle = mod.title || 'Course Module';
+    const videoTitle = vid.title || 'Video Lecture';
+    activeVideoMetadata = { courseTitle, moduleTitle, videoTitle };
+
+    document.getElementById('stdVideoTitle').textContent = videoTitle;
+    document.getElementById('stdVideoTeacher').textContent = `Module: ${moduleTitle}`;
+    document.getElementById('stdVideoDesc').textContent = vid.description || 'Watch the lecture stream, ask AI for explanations, and post your doubts below.';
+
+    const player = document.getElementById('stdVideoPlayer');
+    const source = document.getElementById('stdVideoSource');
+    const videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
+    if (videoUrl && source && player) {
+      source.src = videoUrl;
+      player.load();
+
+      // Real-time playback progress tracking
+      player.ontimeupdate = async () => {
+        if (player.duration > 0 && !videoProgressRecorded) {
+          const pct = Math.round((player.currentTime / player.duration) * 100);
+          if (pct >= 90) {
+            videoProgressRecorded = true;
+            try {
+              await LiveAPI.updateVideoProgress({
+                courseId,
+                moduleId,
+                videoId,
+                watchedSeconds: Math.round(player.currentTime),
+                duration: Math.round(player.duration),
+                percentage: pct,
+                completed: true,
+              });
+              showToast('✓ Lecture completed! Course progress updated.');
+              await loadMyEnrollments();
+            } catch (e) {
+              console.warn('[Progress tracking notice]', e.message);
+            }
+          }
+        }
+      };
+
+      player.onended = async () => {
+        if (!videoProgressRecorded) {
+          videoProgressRecorded = true;
+          try {
+            await LiveAPI.updateVideoProgress({
+              courseId,
+              moduleId,
+              videoId,
+              watchedSeconds: Math.round(player.duration),
+              duration: Math.round(player.duration),
+              percentage: 100,
+              completed: true,
+            });
+            showToast('✓ Lecture completed! Course progress updated.');
+            await loadMyEnrollments();
+          } catch (e) {
+            console.warn('[Progress tracking notice]', e.message);
+          }
+        }
+      };
+    }
+
+    // Initialize Dynamic AI Assistant for this Video
+    initVideoAIChat(courseId, moduleId, videoId, videoTitle, moduleTitle);
+
+    // Load Real MongoDB Comments
+    await loadAndRenderStudentVideoComments(videoId);
+
+    showPage('video-learning');
+  } catch (err) {
+    console.error('Video load error:', err);
+    showToast(`Failed to load lecture video: ${err.message}`);
+  }
+}
+
+// -------------------------------------------------------------
+// DYNAMIC AI DOUBT ASSISTANT FOR EVERY VIDEO
+// -------------------------------------------------------------
+function initVideoAIChat(courseId, moduleId, videoId, videoTitle, moduleTitle) {
+  const hint = document.getElementById('aiVideoContextHint');
+  if (hint) {
+    hint.textContent = `Active Context: "${videoTitle}" (${moduleTitle}). Ask AI for simple explanations, real-world examples, or solved questions.`;
+  }
+
+  if (!videoAIConversationStore[videoId]) {
+    videoAIConversationStore[videoId] = [
+      {
+        role: 'assistant',
+        content: `👋 Hello! I am your AI Academic Tutor for **${videoTitle}**.\n\n` +
+          `Ask me anything about this lecture topic! You can click the quick prompt buttons above or type your question below (e.g. *"Is topic ko simple language me samjhao"*, *"Example do"*, *"Important formulas batayein"*).`,
+      },
+    ];
+  }
+
+  renderVideoAIChat(videoId);
+}
+
+function renderVideoAIChat(videoId) {
+  const box = document.getElementById('videoAIChatBox');
+  if (!box) return;
+
+  const history = videoAIConversationStore[videoId] || [];
+  let html = '';
+
+  history.forEach(m => {
+    const isUser = m.role === 'user';
+    html += `
+      <div style="display:flex;gap:10px;align-self:${isUser ? 'flex-end' : 'flex-start'};max-width:88%;margin-bottom:8px;${isUser ? 'flex-direction:row-reverse;' : ''}">
+        <div style="flex-shrink:0;">
+          <div class="avatar avatar-xs" style="${isUser ? 'background:var(--accent);color:#000;' : 'background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;'}font-weight:700;">
+            ${isUser ? 'ME' : 'AI'}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;${isUser ? 'align-items:flex-end;' : 'align-items:flex-start;'}">
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;font-weight:600;">
+            ${isUser ? 'You' : 'AI Doubt Assistant'}
+          </div>
+          <div style="padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.6;${isUser ? 'background:#1c2438;border:1px solid rgba(245,197,66,0.3);color:var(--text-primary);' : 'background:var(--bg-surface);border:1px solid rgba(139,92,246,0.25);color:var(--text-primary);'}">
+            ${formatAIMarkdown(m.content)}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+}
+
+function formatAIMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/^### (.*$)/gim, '<div style="font-weight:800;color:var(--accent);font-size:14px;margin:6px 0;">$1</div>')
+    .replace(/^#### (.*$)/gim, '<div style="font-weight:700;color:#a78bfa;font-size:13px;margin:4px 0;">$1</div>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    .replace(/\n/gim, '<br>');
+}
+
+async function submitVideoAIQuestion() {
+  const input = document.getElementById('videoAIInput');
+  const btn = document.getElementById('btnVideoAISend');
+  if (!input || !activeLearnVideoContext.videoId) return;
+
+  const question = input.value.trim();
+  if (!question) return;
+
+  const videoId = activeLearnVideoContext.videoId;
+  if (!videoAIConversationStore[videoId]) {
+    videoAIConversationStore[videoId] = [];
+  }
+
+  // Append user message
+  videoAIConversationStore[videoId].push({ role: 'user', content: question });
+  input.value = '';
+  renderVideoAIChat(videoId);
+
+  // Show thinking indicator
+  const box = document.getElementById('videoAIChatBox');
+  const loaderEl = document.createElement('div');
+  loaderEl.id = 'aiThinkingLoader';
+  loaderEl.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-surface);border-radius:8px;border:1px solid rgba(139,92,246,0.3);color:#a78bfa;font-size:12px;align-self:flex-start;';
+  loaderEl.innerHTML = '<span>✨ AI is analyzing lecture context & formulating answer...</span>';
+  box.appendChild(loaderEl);
+  box.scrollTop = box.scrollHeight;
+
+  btn.disabled = true;
+
+  try {
+    const res = await LiveAPI.askAIDoubt({
+      question,
+      videoId,
+      courseId: activeLearnVideoContext.courseId,
+      moduleId: activeLearnVideoContext.moduleId,
+      conversationHistory: videoAIConversationStore[videoId],
+    });
+
+    const answer = res?.data?.answer || 'I am ready to help you with this video topic! What would you like to explore?';
+    videoAIConversationStore[videoId].push({ role: 'assistant', content: answer });
+  } catch (err) {
+    console.error('AI doubt error:', err);
+    videoAIConversationStore[videoId].push({
+      role: 'assistant',
+      content: `I ran into an issue connecting with the AI service: ${err.message}. Please try asking again in a moment!`,
+    });
+  } finally {
+    btn.disabled = false;
+    const l = document.getElementById('aiThinkingLoader');
+    if (l) l.remove();
+    renderVideoAIChat(videoId);
+  }
+}
+
+function sendQuickAIPrompt(text) {
+  const input = document.getElementById('videoAIInput');
+  if (input) {
+    input.value = text;
+    submitVideoAIQuestion();
+  }
+}
+
+function clearVideoAIChat() {
+  const videoId = activeLearnVideoContext.videoId;
+  if (videoId) {
+    delete videoAIConversationStore[videoId];
+    initVideoAIChat(activeLearnVideoContext.courseId, activeLearnVideoContext.moduleId, videoId, activeVideoMetadata.videoTitle, activeVideoMetadata.moduleTitle);
+    showToast('AI conversation reset for this lecture.');
+  }
+}
+
+// -------------------------------------------------------------
+// REAL MONGODB VIDEO COMMENTS
+// -------------------------------------------------------------
+async function loadAndRenderStudentVideoComments(videoId) {
+  const countEl = document.getElementById('stdVideoCommentCount');
+  const list = document.getElementById('stdVideoCommentsList');
+  if (!list) return;
+
+  try {
+    const res = await LiveAPI.getVideoComments(videoId);
+    const comments = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    if (countEl) countEl.textContent = res?.count || comments.length;
+    renderStudentVideoComments(comments);
+  } catch (err) {
+    console.warn('[Fetch video comments warning]', err.message);
+    list.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;padding:12px 0;">No comments loaded yet.</div>';
+  }
+}
+
+function renderStudentVideoComments(comments) {
+  const countEl = document.getElementById('stdVideoCommentCount');
+  const list = document.getElementById('stdVideoCommentsList');
+  if (!list) return;
+
+  if (countEl) countEl.textContent = comments.length;
+  list.innerHTML = '';
+
+  if (comments.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;padding:12px 0;">No questions asked yet. Be the first to ask a question for the instructor!</div>';
+    return;
+  }
+
+  const currentUser = LiveAPI.getUser() || {};
+  const currentUserId = (currentUser._id || currentUser.id || '').toString();
+
+  comments.forEach(c => {
+    const role = (c.userRole || c.role || 'student').toLowerCase();
+    const isTeacher = role === 'teacher';
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    const authorName = c.userName || c.author || 'User';
+    const initials = authorName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    const timeStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (c.time || 'Recent');
+    const isMyComment = c.userId && ((c.userId._id || c.userId).toString() === currentUserId);
+
+    let roleTag = 'Student';
+    let roleClass = '';
+    if (isAdmin) {
+      roleTag = 'Admin';
+      roleClass = 'teacher';
+    } else if (isTeacher) {
+      roleTag = 'Instructor';
+      roleClass = 'teacher';
+    }
+
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    item.innerHTML = `
+      <div class="avatar avatar-sm">${initials}</div>
+      <div class="comment-body">
+        <div class="comment-author-row">
+          <span class="comment-author-name">${authorName}</span>
+          <span class="comment-role-tag ${roleClass}">${roleTag}</span>
+          <span class="comment-time">${timeStr}</span>
+          ${isMyComment ? `<button class="comment-action-btn" style="color:var(--text-secondary);font-size:11px;margin-left:auto;" onclick="deleteStudentOwnComment('${c._id || c.commentId}')">Delete</button>` : ''}
+        </div>
+        <div class="comment-text">${escapeHtmlString(c.text || c.comment || '')}</div>
+        ${c.replies && c.replies.length > 0 ? renderCommentRepliesHtml(c.replies) : ''}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function renderCommentRepliesHtml(replies) {
+  const currentUser = LiveAPI.getUser() || {};
+  const currentUserId = (currentUser._id || currentUser.id || '').toString();
+
+  return `
+    <div style="margin-top:10px;padding-left:14px;border-left:2px solid rgba(245,197,66,0.3);display:flex;flex-direction:column;gap:8px;">
+      ${replies.map(r => {
+        const isT = (r.userRole || r.role) === 'teacher';
+        const rName = r.userName || r.author || 'Instructor';
+        const rTime = r.createdAt ? new Date(r.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Recent';
+        const isMyReply = r.userId && ((r.userId._id || r.userId).toString() === currentUserId);
+        return `
+          <div style="font-size:12.5px;background:var(--bg-primary);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+              <span style="font-weight:700;color:var(--text-primary);">${rName}</span>
+              <span class="comment-role-tag ${isT ? 'teacher' : ''}" style="font-size:10px;">${isT ? 'Instructor Reply' : 'Student'}</span>
+              <span style="color:var(--text-secondary);font-size:11px;">${rTime}</span>
+              ${isMyReply ? `<button class="comment-action-btn" style="color:var(--text-secondary);font-size:11px;margin-left:auto;" onclick="deleteStudentOwnComment('${r._id || r.commentId}')">Delete</button>` : ''}
+            </div>
+            <div style="color:var(--text-secondary);">${escapeHtmlString(r.text || '')}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function escapeHtmlString(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function postStudentVideoComment() {
+  const input = document.getElementById('stdCommentInput');
+  if (!input || !activeLearnVideoContext.videoId) return;
+
+  const text = input.value.trim();
+  if (!text) {
+    showToast('Please type a question before submitting.');
+    return;
+  }
+
+  try {
+    const res = await LiveAPI.createComment({
+      videoId: activeLearnVideoContext.videoId,
+      text,
+    });
+
+    if (res && res.success) {
+      input.value = '';
+      showToast('✓ Question posted successfully for the instructor!');
+      await loadAndRenderStudentVideoComments(activeLearnVideoContext.videoId);
+    } else {
+      throw new Error(res.message || 'Server did not acknowledge comment creation.');
+    }
+  } catch (err) {
+    console.error('Comment error:', err);
+    showToast(`Error posting comment: ${err.message}`);
+  }
+}
+
+async function deleteStudentOwnComment(commentId) {
+  if (!confirm('Are you sure you want to delete your comment?')) return;
+  try {
+    const res = await LiveAPI.deleteComment(commentId);
+    if (res && res.success) {
+      showToast('✓ Comment deleted');
+      await loadAndRenderStudentVideoComments(activeLearnVideoContext.videoId);
+    } else {
+      throw new Error(res.message || 'Failed to delete comment');
+    }
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`);
+  }
+}
+
+// ==========================================
+// 6. QUIZ RUNNER & SCORING EVALUATION
+// ==========================================
+let studentQuizAnswers = {};
+let currentQuizQuestions = [];
+let currentQuizQuestionIndex = 0;
+
+async function startStudentQuiz(courseId, moduleId, quizId) {
+  try {
+    let quiz = null;
+    let modTitle = 'Module Assessment';
+
+    // 1. Fetch from Course Content
+    const res = await LiveAPI.getCourseContent(courseId).catch(() => null);
+    if (res && res.data && res.data.modules) {
+      const mod = res.data.modules.find(m => (m.moduleId || m._id || m.id) === moduleId);
+      if (mod) {
+        modTitle = mod.title;
+        quiz = (mod.quizzes || []).find(q => (q._id === quizId || q.id === quizId));
+      }
+    }
+
+    // 2. Direct Quiz Endpoint fallback
+    if (!quiz) {
+      const qRes = await LiveAPI.request(`/quizzes/${quizId}`).catch(() => null);
+      if (qRes && qRes.data) {
+        quiz = qRes.data;
+        modTitle = quiz.moduleId?.title || modTitle;
+      }
+    }
+
+    if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+      showToast('Assessment quiz questions are being finalized by the instructor.');
+      return;
+    }
+
+    activeQuizData = quiz;
+    currentQuizQuestions = quiz.questions || [];
+    currentQuizQuestionIndex = 0;
+    studentQuizAnswers = {};
+
+    document.getElementById('runnerQuizTitle').textContent = quiz.title;
+    document.getElementById('runnerQuizSubject').textContent = `Module: ${modTitle}`;
+
+    renderCurrentQuizQuestion();
+
+    document.getElementById('quizRunnerContainer').style.display = 'block';
+    document.getElementById('quizResultsContainer').style.display = 'none';
+    showPage('quiz');
+  } catch (err) {
+    console.error('Quiz start error:', err);
+    showToast(`Failed to start quiz: ${err.message}`);
+  }
+}
+
+function renderCurrentQuizQuestion() {
+  const total = currentQuizQuestions.length;
+  if (total === 0) return;
+
+  const idx = currentQuizQuestionIndex;
+  const qItem = currentQuizQuestions[idx];
+
+  document.getElementById('quizCounterText').textContent = `Question ${idx + 1} of ${total}`;
+  const progressPercent = Math.round(((idx + 1) / total) * 100);
+  document.getElementById('quizProgressBar').style.width = `${progressPercent}%`;
+
+  const btnPrev = document.getElementById('btnPrevQuestion');
+  const btnNext = document.getElementById('btnNextQuestion');
+  btnPrev.disabled = idx === 0;
+  btnNext.disabled = idx === total - 1;
+
+  const area = document.getElementById('quizQuestionsArea');
+  const currentSelected = studentQuizAnswers[idx];
+  const qStatement = qItem.question || qItem.q || 'Question statement';
+  const options = qItem.options || [];
+
+  area.innerHTML = `
+    <div style="padding:16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;">
+      <div style="font-size:15px;font-weight:700;line-height:1.5;margin-bottom:16px;">
+        <span style="color:var(--accent);margin-right:6px;">Q${idx + 1}.</span>${qStatement}
+      </div>
+      <div class="quiz-options">
+        ${options.map((opt, oIdx) => {
+          const isSelected = currentSelected === oIdx ? 'selected' : '';
+          return `
+            <div class="quiz-option ${isSelected}" onclick="recordAnswer(${idx}, ${oIdx}, this)">
+              <span class="option-label">${String.fromCharCode(65 + oIdx)}</span>
+              <span>${opt}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function prevQuizQuestion() {
+  if (currentQuizQuestionIndex > 0) {
+    currentQuizQuestionIndex--;
+    renderCurrentQuizQuestion();
+  }
+}
+
+function nextQuizQuestion() {
+  if (currentQuizQuestionIndex < currentQuizQuestions.length - 1) {
+    currentQuizQuestionIndex++;
+    renderCurrentQuizQuestion();
+  }
+}
+
+function recordAnswer(qIdx, oIdx, el) {
+  const container = el.closest('.quiz-options');
+  container.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  studentQuizAnswers[qIdx] = oIdx;
+}
+
+function confirmSubmitQuiz() {
+  if (!activeQuizData) return;
+  const total = currentQuizQuestions.length;
+  const answeredCount = Object.keys(studentQuizAnswers).length;
+  const warningEl = document.getElementById('quizUnansweredWarning');
+
+  if (answeredCount < total) {
+    warningEl.style.display = 'block';
+    warningEl.textContent = `Notice: You have answered ${answeredCount} of ${total} questions. Unanswered questions will receive 0 marks.`;
+  } else {
+    warningEl.style.display = 'none';
+  }
+
+  openModal('submitQuizConfirmModal');
+}
+
+async function proceedSubmitQuiz() {
+  closeModal('submitQuizConfirmModal');
+  if (!activeQuizData) return;
+
+  const total = currentQuizQuestions.length;
+  const answersPayload = currentQuizQuestions.map((qItem, idx) => {
+    const chosenIdx = studentQuizAnswers[idx];
+    const selectedText = chosenIdx !== undefined ? qItem.options[chosenIdx] : '';
+    return {
+      questionId: qItem._id || `q_${idx}`,
+      selectedAnswer: selectedText,
+    };
+  });
+
+  let serverEvaluation = null;
+  try {
+    const res = await LiveAPI.request('/quiz-attempts', {
+      method: 'POST',
+      body: JSON.stringify({
+        quizId: activeQuizData._id || activeQuizData.id,
+        courseId: activeLearnCourseId,
+        answers: answersPayload,
+      }),
+    });
+    if (res && res.data) serverEvaluation = res.data;
+  } catch (err) {
+    console.warn('[Quiz Evaluation API Note]', err.message);
+  }
+
+  const reviewList = document.getElementById('quizAnswersReviewList');
+  reviewList.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text-primary);">Detailed Question Breakdown &amp; Explanations</div>';
+
+  let score = 0;
+  let totalMarks = 0;
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  if (serverEvaluation && serverEvaluation.breakdown) {
+    score = serverEvaluation.score;
+    totalMarks = serverEvaluation.totalMarks;
+    correctCount = serverEvaluation.correctCount;
+    wrongCount = serverEvaluation.wrongCount;
+
+    serverEvaluation.breakdown.forEach((item, idx) => {
+      const qDiv = document.createElement('div');
+      qDiv.style.padding = '14px';
+      qDiv.style.border = '1px solid var(--border)';
+      qDiv.style.borderRadius = 'var(--radius)';
+      qDiv.style.marginBottom = '12px';
+      qDiv.style.background = 'var(--bg-secondary)';
+
+      qDiv.innerHTML = `
+        <div style="font-size:13.5px;font-weight:700;line-height:1.4;">
+          Question ${idx + 1}: ${item.question}
+        </div>
+        <div style="font-size:12.5px;margin-top:8px;">
+          Your Answer: <strong style="color:${item.isCorrect ? '#4BB543' : '#ff5c5c'};">${item.selectedAnswer || 'Not Answered'}</strong>
+          <span style="color:${item.isCorrect ? '#4BB543' : '#ff5c5c'};font-weight:700;margin-left:8px;">${item.isCorrect ? '✓ Correct' : '✗ Wrong'}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--accent);margin-top:4px;">
+          Correct Answer: <strong>${item.correctAnswer}</strong>
+        </div>
+        ${item.explanation ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);line-height:1.5;"><strong>Explanation:</strong> ${item.explanation}</div>` : ''}
+      `;
+      reviewList.appendChild(qDiv);
+    });
+  } else {
+    // Client fallback evaluation
+    currentQuizQuestions.forEach((qItem, idx) => {
+      const chosen = studentQuizAnswers[idx];
+      let correctIdx = qItem.correct;
+      if (typeof correctIdx === 'string' && qItem.options) {
+        const found = qItem.options.indexOf(correctIdx);
+        if (found !== -1) correctIdx = found;
+      }
+      const isCorrect = chosen !== undefined && (chosen === correctIdx || qItem.options[chosen] === qItem.correctAnswer);
+      const qMarks = qItem.marks || 1;
+      totalMarks += qMarks;
+
+      if (isCorrect) {
+        correctCount++;
+        score += qMarks;
+      } else {
+        wrongCount++;
+      }
+
+      const qStatement = qItem.question || qItem.q;
+      const correctText = qItem.correctAnswer || (qItem.options && qItem.options[correctIdx]) || 'Option';
+      const chosenText = chosen !== undefined ? qItem.options[chosen] : 'Not Answered';
+
+      const qDiv = document.createElement('div');
+      qDiv.style.padding = '14px';
+      qDiv.style.border = '1px solid var(--border)';
+      qDiv.style.borderRadius = 'var(--radius)';
+      qDiv.style.marginBottom = '12px';
+      qDiv.style.background = 'var(--bg-secondary)';
+
+      qDiv.innerHTML = `
+        <div style="font-size:13.5px;font-weight:700;line-height:1.4;">
+          Question ${idx + 1}: ${qStatement}
+        </div>
+        <div style="font-size:12.5px;margin-top:8px;">
+          Your Answer: <strong style="color:${isCorrect ? '#4BB543' : '#ff5c5c'};">${chosenText}</strong>
+          <span style="color:${isCorrect ? '#4BB543' : '#ff5c5c'};font-weight:700;margin-left:8px;">${isCorrect ? '✓ Correct' : '✗ Wrong'}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--accent);margin-top:4px;">
+          Correct Answer: <strong>${correctText}</strong>
+        </div>
+        ${qItem.explanation ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);line-height:1.5;"><strong>Explanation:</strong> ${qItem.explanation}</div>` : ''}
+      `;
+      reviewList.appendChild(qDiv);
+    });
+  }
+
+  const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+  document.getElementById('resultQuizTitle').textContent = activeQuizData.title;
+  document.getElementById('resScoreVal').textContent = `${score} / ${totalMarks || total}`;
+  document.getElementById('resCorrectVal').textContent = correctCount;
+  document.getElementById('resWrongVal').textContent = wrongCount;
+  document.getElementById('resPercentVal').textContent = `${percentage}%`;
+
+  document.getElementById('quizRunnerContainer').style.display = 'none';
+  document.getElementById('quizResultsContainer').style.display = 'block';
+  showToast(`Quiz Submitted! Final Score: ${percentage}%`);
+  loadMyEnrollments();
+}
+
+function retakeActiveQuiz() {
+  currentQuizQuestionIndex = 0;
+  studentQuizAnswers = {};
+  renderCurrentQuizQuestion();
+  document.getElementById('quizRunnerContainer').style.display = 'block';
+  document.getElementById('quizResultsContainer').style.display = 'none';
+}
+
+// ==========================================
+// 7. ANNOUNCEMENTS, E-LIBRARY & CHAT
+// ==========================================
+async function renderStudentAnnouncements() {
+  const list = document.getElementById('stdAnnouncementsList');
+  if (!list) return;
+
+  try {
+    const res = await LiveAPI.getAnnouncements();
+    const items = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    list.innerHTML = '';
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-secondary);padding:24px;text-align:center;">No announcements yet.</div>';
+      return;
+    }
+
+    items.forEach(a => {
+      const teacherName = a.teacherName || a.teacherId?.name || 'Faculty';
+      const subjectName = a.subjectName || a.subjectId?.name || '';
+      const displayDate = a.date || (a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : 'Recent');
+
+      const card = document.createElement('div');
+      card.className = 'announcement-card';
+      card.innerHTML = `
+        <div class="announcement-accent"></div>
+        <div class="announcement-body">
+          <div class="announcement-title">${a.title}</div>
+          <div class="announcement-meta">${teacherName} · ${displayDate} ${subjectName ? '· ' + subjectName : ''}</div>
+          <div class="announcement-text">${a.message}</div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    const dashAnn = document.getElementById('dashAnnounceList');
+    if (dashAnn) {
+      dashAnn.innerHTML = '';
+      items.slice(0, 3).forEach(a => {
+        const teacherName = a.teacherName || a.teacherId?.name || 'Faculty';
+        const displayDate = a.date || (a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : 'Recent');
+        const div = document.createElement('div');
+        div.style.padding = '8px 0';
+        div.style.borderBottom = '1px solid var(--border)';
+        div.innerHTML = `
+          <div style="font-size:13px;font-weight:700;">${a.title}</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);">${teacherName} · ${displayDate}</div>
+        `;
+        dashAnn.appendChild(div);
+      });
+    }
+  } catch (err) {
+    console.warn('Announcements error:', err.message);
+  }
+}
+
+let cachedStudentBooks = [];
+async function loadStudentBooks() {
+  try {
+    const res = await LiveAPI.getBooks();
+    cachedStudentBooks = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    filterStudentBooks();
+  } catch (err) {
+    console.warn('Books error:', err.message);
+  }
+}
+
+function setStdBookFilter(chip, cat) {
+  document.querySelectorAll('#bookFilterChips .filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  currentStdBookFilter = cat;
+  filterStudentBooks();
+}
+
+function filterStudentBooks() {
+  const q = (document.getElementById('stdElibrarySearch')?.value || '').toLowerCase();
+  const grid = document.getElementById('stdBooksGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const filtered = cachedStudentBooks.filter(b => {
+    const matchCat = currentStdBookFilter === 'All' || b.category === currentStdBookFilter || b.subject === currentStdBookFilter;
+    const matchQ = !q || b.name.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-secondary);padding:24px;text-align:center;grid-column:1/-1;">No books found.</div>';
+    return;
+  }
+
+  filtered.forEach(b => {
+    const pdfUrl = b.cloudinaryUrl || b.pdfUrl || b.fileUrl || '#';
+    const card = document.createElement('div');
+    card.className = 'library-card';
+    card.innerHTML = `
+      <div class="library-card-icon">📖</div>
+      <div>
+        <span class="library-card-subject">${b.category || b.subject || 'Monograph'}</span>
+        <div class="library-card-title" style="margin-top:6px;">${b.name}</div>
+        <div class="library-card-author">Author: ${b.author || 'University Faculty'}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${b.description || ''}</div>
+      <a class="btn btn-secondary btn-xs" style="margin-top:auto;" href="${pdfUrl}" target="_blank">Open PDF 📄</a>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+let cachedTeachersForChat = [];
+// ==========================================
+// 7. COMMUNITY CHAT (COMMON ROOM)
+// ==========================================
+async function initCommunityChat() {
+  if (!window.platformChat) {
+    window.platformChat = new ChatManager({
+      containerId: 'chatMessagesBox',
+      inputId: 'chatMessageInput',
+      sendBtnId: 'chatSendBtn',
+      roomTitleId: 'chatRoomTitle',
+      roomSubtitleId: 'chatRoomSubtitle',
+      currentUser: currentAuthenticatedStudent,
+      currentRole: 'student',
+      defaultRoom: 'common',
+      allowedRooms: ['common'],
+    });
+    window.platformChat.init();
+  } else {
+    window.platformChat.setRoleAndUser('student', currentAuthenticatedStudent);
+    window.platformChat.fetchMessages(true);
+  }
+}
+
+async function sendStudentChat() {
+  const text = document.getElementById('stdChatInput').value.trim();
+  if (!text || !activeChatTeacherId) return;
+
+  try {
+    await LiveAPI.sendChatMessage(activeChatTeacherId, text);
+    document.getElementById('stdChatInput').value = '';
+    const teacher = cachedTeachersForChat.find(t => t._id === activeChatTeacherId);
+    if (teacher) selectChatTeacher(teacher._id, teacher.name, teacher.department);
+  } catch (err) {
+    showToast(`Error sending message: ${err.message}`);
+  }
+}
+
+// ==========================================
+// 8. UPDATE PROFILE
+// ==========================================
+async function handleUpdateProfile(e) {
+  e.preventDefault();
+  const name = document.getElementById('editProfileName').value.trim();
+  const phone = document.getElementById('editProfilePhone').value.trim();
+  const department = document.getElementById('editProfileDept').value.trim();
+  const semester = document.getElementById('editProfileSemester').value.trim();
+  const password = document.getElementById('editProfilePassword').value.trim();
+  const btn = document.getElementById('btnSaveProfile');
+
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const payload = { name, phone, department, semester };
+    if (password && password.length >= 6) {
+      payload.password = password;
+    }
+
+    const res = await LiveAPI.updateStudentMe(payload);
+    if (res && res.success) {
+      showToast('Profile updated successfully!');
+      document.getElementById('editProfilePassword').value = '';
+      await initStudentPanel();
+    } else {
+      throw new Error(res.message || 'Update failed');
+    }
+  } catch (err) {
+    showToast(`Profile update error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Profile Changes';
+  }
+}
+
+function handleStudentSearch(val) {
+  // Global search filtering if needed
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  AuthGuard.init('student', async (user) => {
+    await initStudentPanel();
+  });
+});
+</script>
+</body>
+</html>

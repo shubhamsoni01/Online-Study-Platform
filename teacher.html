@@ -1,0 +1,3396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Teacher Panel — Online Study Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/main.css"/>
+<style>
+.page { display: none; }
+.page.active { display: block; }
+.ai-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; margin-top: 16px; }
+.ai-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(245,197,66,0.25); border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+.mcq-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+.mcq-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mcq-number { font-size: 11.5px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+.mcq-question { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary); }
+.mcq-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.mcq-opt { padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
+.mcq-opt.correct { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+.mcq-opt-key { width: 20px; height: 20px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text-secondary); flex-shrink: 0; }
+.mcq-opt.correct .mcq-opt-key { background: var(--accent); color: #000; }
+.video-player-container { background: #000; border-radius: var(--radius); padding: 36px 20px; text-align: center; border: 1px solid var(--border); margin-bottom: 16px; }
+@media (max-width: 768px) { .mcq-options { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<div class="sidebar-overlay"></div>
+
+<!-- ====== TEACHER SIDEBAR ====== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="brand-text">Online <span>Study Platform</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Faculty Workspace</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="subjects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        My Subjects
+        <span class="nav-badge" id="teacherAssignedBadge">0</span>
+      </div>
+      <div class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        Student Comments
+        <span class="nav-badge" id="teacherCommentsBadge" style="display:none;background:var(--accent);color:#000;">0</span>
+      </div>
+      <div class="nav-item" data-page="quiz-results">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Quiz Results
+      </div>
+      <div class="nav-item" data-page="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </div>
+      <div class="nav-item" data-page="elibrary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        E-Library
+      </div>
+      <div class="nav-item" data-page="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat Rooms
+      </div>
+      <div class="nav-item" data-page="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-widget" onclick="window.location.href='index.html'" title="Switch Portal">
+      <div class="user-avatar" id="sidebarAvatar">TR</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarTeacherName">Faculty Member</div>
+        <div class="user-role" id="sidebarTeacherDept">Teacher</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--text-secondary);"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- ====== MAIN CONTENT ====== -->
+<div class="main-content">
+  <header class="topbar">
+    <button class="hamburger-btn" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="topbar-title">Teacher Dashboard</span>
+    <div class="topbar-spacer"></div>
+
+    <!-- Top-Right Teacher Profile Avatar & Dropdown -->
+    <div class="top-profile-wrapper" style="position:relative;margin-left:8px;">
+      <div class="user-avatar" id="topNavAvatar" onclick="toggleTeacherProfileDropdown()" style="cursor:pointer;width:36px;height:36px;border:2px solid var(--accent);" title="Faculty Account">
+        TR
+      </div>
+      <div class="profile-dropdown" id="teacherProfileDropdown" style="display:none;position:absolute;top:46px;right:0;width:250px;background:#101010;border:1px solid #282828;border-radius:10px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,0.8);z-index:9999;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #202020;">
+          <div class="user-avatar" id="dropdownAvatar" style="width:40px;height:40px;flex-shrink:0;">TR</div>
+          <div style="overflow:hidden;">
+            <div style="font-weight:700;font-size:13.5px;color:#FFF;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;" id="dropdownTeacherName">Faculty Member</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;" id="dropdownTeacherEmail">email@university.edu</div>
+            <div style="font-size:11px;color:var(--accent);margin-top:2px;" id="dropdownTeacherDept">Department</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Account Role: Teacher</div>
+        <button class="btn btn-secondary btn-sm" onclick="navigateToProfile();toggleTeacherProfileDropdown();" style="width:100%;justify-content:center;margin-bottom:8px;font-size:12px;">
+          👤 View Profile
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="logoutTeacher()" style="width:100%;justify-content:center;font-size:12px;">
+          🚪 Sign Out
+        </button>
+      </div>
+    </div>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="margin-left:8px;">Switch Panel</a>
+    <button onclick="AuthGuard.logout()" class="btn btn-secondary btn-sm" style="margin-left:4px;color:#ef4444;" title="Sign out of Teacher Panel">Sign Out</button>
+  </header>
+
+  <!-- ======================================================
+       PAGE: DASHBOARD (Clean Teacher Stats)
+  ====================================================== -->
+  <div class="page active" id="page-dashboard" data-title="Teacher Dashboard">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title" id="dashWelcomeTitle">Welcome, Faculty</div>
+          <div class="page-subtitle">Your allocated subjects, modules, study materials, and teaching schedule.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" onclick="document.querySelector('[data-page=subjects]').click()">Manage My Subjects →</button>
+        </div>
+      </div>
+
+      <!-- Clean 6 Stat Cards as specified -->
+      <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+            <span class="badge badge-pending">Assigned</span>
+          </div>
+          <div class="stat-value" id="tStatSubjects">0</div>
+          <div class="stat-label">My Subjects</div>
+          <div class="stat-change">Allocated by Admin</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+            <span class="badge badge-active">Syllabus</span>
+          </div>
+          <div class="stat-value" id="tStatModules">0</div>
+          <div class="stat-label">Total Modules</div>
+          <div class="stat-change">Across assigned subjects</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+            <span class="badge badge-active">Lectures</span>
+          </div>
+          <div class="stat-value" id="tStatVideos">0</div>
+          <div class="stat-label">Total Videos</div>
+          <div class="stat-change">Published for students</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <span class="badge badge-active">PDF</span>
+          </div>
+          <div class="stat-value" id="tStatNotes">0</div>
+          <div class="stat-label">Total Notes</div>
+          <div class="stat-change">Uploaded lecture hand-outs</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg></div>
+            <span class="badge badge-pending">AI &amp; Manual</span>
+          </div>
+          <div class="stat-value" id="tStatQuizzes">0</div>
+          <div class="stat-label">Total Quizzes</div>
+          <div class="stat-change">Active assessments</div>
+        </div>
+      </div>
+
+      <!-- Upcoming Classes -->
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header">
+          <span class="card-title">My Upcoming Teaching Schedule</span>
+          <span style="font-size:12px;color:var(--text-secondary);">Filtered by your assigned subjects</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Topic / Module</th>
+              </tr>
+            </thead>
+            <tbody id="tDashboardSchedule">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: MY SUBJECTS
+  ====================================================== -->
+  <div class="page" id="page-subjects" data-title="My Subjects">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">My Assigned Subjects</div>
+          <div class="page-subtitle">Showing only subjects allocated to you by Admin. Select a subject to manage modules, videos, notes, and quizzes.</div>
+        </div>
+      </div>
+
+      <div class="subject-grid" id="teacherAssignedGrid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: SUBJECT CONTENT MANAGEMENT (MODULES + 4 TABS)
+  ====================================================== -->
+  <div class="page" id="page-subject-detail" data-title="Subject Content">
+    <div class="page-content">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('subjects')" style="margin-bottom:14px;">
+        ← Back to My Subjects
+      </button>
+
+      <div class="card" style="margin-bottom:20px;border-color:rgba(245,197,66,0.3);">
+        <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+          <div>
+            <div style="font-size:20px;font-weight:800;" id="currentSubTitle">Data Structures</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;" id="currentSubMeta">Code: CS301 · 3rd Semester</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openCreateModuleModal()">+ Create Module</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-size:13.5px;font-weight:700;">Subject Modules</span>
+        <span style="font-size:12px;color:var(--text-secondary);">Click a module to view/add videos, notes, quizzes, or AI generate</span>
+      </div>
+
+      <!-- Modules List -->
+      <div class="module-list" id="subjectModulesContainer">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: VIDEO LECTURE & COMMENTS (TEACHER VIEW)
+  ====================================================== -->
+  <div class="page" id="page-video-view" data-title="Lecture Video & Comments">
+    <div class="page-content">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('subject-detail')" style="margin-bottom:14px;">
+        ← Back to Module Content
+      </button>
+
+      <!-- Real HTML5 Video Player -->
+      <div style="position:relative;width:100%;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:16px;">
+        <video id="teacherVideoPlayer" controls playsinline style="width:100%;max-height:480px;display:block;background:#000;">
+          <source id="teacherVideoSource" src="" type="video/mp4"/>
+          Your browser does not support HTML5 video playback.
+        </video>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+          <div style="font-size:16px;font-weight:800;" id="videoHeading">1.1 Complexity Analysis &amp; Asymptotic Notations</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.6;" id="videoDescription">Understanding Big-O, Big-Omega, and Theta notations with real-world examples.</div>
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="comments-section">
+        <div class="comments-header">
+          <span class="comments-title">Video Lecture Comments (<span id="videoCommentCount">0</span>)</span>
+          <span style="font-size:12px;color:var(--text-secondary);">Students ask questions below this lecture</span>
+        </div>
+
+        <!-- Add Teacher Reply / Comment -->
+        <div class="comment-input-box">
+          <div class="avatar avatar-sm" id="commentMyAvatar">RK</div>
+          <textarea class="comment-textarea" id="teacherCommentText" placeholder="Post an instructor reply or answer a student question..."></textarea>
+          <button class="btn btn-primary" style="height:42px;align-self:flex-end;" onclick="postTeacherVideoComment()">Post Reply</button>
+        </div>
+
+        <div class="comment-list" id="videoCommentsList">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: ANNOUNCEMENTS (COMMON FOR ALL TEACHERS)
+  ====================================================== -->
+  <div class="page" id="page-announcements" data-title="Common Announcements">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Announcements</div>
+          <div class="page-subtitle">Publish important notices, class updates, or exam alerts to all students.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="publishNoticeModal">+ Publish Announcement</button>
+        </div>
+      </div>
+
+      <div id="teacherAnnouncementsList">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: E-LIBRARY (COMMON FOR ALL TEACHERS)
+  ====================================================== -->
+  <div class="page" id="page-elibrary" data-title="Digital E-Library">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">E-Library Repository</div>
+          <div class="page-subtitle">Upload books and reference PDFs for students to search and read.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" data-modal="uploadBookModal">+ Upload Book / Reference</button>
+        </div>
+      </div>
+
+      <!-- Prominent Search Bar -->
+      <div class="topbar-search" style="width:100%;margin-bottom:14px;padding:10px 14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="elibrarySearchInput" placeholder="Search by book name, author, subject, or category..." oninput="filterTeacherBooks()"/>
+      </div>
+
+      <!-- Filter Chips: All | Data Structures | DBMS | OS | Networking | Other -->
+      <div class="filter-bar">
+        <div class="filter-chip active" onclick="setBookFilter(this, 'All')">All</div>
+        <div class="filter-chip" onclick="setBookFilter(this, 'Data Structures')">Data Structures</div>
+        <div class="filter-chip" onclick="setBookFilter(this, 'DBMS')">DBMS</div>
+        <div class="filter-chip" onclick="setBookFilter(this, 'OS')">OS</div>
+        <div class="filter-chip" onclick="setBookFilter(this, 'Networking')">Networking</div>
+        <div class="filter-chip" onclick="setBookFilter(this, 'Other')">Other</div>
+      </div>
+
+      <div class="library-grid" id="teacherBooksGrid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: CHAT (COMMUNITY & STAFF CHAT)
+  ====================================================== -->
+  <div class="page" id="page-chat" data-title="Chat Rooms">
+    <div class="page-content">
+      <div class="page-header" style="margin-bottom:12px;">
+        <div class="page-header-left">
+          <div class="page-title" id="chatRoomTitle">💬 Common Chat</div>
+          <div class="page-subtitle" id="chatRoomSubtitle">Public discussion room for Admin, Teachers &amp; Students</div>
+        </div>
+      </div>
+
+      <!-- 2-Box Tabs -->
+      <div class="chat-room-tabs" id="chatRoomTabs">
+        <button class="chat-room-tab active" onclick="window.platformChat.setRoom('common')">
+          <span>💬</span> Common Chat
+        </button>
+        <button class="chat-room-tab" onclick="window.platformChat.setRoom('staff')">
+          <span>🔒</span> Admin &amp; Teachers
+        </button>
+      </div>
+
+      <div class="chat-box-card">
+        <div class="chat-messages" id="chatMessagesBox">
+          <div style="color:var(--text-secondary);text-align:center;padding:40px;">Loading chat messages...</div>
+        </div>
+
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatMessageInput" placeholder="Type a message..." />
+          <button class="chat-send-btn" id="chatSendBtn" title="Send Message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: STUDENT COMMENTS (ACROSS ASSIGNED SUBJECT VIDEOS)
+  ====================================================== -->
+  <div class="page" id="page-comments" data-title="Student Comments">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">💬 Student Video Comments</div>
+          <div class="page-subtitle">Questions, doubts, and feedback posted by students under your assigned subject lectures.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm" onclick="loadTeacherStudentComments(true)">
+            ↻ Refresh Comments
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filter Bar -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <div class="topbar-search" style="flex:1;min-width:240px;padding:8px 14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="teacherCommentSearchInput" placeholder="Search by student name, video title, or comment text..." oninput="filterTeacherCommentsView()" />
+        </div>
+
+        <select id="teacherCommentSubjectFilter" class="form-control" style="max-width:220px;font-size:13px;height:40px;" onchange="filterTeacherCommentsView()">
+          <option value="">All Assigned Subjects</option>
+        </select>
+
+        <div class="filter-bar" style="margin:0;">
+          <div class="filter-chip active" id="chipCommentAll" onclick="setCommentStatusFilter(this, 'all')">All (<span id="countCommentAll">0</span>)</div>
+          <div class="filter-chip" id="chipCommentUnreplied" onclick="setCommentStatusFilter(this, 'unreplied')">Unreplied (<span id="countCommentUnreplied">0</span>)</div>
+          <div class="filter-chip" id="chipCommentReplied" onclick="setCommentStatusFilter(this, 'replied')">Replied</div>
+        </div>
+      </div>
+
+      <!-- Comments Feed Container -->
+      <div id="teacherStudentCommentsContainer" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading student comments...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: PROFILE
+  ====================================================== -->
+  <div class="page" id="page-profile" data-title="Faculty Profile">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Faculty Profile</div>
+          <div class="page-subtitle">Your credentials created by Admin.</div>
+        </div>
+      </div>
+
+      <div style="max-width: 680px;">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;">
+              <div class="avatar avatar-lg" id="profileBigAvatar" style="width:68px;height:68px;font-size:22px;border:2px solid var(--accent);">TR</div>
+              <div>
+                <div style="font-size:19px;font-weight:800;color:#FFF;" id="profileName">Faculty Member</div>
+                <div style="font-size:13px;color:var(--accent);margin-top:2px;" id="profileDept">Department of Computer Science</div>
+                <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;" id="profileEmail">faculty@university.edu</div>
+                <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Teacher ID: <span id="profileTeacherId" style="color:var(--accent);font-weight:600;">-</span></div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                  <span class="badge badge-active" id="profileRole">Role: Teacher</span>
+                  <span class="badge badge-pending" id="profileStatus">Status: Active</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notice box -->
+            <div style="background:rgba(245,197,66,0.08);border:1px solid rgba(245,197,66,0.25);border-radius:var(--radius);padding:12px 14px;margin-bottom:20px;">
+              <div style="font-size:12px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:6px;">
+                <span>🔒</span> Managed by Administration
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.5;">
+                Your name, email address, password, department, and assigned curricula are managed by University Administration. Any modifications or new subject allocations must be assigned through the Admin Panel.
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px;">
+              <label class="form-label" style="font-size:11px;letter-spacing:0.06em;">My Assigned Curriculum Subjects</label>
+              <div id="profileAssignedList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:11px;letter-spacing:0.06em;">Assigned Academic Courses</label>
+              <div id="profileAssignedCoursesList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PAGE: QUIZ RESULTS (STUDENT PERFORMANCE)
+  ====================================================== -->
+  <div class="page" id="page-quiz-results" data-title="Student Quiz Results">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Student Quiz Results &amp; Performance</div>
+          <div class="page-subtitle">Track individual student evaluation scores across your assigned courses.</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="renderTeacherQuizResults()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh Results
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Email</th>
+                <th>Quiz Assessment</th>
+                <th>Course</th>
+                <th>Score</th>
+                <th>Correct / Wrong</th>
+                <th>Percentage</th>
+                <th>Attempt Date</th>
+              </tr>
+            </thead>
+            <tbody id="teacherQuizResultsTableBody">
+              <tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:20px;">Loading quiz attempt records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- end main-content -->
+
+<!-- ====== MODALS ====== -->
+
+<!-- Create Module Modal -->
+<div class="modal-overlay" id="createModuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create New Module</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Module Title *</label>
+        <input class="form-control" id="newModuleTitleInput" placeholder="e.g. Module 1 – Relational Schema Design"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Module Description</label>
+        <textarea class="form-control" id="newModuleDescInput" rows="2" placeholder="Brief outline of topics covered in this module..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Planned / Expected Classes (Lectures)</label>
+        <input class="form-control" type="number" id="newModulePlannedClasses" value="4" min="1" max="50"/>
+        <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:3px;">
+          Set your expected lecture target for this module. You can adjust this number anytime.
+        </small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateModule()">Create Module</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Module Modal -->
+<div class="modal-overlay" id="editModuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Module Details</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editModuleId"/>
+      <div class="form-group">
+        <label class="form-label">Module Title *</label>
+        <input class="form-control" id="editModuleTitleInput"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Module Description</label>
+        <textarea class="form-control" id="editModuleDescInput" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Planned / Expected Classes (Lectures)</label>
+        <input class="form-control" type="number" id="editModulePlannedClassesInput" min="1" max="50"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditModule()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Video Modal -->
+<div class="modal-overlay" id="editVideoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Video Lecture</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editVideoId"/>
+      <div class="form-group">
+        <label class="form-label">Video Title *</label>
+        <input class="form-control" id="editVideoTitleInput"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="editVideoDescInput" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Publish Status</label>
+        <select class="form-control" id="editVideoStatusSelect">
+          <option value="Published">Published (Visible to Students)</option>
+          <option value="Draft">Draft (Hidden from Students)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditVideo()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Notes Modal -->
+<div class="modal-overlay" id="editNotesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit PDF Notes</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editNotesId"/>
+      <div class="form-group">
+        <label class="form-label">Notes Title *</label>
+        <input class="form-control" id="editNotesTitleInput"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="editNotesDescInput" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Publish Status</label>
+        <select class="form-control" id="editNotesStatusSelect">
+          <option value="Published">Published (Visible to Students)</option>
+          <option value="Draft">Draft (Hidden from Students)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditNotes()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Video Modal (Mobile + Desktop Responsive) -->
+<div class="modal-overlay" id="uploadVideoModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">1. 🎥 Upload Lecture Video</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uploadVideoModuleId"/>
+      <div class="form-group">
+        <label class="form-label">Video Title *</label>
+        <input class="form-control" id="videoTitleInput" placeholder="e.g. 1.2 Binary Search Tree Rotations"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="videoDescInput" rows="2" placeholder="Outline what concepts are taught in this lecture..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select Video File (Desktop, Android or iPhone) *</label>
+        <input type="file" id="videoFileInput" accept="video/*" class="form-control" onchange="handleVideoFileSelection(this)"/>
+        <div id="videoFileBadge" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;"></div>
+      </div>
+      
+      <!-- Progress Bar & Status -->
+      <div id="videoProgressContainer" style="display:none;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span id="videoUploadStatusText" style="color:var(--text-secondary);">Uploading to Cloudinary...</span>
+          <span id="videoUploadPercentText" style="font-weight:700;color:var(--accent);">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div id="videoProgressBar" class="progress-bar" style="width:0%;transition:width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label">Or Direct Cloudinary/MP4 URL (Optional Fallback)</label>
+        <input class="form-control" id="videoUrlInput" placeholder="https://res.cloudinary.com/.../lecture.mp4"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel" id="btnCancelVideoUpload">Cancel</button>
+      <button class="btn btn-primary" id="btnSubmitVideo" onclick="submitUploadVideo()">Upload &amp; Publish Video</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Notes Modal (PDF Mobile + Desktop Responsive) -->
+<div class="modal-overlay" id="uploadNotesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">2. 📄 Upload PDF Notes</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uploadNotesModuleId"/>
+      <div class="form-group">
+        <label class="form-label">Notes Title *</label>
+        <input class="form-control" id="notesTitleInput" placeholder="e.g. Module Summary &amp; Proofs Hand-out"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="notesDescInput" rows="2" placeholder="Key topics covered in this PDF document..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select PDF Document *</label>
+        <input type="file" id="notesFileInput" accept=".pdf,application/pdf" class="form-control" onchange="handleNotesFileSelection(this)"/>
+        <div id="notesFileBadge" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;"></div>
+      </div>
+
+      <!-- Notes Upload Progress Bar -->
+      <div id="notesProgressContainer" style="display:none;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span id="notesUploadStatusText" style="color:var(--text-secondary);">Uploading PDF to Cloudinary...</span>
+          <span id="notesUploadPercentText" style="font-weight:700;color:var(--accent);">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div id="notesProgressBar" class="progress-bar" style="width:0%;transition:width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label">Or Direct Cloudinary/PDF URL (Optional Fallback)</label>
+        <input class="form-control" id="notesUrlInput" placeholder="https://res.cloudinary.com/.../handout.pdf"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel" id="btnCancelNotesUpload">Cancel</button>
+      <button class="btn btn-primary" id="btnSubmitNotes" onclick="submitUploadNotes()">Upload &amp; Publish Notes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Quiz Creator Modal -->
+<div class="modal-overlay" id="createQuizModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">3. 📝 Create Quiz Manually</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="quizModuleId"/>
+      <div class="form-group">
+        <label class="form-label">Quiz Title</label>
+        <input class="form-control" id="manualQuizTitle" placeholder="e.g. Module Assessment Quiz"/>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Add MCQ Question</div>
+        <div class="form-group">
+          <label class="form-label">Question Text</label>
+          <textarea class="form-control" id="mQText" placeholder="Enter question statement..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Option A</label><input class="form-control" id="mOpt0" placeholder="Option A"/></div>
+          <div class="form-group"><label class="form-label">Option B</label><input class="form-control" id="mOpt1" placeholder="Option B"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Option C</label><input class="form-control" id="mOpt2" placeholder="Option C"/></div>
+          <div class="form-group"><label class="form-label">Option D</label><input class="form-control" id="mOpt3" placeholder="Option D"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Correct Answer</label>
+            <select class="form-control" id="mCorrectOpt">
+              <option value="0">Option A</option>
+              <option value="1">Option B</option>
+              <option value="2">Option C</option>
+              <option value="3">Option D</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marks</label>
+            <input class="form-control" type="number" id="mMarks" value="1"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitManualQuiz()">Publish Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 🤖 AI Quiz Generator Modal (Strict Review Flow) -->
+<div class="modal-overlay" id="aiQuizModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <span class="ai-badge">Groq AI Powered</span>
+        <div class="modal-title">4. 🤖 Generate Quiz with AI</div>
+      </div>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="aiModuleId"/>
+      
+      <div id="aiFormSection">
+        <div class="form-group">
+          <label class="form-label">Topic for AI Quiz *</label>
+          <input class="form-control" id="aiTopicInput" placeholder="e.g. Data Structures - Stack or Binary Trees"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Number of Questions (Enter any amount) *</label>
+            <input class="form-control" type="number" min="1" max="50" value="5" id="aiQCount"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Difficulty Level</label>
+            <select class="form-control" id="aiQDiff">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Optional: Learning Material / Syllabus Notes Context</label>
+          <textarea class="form-control" id="aiContextInput" rows="2" placeholder="Paste notes, syllabus pointers, or reference excerpts to tailor questions..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:4px;" id="btnDoGenerateAI" onclick="triggerAIGeneration()">
+          ✦ Generate Quiz
+        </button>
+      </div>
+
+      <!-- AI Generation Loader -->
+      <div id="aiGeneratingIndicator" style="display:none;text-align:center;padding:24px 0;">
+        <div style="display:inline-block;width:24px;height:24px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <div style="font-size:13.5px;font-weight:700;margin-top:10px;">Generating MCQs via Groq AI...</div>
+        <div style="font-size:12px;color:var(--text-secondary);">Structuring questions, 4 options, explanations &amp; difficulty marks</div>
+      </div>
+
+      <!-- Review Section (MANDATORY: Teacher Review, Edit, Delete, Regenerate, Publish) -->
+      <div id="aiReviewSection" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">AI Generated Quiz Review</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);">Questions are currently in Draft status. Review and edit before students can access.</div>
+          </div>
+          <span class="badge badge-pending">Status: Draft</span>
+        </div>
+
+        <div id="aiGeneratedCardsList"></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="aiModalFooter" style="display:none;">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveAIQuizAsDraft()">Save as Draft</button>
+      <button class="btn btn-primary" onclick="publishAIQuizToModule()">Publish Quiz ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Announcement Modal -->
+<div class="modal-overlay" id="publishNoticeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Publish Announcement</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Announcement Title</label>
+        <input class="form-control" id="annTitleInput" placeholder="e.g. Mid-Term Lab Exam Date"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Announcement Type</label>
+        <select class="form-control" id="annTypeInput">
+          <option>Important Notice</option>
+          <option>Class Announcement</option>
+          <option>Course Update</option>
+          <option>Exam/Quiz Notice</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Optional Subject</label>
+        <select class="form-control" id="annSubjectSelect">
+          <!-- Populated via JS -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-control" id="annMessageInput" placeholder="Write announcement details for students..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-control" type="date" id="annDateInput" value="2026-09-02"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTeacherNotice()">Publish Notice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Book Modal -->
+<div class="modal-overlay" id="uploadBookModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Upload E-Library Book / Reference</span>
+      <button class="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Book Name</label><input class="form-control" id="bookNameInput" placeholder="e.g. Data Structures Using C"/></div>
+      <div class="form-group"><label class="form-label">Author</label><input class="form-control" id="bookAuthorInput" placeholder="e.g. Reema Thareja"/></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input class="form-control" id="bookSubInput" placeholder="Data Structures"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control" id="bookCatInput">
+            <option>Data Structures</option>
+            <option>DBMS</option>
+            <option>OS</option>
+            <option>Networking</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" id="bookDescInput" placeholder="Complete reference book covering..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select PDF Book / Reference File *</label>
+        <input type="file" id="bookFileInput" accept=".pdf,application/pdf" class="form-control" onchange="handleBookFileSelection(this)"/>
+        <div id="bookFileBadge" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btnSubmitBook" onclick="submitUploadBook()">Upload to E-Library</button>
+    </div>
+  </div>
+</div>
+
+<!-- Teacher Login Prompt Modal (Shown when no authenticated session exists) -->
+<div class="modal-overlay" id="teacherLoginPromptModal" style="display:none;z-index:99999;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" style="font-size:17px;font-weight:800;">Teacher Portal Sign In</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Enter your Admin-assigned email and password</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Email ID *</label>
+        <input class="form-control" type="email" id="tLoginEmailInput" placeholder="faculty@university.edu"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <input class="form-control" type="password" id="tLoginPasswordInput" placeholder="••••••••" onkeypress="if(event.key==='Enter')executeTeacherPageLogin()"/>
+      </div>
+      <div id="tLoginErrorMsg" style="display:none;color:#ff5c5c;font-size:12px;margin-bottom:10px;"></div>
+      <button class="btn btn-primary" id="btnTeacherPageLogin" style="width:100%;justify-content:center;font-weight:700;" onclick="executeTeacherPageLogin()">
+        Sign In to Faculty Portal →
+      </button>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="index.html" style="font-size:12px;color:var(--text-secondary);text-decoration:none;">← Return to Main Campus Portal</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="assets/js/platform-store.js"></script>
+<script src="assets/js/api-client.js"></script>
+<script src="assets/js/auth-guard.js"></script>
+<script src="assets/js/chat-manager.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+let currentTeacherId = '';
+let currentSubjectId = '';
+let activeVideoContext = { subjectId: null, moduleId: null, videoId: null };
+let currentBookFilter = 'All';
+let generatedAIQuestions = [];
+
+// Profile Dropdown & Modal Helpers
+function toggleTeacherProfileDropdown() {
+  const dd = document.getElementById('teacherProfileDropdown');
+  if (!dd) return;
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', (e) => {
+  const wrapper = document.querySelector('.top-profile-wrapper');
+  const dd = document.getElementById('teacherProfileDropdown');
+  if (wrapper && dd && !wrapper.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+
+function navigateToProfile() {
+  const navItem = document.querySelector('.nav-item[data-page=profile]');
+  if (navItem) navItem.click();
+}
+
+function logoutTeacher() {
+  LiveAPI.clearAuth();
+  sessionStorage.removeItem('osp_active_teacher_id');
+  showToast('Logged out successfully');
+  showTeacherLoginModal();
+}
+
+function showTeacherLoginModal() {
+  const modal = document.getElementById('teacherLoginPromptModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('tLoginEmailInput').value = '';
+    document.getElementById('tLoginPasswordInput').value = '';
+    document.getElementById('tLoginErrorMsg').style.display = 'none';
+  }
+}
+
+function closeTeacherLoginModal() {
+  const modal = document.getElementById('teacherLoginPromptModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function executeTeacherPageLogin() {
+  const email = document.getElementById('tLoginEmailInput').value.trim();
+  const password = document.getElementById('tLoginPasswordInput').value.trim();
+  const errBox = document.getElementById('tLoginErrorMsg');
+  const btn = document.getElementById('btnTeacherPageLogin');
+
+  if (!email || !password) {
+    errBox.textContent = 'Please enter both your email and password.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Authenticating...';
+  errBox.style.display = 'none';
+
+  try {
+    const res = await LiveAPI.teacherLogin(email, password);
+    if (res && res.success) {
+      const user = res.user || res.data?.user;
+      sessionStorage.setItem('osp_active_teacher_id', user._id || user.id);
+      closeTeacherLoginModal();
+      showToast(`Welcome back, ${user.name}!`);
+      await initTeacherPanel();
+    } else {
+      throw new Error(res.message || 'Login failed');
+    }
+  } catch (err) {
+    errBox.textContent = err.message || 'Invalid teacher credentials';
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In to Faculty Portal →';
+  }
+}
+
+async function initTeacherPanel() {
+  await Store.syncWithBackend();
+
+  let teacher = null;
+  const token = LiveAPI.getToken();
+
+  // 1. Strict JWT-based Teacher Authentication: Call GET /api/teachers/me
+  if (token) {
+    try {
+      const meRes = await LiveAPI.getTeacherMe();
+      if (meRes && meRes.data) {
+        teacher = meRes.data;
+      }
+    } catch (err) {
+      console.warn('[Teacher JWT Auth]', err.message);
+    }
+  }
+
+  // 2. Query param or session fallback for Admin previewing
+  if (!teacher) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramId = urlParams.get('teacherId') || urlParams.get('teacher') || sessionStorage.getItem('osp_active_teacher_id');
+    if (paramId) {
+      try {
+        const directRes = await LiveAPI.request(`/teachers/${paramId}`);
+        if (directRes && directRes.data) {
+          teacher = directRes.data;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // If still no teacher, prompt login modal!
+  if (!teacher) {
+    showTeacherLoginModal();
+    return;
+  }
+
+  currentTeacherId = (teacher._id || teacher.id).toString();
+  sessionStorage.setItem('osp_active_teacher_id', currentTeacherId);
+
+  await renderTeacherViews(teacher);
+}
+
+async function renderTeacherViews(knownTeacher = null) {
+  let teacher = knownTeacher;
+
+  if (!teacher && currentTeacherId) {
+    try {
+      const tRes = await LiveAPI.getTeacherMe();
+      if (tRes && tRes.data) teacher = tRes.data;
+    } catch (e) {
+      try {
+        const direct = await LiveAPI.request(`/teachers/${currentTeacherId}`);
+        if (direct && direct.data) teacher = direct.data;
+      } catch (err) {}
+    }
+  }
+
+  if (!teacher) {
+    showTeacherLoginModal();
+    return;
+  }
+
+  // Sync real profile identities across DOM
+  const rawPhoto = teacher.profilePhoto?.url || teacher.photo || '';
+  const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
+  const safePhoto = (!isDemo && rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
+  const avatarHtml = Store.formatAvatarHtml(safePhoto, teacher.name, 'TR');
+
+  document.getElementById('sidebarTeacherName').textContent = teacher.name;
+  document.getElementById('sidebarTeacherDept').textContent = `${teacher.department} · Teacher`;
+  document.getElementById('sidebarAvatar').innerHTML = avatarHtml;
+  document.getElementById('topNavAvatar').innerHTML = avatarHtml;
+  document.getElementById('dropdownAvatar').innerHTML = avatarHtml;
+  document.getElementById('dropdownTeacherName').textContent = teacher.name;
+  document.getElementById('dropdownTeacherEmail').textContent = teacher.email;
+  document.getElementById('dropdownTeacherDept').textContent = teacher.department;
+  document.getElementById('dashWelcomeTitle').textContent = `Welcome, ${teacher.name}`;
+  document.getElementById('profileBigAvatar').innerHTML = avatarHtml;
+  document.getElementById('profileName').textContent = teacher.name;
+  document.getElementById('profileDept').textContent = `Department of ${teacher.department}`;
+  document.getElementById('profileEmail').textContent = teacher.email;
+  if (document.getElementById('profileTeacherId')) document.getElementById('profileTeacherId').textContent = (teacher._id || teacher.id).toString();
+  if (document.getElementById('profileRole')) document.getElementById('profileRole').textContent = 'Role: Teacher';
+  if (document.getElementById('profileStatus')) document.getElementById('profileStatus').textContent = `Status: ${teacher.status || 'Active'}`;
+  document.getElementById('commentMyAvatar').innerHTML = avatarHtml;
+
+  // 2. Fetch specific teacher's allocations from backend
+  let allocations = [];
+  try {
+    const aRes = await LiveAPI.getMyAllocations();
+    if (aRes && aRes.data && Array.isArray(aRes.data)) {
+      allocations = aRes.data;
+    }
+  } catch (err) {
+    try {
+      const aRes2 = await LiveAPI.getTeacherAllocations(currentTeacherId);
+      if (aRes2 && aRes2.data && Array.isArray(aRes2.data)) allocations = aRes2.data;
+    } catch (e) {}
+  }
+
+  if (allocations.length === 0 && Array.isArray(teacher.allocations)) {
+    allocations = teacher.allocations;
+  }
+
+  // Extract unique assigned subjects
+  const allStoreSubjects = Store.getSubjects();
+  const mySubjectsMap = new Map();
+
+  allocations.forEach(a => {
+    const s = a.subjectId;
+    if (s && typeof s === 'object' && (s.name || s.title)) {
+      const sId = (s._id || s.id).toString();
+      mySubjectsMap.set(sId, {
+        id: sId,
+        _id: sId,
+        name: s.name || s.title,
+        code: s.code || s.courseCode || 'SUB',
+        semester: s.semester || 'Academic Term',
+        department: s.department || teacher.department || 'Engineering',
+        description: s.description || '',
+        modulesCount: s.modulesCount !== undefined ? s.modulesCount : (a.stats?.modulesCount || 0),
+        videosCount: s.videosCount !== undefined ? s.videosCount : (a.stats?.videosCount || 0),
+        notesCount: s.notesCount !== undefined ? s.notesCount : (a.stats?.notesCount || 0),
+        quizzesCount: s.quizzesCount !== undefined ? s.quizzesCount : (a.stats?.quizzesCount || 0),
+        plannedClasses: s.plannedClasses || a.stats?.plannedClasses || 4,
+      });
+    } else if (s) {
+      const sId = s.toString();
+      const match = allStoreSubjects.find(sub => (sub.id || sub._id).toString() === sId);
+      if (match) {
+        mySubjectsMap.set(sId, {
+          id: sId,
+          _id: sId,
+          name: match.name || match.title,
+          code: match.code || match.courseCode || 'SUB',
+          semester: match.semester || 'Academic Term',
+          department: match.department || teacher.department || 'Engineering',
+          description: match.description || '',
+          modulesCount: a.stats?.modulesCount || 0,
+          videosCount: a.stats?.videosCount || 0,
+          notesCount: a.stats?.notesCount || 0,
+          quizzesCount: a.stats?.quizzesCount || 0,
+          plannedClasses: a.stats?.plannedClasses || 4,
+        });
+      }
+    }
+  });
+
+  // Also include any subjects in teacher.allocatedSubjects
+  if (Array.isArray(teacher.allocatedSubjects)) {
+    teacher.allocatedSubjects.forEach(s => {
+      if (s && typeof s === 'object' && (s.name || s.title)) {
+        const sId = (s._id || s.id).toString();
+        if (!mySubjectsMap.has(sId)) {
+          mySubjectsMap.set(sId, {
+            id: sId,
+            _id: sId,
+            name: s.name || s.title,
+            code: s.code || s.courseCode || 'SUB',
+            semester: s.semester || 'Academic Term',
+            department: s.department || teacher.department || 'Engineering',
+            description: s.description || '',
+            modulesCount: s.modulesCount || 0,
+            videosCount: s.videosCount || 0,
+            notesCount: s.notesCount || 0,
+            quizzesCount: s.quizzesCount || 0,
+            plannedClasses: s.plannedClasses || 4,
+          });
+        }
+      }
+    });
+  }
+
+  const mySubjects = Array.from(mySubjectsMap.values());
+  document.getElementById('teacherAssignedBadge').textContent = mySubjects.length;
+  document.getElementById('tStatSubjects').textContent = mySubjects.length;
+
+  // Render My Assigned Subjects Grid (Strictly assigned only!)
+  const grid = document.getElementById('teacherAssignedGrid');
+  grid.innerHTML = '';
+
+  let totalMod = 0, totalVid = 0, totalNot = 0, totalQz = 0;
+
+  if (mySubjects.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1/-1; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:40px 24px; text-align:center;">
+        <div style="font-size:36px; margin-bottom:12px;">📚</div>
+        <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:6px;">No subjects/courses have been assigned to you yet.</div>
+        <div style="font-size:13px; color:var(--text-secondary); max-width:480px; margin:0 auto 16px; line-height:1.5;">
+          Your faculty account is active. To begin uploading lecture videos, notes, and quizzes, please request the university administrator to allocate curriculum subjects to you in the Admin Panel.
+        </div>
+      </div>
+    `;
+  } else {
+    mySubjects.forEach(s => {
+      const mCount = s.modulesCount || 0;
+      const vCount = s.videosCount || 0;
+      const nCount = s.notesCount || 0;
+      const qCount = s.quizzesCount || 0;
+      const plannedTarget = s.plannedClasses || (mCount * 4 || 4);
+
+      totalMod += mCount;
+      totalVid += vCount;
+      totalNot += nCount;
+      totalQz += qCount;
+
+      const card = document.createElement('div');
+      card.className = 'subject-card';
+      card.innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+          <div class="subject-card-icon">📚</div>
+          <span class="badge badge-active" style="font-size:10.5px;">${s.code}</span>
+        </div>
+        <div>
+          <div class="subject-card-name" style="font-size:16px;font-weight:800;">${s.name}</div>
+          <div class="subject-card-meta" style="color:var(--accent);font-size:12px;margin-top:2px;">
+            ${s.semester} · ${s.department}
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;min-height:36px;">
+          ${s.description || 'Full curriculum syllabus covering lecture sessions, practical problem sets, and module assessments.'}
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;text-align:center;margin:8px 0;">
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#FFF;" id="modCount_${s.id}">${mCount}</div>
+            <div style="font-size:10px;color:var(--text-secondary);text-transform:uppercase;">Modules</div>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#FFF;" id="vidCount_${s.id}">${vCount}</div>
+            <div style="font-size:10px;color:var(--text-secondary);text-transform:uppercase;">Videos</div>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#FFF;" id="notCount_${s.id}">${nCount}</div>
+            <div style="font-size:10px;color:var(--text-secondary);text-transform:uppercase;">Notes</div>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#FFF;" id="qCount_${s.id}">${qCount}</div>
+            <div style="font-size:10px;color:var(--text-secondary);text-transform:uppercase;">Quizzes</div>
+          </div>
+        </div>
+
+        <div style="font-size:11.5px;color:var(--text-secondary);margin:4px 0 8px;display:flex;justify-content:space-between;">
+          <span>Class Planning:</span>
+          <span style="font-weight:700;color:var(--accent);">${vCount} / ${plannedTarget} Lectures</span>
+        </div>
+
+        <div class="subject-card-footer" style="display:flex;gap:6px;margin-top:4px;padding-top:6px;">
+          <button class="btn btn-primary btn-xs" style="flex:1;justify-content:center;" onclick="openSubjectContent('${s.id}')">
+            Manage Subject
+          </button>
+          <button class="btn btn-secondary btn-xs" onclick="openSubjectContent('${s.id}')" title="View Modules">
+            View Modules
+          </button>
+          <button class="btn btn-ghost btn-xs" onclick="openCreateModuleModalForSubject('${s.id}', '${s.name.replace(/'/g, "\\'")}')" title="Add Module">
+            + Module
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Background asynchronous counter update for freshest module counts
+    mySubjects.forEach(async (s) => {
+      try {
+        const res = await LiveAPI.getModules(s.id);
+        if (res && res.data && Array.isArray(res.data)) {
+          const mods = res.data;
+          Store.setSubjectModules(s.id, mods);
+          let vc = 0, nc = 0, qc = 0;
+          mods.forEach(m => {
+            vc += (m.videos || []).length;
+            nc += (m.notes || []).length;
+            qc += (m.quizzes || []).length;
+          });
+          const mEl = document.getElementById(`modCount_${s.id}`);
+          const vEl = document.getElementById(`vidCount_${s.id}`);
+          const nEl = document.getElementById(`notCount_${s.id}`);
+          const qEl = document.getElementById(`qCount_${s.id}`);
+          if (mEl) mEl.textContent = mods.length;
+          if (vEl) vEl.textContent = vc;
+          if (nEl) nEl.textContent = nc;
+          if (qEl) qEl.textContent = qc;
+        }
+      } catch(e) {}
+    });
+  }
+
+  // Update stat counters with real MongoDB counts
+  document.getElementById('tStatModules').textContent = totalMod;
+  document.getElementById('tStatVideos').textContent = totalVid;
+  document.getElementById('tStatNotes').textContent = totalNot;
+  document.getElementById('tStatQuizzes').textContent = totalQz;
+
+  // Upcoming classes filtered by this teacher
+  const schTbody = document.getElementById('tDashboardSchedule');
+  schTbody.innerHTML = '';
+  const assignedIds = mySubjects.map(s => s.id?.toString());
+  const mySchedules = Store.getSchedules().filter(sch => sch.teacherName.toLowerCase() === teacher.name.toLowerCase() || assignedIds.includes(sch.subjectId));
+  if (mySchedules.length === 0) {
+    schTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">No upcoming scheduled sessions</td></tr>';
+  } else {
+    mySchedules.forEach(sch => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;">${sch.subjectName}</td>
+        <td>${sch.date}</td>
+        <td style="color:var(--accent);font-weight:700;font-size:12px;">${sch.time}</td>
+        <td>${sch.topic}</td>
+      `;
+      schTbody.appendChild(tr);
+    });
+  }
+
+  // Profile assigned badges
+  const profSub = document.getElementById('profileAssignedList');
+  if (profSub) {
+    profSub.innerHTML = mySubjects.map(s => `<span class="alloc-badge" style="font-weight:700;">${s.name} (${s.code})</span>`).join(' ') || '<span style="color:var(--text-secondary);">No subjects assigned yet</span>';
+  }
+
+  const profCourse = document.getElementById('profileAssignedCoursesList');
+  if (profCourse) {
+    const allocatedCourses = (teacher.allocatedCourses || []).filter(Boolean);
+    profCourse.innerHTML = allocatedCourses.map(c => `<span class="badge badge-active">${c.title || c.name} (${c.courseCode || c.code || ''})</span>`).join(' ') || '<span style="color:var(--text-secondary);">General Degree Curriculum</span>';
+  }
+
+  // Populate Announcement Subject dropdown
+  const annSub = document.getElementById('annSubjectSelect');
+  if (annSub) {
+    annSub.innerHTML = '<option value="">All Subjects (Campus-wide)</option>';
+    mySubjects.forEach(s => {
+      annSub.innerHTML += `<option value="${s.id}">${s.name} (${s.code})</option>`;
+    });
+  }
+
+  // Render Announcements & E-Library & Chat & Results
+  renderAnnouncements();
+  filterTeacherBooks();
+  initTeacherChat(teacher);
+  renderTeacherQuizResults();
+}
+
+function openCreateModuleModalForSubject(subjectId, subjectName) {
+  currentSubjectId = subjectId;
+  const input = document.getElementById('newModuleTitleInput');
+  if (input) input.value = '';
+  const desc = document.getElementById('newModuleDescInput');
+  if (desc) desc.value = '';
+  const plan = document.getElementById('newModulePlannedClasses');
+  if (plan) plan.value = '4';
+  openModal('createModuleModal');
+}
+
+// Open Subject Modules
+async function openSubjectContent(subjectId) {
+  currentSubjectId = subjectId;
+  let s = Store.getSubjects().find(sub => (sub.id || sub._id) === subjectId);
+  if (!s) {
+    try {
+      const sRes = await LiveAPI.request(`/subjects/${subjectId}`);
+      if (sRes && sRes.data) s = sRes.data;
+    } catch (e) {}
+  }
+  if (s) {
+    document.getElementById('currentSubTitle').textContent = s.name;
+    document.getElementById('currentSubMeta').textContent = `Code: ${s.code || ''} · ${s.semester || 'Academic Term'}`;
+  }
+  await renderSubjectModules();
+  showPage('subject-detail');
+}
+
+async function renderSubjectModules() {
+  const container = document.getElementById('subjectModulesContainer');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Loading modules from database...</div>';
+
+  let modules = [];
+  try {
+    const res = await LiveAPI.getModules(currentSubjectId);
+    if (res && res.data) {
+      modules = res.data;
+      Store.setSubjectModules(currentSubjectId, modules);
+    }
+  } catch (err) {
+    console.warn('[Modules API note]', err.message);
+  }
+
+  container.innerHTML = '';
+  if (modules.length === 0) {
+    container.innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;">
+        <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">No modules created yet for this subject.</div>
+        <button class="btn btn-primary btn-sm" onclick="openCreateModuleModal()">+ Create First Module</button>
+      </div>
+    `;
+    return;
+  }
+
+  modules.forEach((mod, idx) => {
+    const modId = mod._id || mod.id;
+    const planned = mod.plannedClasses || 4;
+    const vList = (mod.videos || []).map(v => {
+      const vidId = v._id || v.id;
+      const vUrl = v.cloudinaryUrl || v.videoUrl || '';
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">🎥 ${v.title}</div>
+            <div style="font-size:11px;color:var(--text-secondary);">${v.description || ''} · ${(v.comments||[]).length} Comments · <span class="badge ${v.status === 'Draft' ? 'badge-pending' : 'badge-active'}" style="font-size:10px;">${v.status || 'Published'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn btn-secondary btn-xs" onclick="openVideoPlayerView('${currentSubjectId}', '${modId}', '${vidId}')">Watch →</button>
+            <button class="btn btn-ghost btn-xs" onclick="openEditVideoModal('${vidId}', '${v.title.replace(/'/g, "\\'")}', '${(v.description||'').replace(/'/g, "\\'")}', '${v.status || 'Published'}')">Edit</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteVideoConfirm('${vidId}')" title="Delete Video">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const nList = (mod.notes || []).map(n => {
+      const noteId = n._id || n.id;
+      const nUrl = n.fileUrl || n.pdfUrl || '#';
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">📄 ${n.title}</div>
+            <div style="font-size:11px;color:var(--text-secondary);">${n.description || 'PDF Lecture notes'} · <span class="badge ${n.status === 'Draft' ? 'badge-pending' : 'badge-active'}" style="font-size:10px;">${n.status || 'Published'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank">View PDF 📄</a>
+            <button class="btn btn-ghost btn-xs" onclick="openEditNotesModal('${noteId}', '${n.title.replace(/'/g, "\\'")}', '${(n.description||'').replace(/'/g, "\\'")}', '${n.status || 'Published'}')">Edit</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteNoteConfirm('${noteId}')" title="Delete Notes">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const qList = (mod.quizzes || []).map(q => {
+      const quizId = q._id || q.id;
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">📝 ${q.title}</div>
+            <div style="font-size:11px;color:var(--accent);">${(q.questions||[]).length} MCQs · <span class="badge ${q.status === 'Draft' ? 'badge-pending' : 'badge-active'}" style="font-size:10px;">${q.status || 'Published'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn btn-danger btn-xs" onclick="deleteQuizConfirm('${quizId}')" title="Delete Quiz">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const item = document.createElement('div');
+    item.className = 'module-item ' + (idx === 0 ? 'open' : '');
+    item.innerHTML = `
+      <div class="module-header" onclick="this.closest('.module-item').classList.toggle('open')">
+        <div class="module-num">M${idx + 1}</div>
+        <div style="flex:1;">
+          <div class="module-title">${mod.title}</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
+            Planned Classes: <strong>${planned}</strong> · Uploaded: <strong>${(mod.videos||[]).length}</strong> / <strong>${planned}</strong> Lectures · Notes: <strong>${(mod.notes||[]).length}</strong> · Quizzes: <strong>${(mod.quizzes||[]).length}</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-right:8px;" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-xs" onclick="openEditModuleModal('${modId}', '${mod.title.replace(/'/g, "\\'")}', '${(mod.description||'').replace(/'/g, "\\'")}', ${planned})">Edit Module</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteModuleConfirm('${modId}')">Delete</button>
+        </div>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+        <!-- 4 ACTION CARDS -->
+        <div class="module-content-grid-4">
+          <div class="content-type-card" onclick="openUploadVideoModal('${modId}')">
+            <div class="icon">🎥</div>
+            <strong>1. Lecture Video</strong>
+            <span>Upload video &amp; publish</span>
+          </div>
+          <div class="content-type-card" onclick="openUploadNotesModal('${modId}')">
+            <div class="icon">📄</div>
+            <strong>2. Notes</strong>
+            <span>Upload lecture PDF</span>
+          </div>
+          <div class="content-type-card" onclick="openCreateQuizModal('${modId}')">
+            <div class="icon">📝</div>
+            <strong>3. Quiz</strong>
+            <span>Create MCQs manually</span>
+          </div>
+          <div class="content-type-card" onclick="openAIQuizModal('${modId}')">
+            <div class="icon">🤖</div>
+            <strong>4. AI</strong>
+            <span>Generate MCQs with AI</span>
+          </div>
+        </div>
+
+        <!-- Content Lists Inside Module -->
+        <div style="margin-top:14px;">
+          ${vList ? `<div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-top:8px;">LECTURE VIDEOS</div>${vList}` : ''}
+          ${nList ? `<div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-top:8px;">NOTES</div>${nList}` : ''}
+          ${qList ? `<div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-top:8px;">QUIZZES</div>${qList}` : ''}
+        </div>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// Module CRUD
+function openCreateModuleModal() {
+  document.getElementById('newModuleTitleInput').value = '';
+  document.getElementById('newModuleDescInput').value = '';
+  document.getElementById('newModulePlannedClasses').value = '4';
+  openModal('createModuleModal');
+}
+
+async function submitCreateModule() {
+  const title = document.getElementById('newModuleTitleInput').value.trim();
+  const description = document.getElementById('newModuleDescInput')?.value.trim() || '';
+  const plannedClasses = parseInt(document.getElementById('newModulePlannedClasses')?.value) || 4;
+
+  if (!title) {
+    showToast('Module title is required');
+    return;
+  }
+
+  try {
+    const courses = Store.getCourses();
+    const c = courses.find(course => course.subjectId === currentSubjectId);
+    await LiveAPI.createModule({
+      title,
+      description,
+      plannedClasses,
+      subjectId: currentSubjectId,
+      courseId: c ? c.id : undefined,
+      teacherId: currentTeacherId,
+    });
+    showToast(`Created "${title}" (Planned classes: ${plannedClasses})!`);
+  } catch (err) {
+    showToast(`Module creation failed: ${err.message}`);
+  }
+
+  closeModal('createModuleModal');
+  await renderSubjectModules();
+  await renderTeacherViews();
+}
+
+function openEditModuleModal(moduleId, title, desc, planned) {
+  document.getElementById('editModuleId').value = moduleId;
+  document.getElementById('editModuleTitleInput').value = title || '';
+  document.getElementById('editModuleDescInput').value = desc || '';
+  document.getElementById('editModulePlannedClassesInput').value = planned || 4;
+  openModal('editModuleModal');
+}
+
+async function submitEditModule() {
+  const moduleId = document.getElementById('editModuleId').value;
+  const title = document.getElementById('editModuleTitleInput').value.trim();
+  const description = document.getElementById('editModuleDescInput').value.trim();
+  const plannedClasses = parseInt(document.getElementById('editModulePlannedClassesInput').value) || 4;
+
+  if (!title) {
+    showToast('Module title cannot be empty');
+    return;
+  }
+
+  try {
+    await LiveAPI.updateModule(moduleId, { title, description, plannedClasses });
+    showToast('Module details and class planning updated!');
+    closeModal('editModuleModal');
+    await renderSubjectModules();
+    await renderTeacherViews();
+  } catch (err) {
+    showToast(`Failed to update module: ${err.message}`);
+  }
+}
+
+// Edit Video
+function openEditVideoModal(videoId, title, desc, status) {
+  document.getElementById('editVideoId').value = videoId;
+  document.getElementById('editVideoTitleInput').value = title || '';
+  document.getElementById('editVideoDescInput').value = desc || '';
+  document.getElementById('editVideoStatusSelect').value = status || 'Published';
+  openModal('editVideoModal');
+}
+
+async function submitEditVideo() {
+  const videoId = document.getElementById('editVideoId').value;
+  const title = document.getElementById('editVideoTitleInput').value.trim();
+  const description = document.getElementById('editVideoDescInput').value.trim();
+  const status = document.getElementById('editVideoStatusSelect').value;
+
+  if (!title) {
+    showToast('Video title cannot be empty');
+    return;
+  }
+
+  try {
+    await LiveAPI.request(`/videos/${videoId}`, {
+      method: 'PUT',
+      body: { title, description, status },
+    });
+    showToast('Video lecture updated!');
+    closeModal('editVideoModal');
+    await renderSubjectModules();
+    await renderTeacherViews();
+  } catch (err) {
+    showToast(`Failed to update video: ${err.message}`);
+  }
+}
+
+// Edit Notes
+function openEditNotesModal(notesId, title, desc, status) {
+  document.getElementById('editNotesId').value = notesId;
+  document.getElementById('editNotesTitleInput').value = title || '';
+  document.getElementById('editNotesDescInput').value = desc || '';
+  document.getElementById('editNotesStatusSelect').value = status || 'Published';
+  openModal('editNotesModal');
+}
+
+async function submitEditNotes() {
+  const notesId = document.getElementById('editNotesId').value;
+  const title = document.getElementById('editNotesTitleInput').value.trim();
+  const description = document.getElementById('editNotesDescInput').value.trim();
+  const status = document.getElementById('editNotesStatusSelect').value;
+
+  if (!title) {
+    showToast('Notes title cannot be empty');
+    return;
+  }
+
+  try {
+    await LiveAPI.request(`/notes/${notesId}`, {
+      method: 'PUT',
+      body: { title, description, status },
+    });
+    showToast('PDF Notes updated!');
+    closeModal('editNotesModal');
+    await renderSubjectModules();
+    await renderTeacherViews();
+  } catch (err) {
+    showToast(`Failed to update notes: ${err.message}`);
+  }
+}
+
+async function deleteModuleConfirm(moduleId) {
+  if (confirm('Are you sure you want to delete this module and its content?')) {
+    try {
+      await LiveAPI.deleteModule(moduleId);
+      showToast('Module deleted from database');
+      await renderSubjectModules();
+      await renderTeacherViews();
+    } catch (err) {
+      showToast(`Delete failed: ${err.message}`);
+    }
+  }
+}
+
+// 1. Video Upload (Mobile + Desktop Responsive with Real Cloudinary & Progress)
+let selectedVideoFile = null;
+
+function handleVideoFileSelection(input) {
+  const file = input.files[0];
+  const badge = document.getElementById('videoFileBadge');
+  if (!file) {
+    selectedVideoFile = null;
+    badge.style.display = 'none';
+    return;
+  }
+  if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|webm|mkv|mov|avi)$/i)) {
+    showToast('Please select a valid video file (.mp4, .webm, .mov, etc.)');
+    input.value = '';
+    badge.style.display = 'none';
+    return;
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    showToast('Video size exceeds 100 MB maximum limit');
+    input.value = '';
+    badge.style.display = 'none';
+    return;
+  }
+  selectedVideoFile = file;
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+  badge.innerHTML = `<strong>Selected Video:</strong> ${file.name} <span style="color:var(--accent);margin-left:6px;">(${sizeMB} MB)</span>`;
+  badge.style.display = 'block';
+}
+
+let pendingUploadedCloudinaryVideo = null;
+let isSubmittingVideo = false;
+
+function openUploadVideoModal(moduleId) {
+  document.getElementById('uploadVideoModuleId').value = moduleId;
+  document.getElementById('videoTitleInput').value = '';
+  document.getElementById('videoDescInput').value = '';
+  document.getElementById('videoUrlInput').value = '';
+  document.getElementById('videoFileInput').value = '';
+  document.getElementById('videoFileBadge').style.display = 'none';
+  
+  const progContainer = document.getElementById('videoProgressContainer');
+  const progBar = document.getElementById('videoProgressBar');
+  const percentText = document.getElementById('videoUploadPercentText');
+  const statusText = document.getElementById('videoUploadStatusText');
+  const btn = document.getElementById('btnSubmitVideo');
+
+  if (progContainer) progContainer.style.display = 'none';
+  if (progBar) progBar.style.width = '0%';
+  if (percentText) percentText.textContent = '0%';
+  if (statusText) {
+    statusText.textContent = '';
+    statusText.style.color = 'var(--text-secondary)';
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Upload & Publish Video';
+    btn.className = 'btn btn-primary';
+  }
+
+  selectedVideoFile = null;
+  pendingUploadedCloudinaryVideo = null;
+  isSubmittingVideo = false;
+  openModal('uploadVideoModal');
+}
+
+async function submitUploadVideo() {
+  if (isSubmittingVideo) return;
+
+  const moduleId = document.getElementById('uploadVideoModuleId').value;
+  const title = document.getElementById('videoTitleInput').value.trim();
+  const desc = document.getElementById('videoDescInput').value.trim();
+  const directUrl = document.getElementById('videoUrlInput').value.trim();
+
+  if (!title) {
+    showToast('Please enter video title');
+    return;
+  }
+  if (!selectedVideoFile && !directUrl && !pendingUploadedCloudinaryVideo) {
+    showToast('Please select a video file from your device or provide a direct video URL');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitVideo');
+  const progContainer = document.getElementById('videoProgressContainer');
+  const progBar = document.getElementById('videoProgressBar');
+  const percentText = document.getElementById('videoUploadPercentText');
+  const statusText = document.getElementById('videoUploadStatusText');
+
+  isSubmittingVideo = true;
+  btn.disabled = true;
+  progContainer.style.display = 'block';
+  statusText.style.color = 'var(--text-secondary)';
+
+  try {
+    let finalVideoUrl = directUrl;
+    let createdVideo = null;
+
+    // SCENARIO 1: Retry publish of already-uploaded Cloudinary video
+    if (pendingUploadedCloudinaryVideo && !selectedVideoFile) {
+      statusText.textContent = 'Saving video record in MongoDB...';
+      btn.textContent = 'Publishing Video...';
+      progBar.style.width = '100%';
+      percentText.textContent = '100%';
+
+      const res = await LiveAPI.createVideo({
+        moduleId,
+        title,
+        description: desc,
+        cloudinaryUrl: pendingUploadedCloudinaryVideo.secureUrl,
+        videoUrl: pendingUploadedCloudinaryVideo.secureUrl,
+        cloudinaryPublicId: pendingUploadedCloudinaryVideo.publicId,
+        duration: pendingUploadedCloudinaryVideo.duration,
+        fileSize: pendingUploadedCloudinaryVideo.fileSize,
+        resourceType: 'video',
+        teacherId: currentTeacherId,
+      });
+
+      createdVideo = res && res.data ? res.data : res;
+      finalVideoUrl = pendingUploadedCloudinaryVideo.secureUrl;
+    }
+    // SCENARIO 2: Upload local video file
+    else if (selectedVideoFile) {
+      statusText.textContent = 'Uploading video... 0%';
+      btn.textContent = 'Uploading video... 0%';
+      progBar.style.width = '0%';
+      percentText.textContent = '0%';
+
+      const token = LiveAPI.getToken();
+
+      createdVideo = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const uploadEndpoint = `${LiveAPI.baseUrl || 'http://localhost:5000/api'}/videos`;
+        xhr.open('POST', uploadEndpoint);
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        if (currentTeacherId) xhr.setRequestHeader('x-teacher-id', currentTeacherId);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progBar.style.width = `${percent}%`;
+            percentText.textContent = `${percent}%`;
+            if (percent < 100) {
+              statusText.textContent = `Uploading video... ${percent}%`;
+              btn.textContent = `Uploading video... ${percent}%`;
+            } else {
+              statusText.textContent = 'Video uploaded. Saving record...';
+              btn.textContent = 'Publishing...';
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              resolve(res.data);
+            } catch (err) {
+              resolve(null);
+            }
+          } else {
+            let msg = 'Video upload failed';
+            let parsed = null;
+            try {
+              parsed = JSON.parse(xhr.responseText);
+              msg = parsed.message || msg;
+            } catch (e) {}
+
+            if (parsed && parsed.cloudinaryUrl) {
+              pendingUploadedCloudinaryVideo = {
+                secureUrl: parsed.cloudinaryUrl,
+                publicId: parsed.publicId || '',
+                duration: parsed.duration || '15:00',
+                fileSize: parsed.fileSize || '',
+              };
+            }
+            reject(new Error(msg));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.ontimeout = () => reject(new Error('Upload timed out'));
+
+        const formData = new FormData();
+        formData.append('video', selectedVideoFile);
+        formData.append('title', title);
+        formData.append('description', desc);
+        formData.append('moduleId', moduleId);
+        if (currentTeacherId) formData.append('teacherId', currentTeacherId);
+        xhr.send(formData);
+      });
+
+      if (createdVideo && (createdVideo.cloudinaryUrl || createdVideo.videoUrl)) {
+        finalVideoUrl = createdVideo.cloudinaryUrl || createdVideo.videoUrl;
+      }
+    }
+    // SCENARIO 3: Direct Cloudinary / MP4 URL input
+    else {
+      statusText.textContent = 'Saving video record in MongoDB...';
+      btn.textContent = 'Publishing Video...';
+      progBar.style.width = '100%';
+      percentText.textContent = '100%';
+
+      const res = await LiveAPI.createVideo({
+        moduleId,
+        title,
+        description: desc,
+        cloudinaryUrl: directUrl,
+        videoUrl: directUrl,
+        teacherId: currentTeacherId,
+      });
+      createdVideo = res && res.data ? res.data : res;
+      finalVideoUrl = directUrl;
+    }
+
+    // Success State
+    statusText.textContent = '✓ Video Published Successfully!';
+    statusText.style.color = 'var(--accent)';
+    btn.textContent = 'Published ✓';
+    btn.disabled = true;
+
+    // Update local client Store immediately
+    if (createdVideo) {
+      Store.addVideo(currentSubjectId, moduleId, createdVideo);
+    } else {
+      Store.addVideo(currentSubjectId, moduleId, {
+        title,
+        description: desc,
+        url: finalVideoUrl || '',
+        videoUrl: finalVideoUrl || '',
+        status: 'Published',
+      });
+    }
+
+    // Instantly refresh UI lists from MongoDB
+    await renderSubjectModules();
+    renderTeacherViews();
+
+    showToast(`✓ Video Published Successfully: "${title}"`);
+    selectedVideoFile = null;
+    pendingUploadedCloudinaryVideo = null;
+
+    setTimeout(() => {
+      closeModal('uploadVideoModal');
+    }, 600);
+
+  } catch (err) {
+    statusText.textContent = `Video upload issue: ${err.message}`;
+    statusText.style.color = '#ff5c5c';
+    showToast(`Video upload failed: ${err.message}`);
+
+    if (pendingUploadedCloudinaryVideo) {
+      btn.textContent = 'Retry Publish Video';
+      btn.className = 'btn btn-accent';
+    } else {
+      btn.textContent = 'Upload & Publish Video';
+      btn.className = 'btn btn-primary';
+    }
+    btn.disabled = false;
+  } finally {
+    isSubmittingVideo = false;
+  }
+}
+
+// 2. Notes PDF Upload (Mobile + Desktop Responsive)
+let selectedNotesFile = null;
+let pendingUploadedCloudinaryNotes = null;
+let isSubmittingNotes = false;
+
+function handleNotesFileSelection(input) {
+  const file = input.files[0];
+  const badge = document.getElementById('notesFileBadge');
+  if (!file) {
+    selectedNotesFile = null;
+    badge.style.display = 'none';
+    return;
+  }
+  if (file.type !== 'application/pdf' && !file.name.match(/\.pdf$/i)) {
+    showToast('Please select a valid PDF file');
+    input.value = '';
+    badge.style.display = 'none';
+    return;
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('PDF document size exceeds 50 MB limit');
+    input.value = '';
+    badge.style.display = 'none';
+    return;
+  }
+  selectedNotesFile = file;
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+  badge.innerHTML = `<strong>Selected PDF:</strong> ${file.name} <span style="color:var(--accent);margin-left:6px;">(${sizeMB} MB)</span>`;
+  badge.style.display = 'block';
+}
+
+function openUploadNotesModal(moduleId) {
+  document.getElementById('uploadNotesModuleId').value = moduleId;
+  document.getElementById('notesTitleInput').value = '';
+  document.getElementById('notesDescInput').value = '';
+  document.getElementById('notesUrlInput').value = '';
+  document.getElementById('notesFileInput').value = '';
+  document.getElementById('notesFileBadge').style.display = 'none';
+  
+  const progContainer = document.getElementById('notesProgressContainer');
+  const progBar = document.getElementById('notesProgressBar');
+  const percentText = document.getElementById('notesUploadPercentText');
+  const statusText = document.getElementById('notesUploadStatusText');
+  const btn = document.getElementById('btnSubmitNotes');
+
+  if (progContainer) progContainer.style.display = 'none';
+  if (progBar) progBar.style.width = '0%';
+  if (percentText) percentText.textContent = '0%';
+  if (statusText) {
+    statusText.textContent = '';
+    statusText.style.color = 'var(--text-secondary)';
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Upload & Publish Notes';
+    btn.className = 'btn btn-primary';
+  }
+
+  selectedNotesFile = null;
+  pendingUploadedCloudinaryNotes = null;
+  isSubmittingNotes = false;
+  openModal('uploadNotesModal');
+}
+
+async function submitUploadNotes() {
+  if (isSubmittingNotes) return;
+
+  const moduleId = document.getElementById('uploadNotesModuleId').value;
+  const title = document.getElementById('notesTitleInput').value.trim();
+  const desc = document.getElementById('notesDescInput').value.trim();
+  const directUrl = document.getElementById('notesUrlInput').value.trim();
+
+  if (!title) {
+    showToast('Please enter notes title');
+    return;
+  }
+  if (!selectedNotesFile && !directUrl && !pendingUploadedCloudinaryNotes) {
+    showToast('Please select a PDF document from your device or provide a document URL');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitNotes');
+  const progContainer = document.getElementById('notesProgressContainer');
+  const progBar = document.getElementById('notesProgressBar');
+  const percentText = document.getElementById('notesUploadPercentText');
+  const statusText = document.getElementById('notesUploadStatusText');
+
+  isSubmittingNotes = true;
+  btn.disabled = true;
+  progContainer.style.display = 'block';
+  statusText.style.color = 'var(--text-secondary)';
+
+  try {
+    let finalNotesUrl = directUrl;
+    let createdNote = null;
+
+    if (pendingUploadedCloudinaryNotes && !selectedNotesFile) {
+      statusText.textContent = 'Saving document record in MongoDB...';
+      btn.textContent = 'Publishing Notes...';
+      progBar.style.width = '100%';
+      percentText.textContent = '100%';
+
+      const res = await LiveAPI.request('/notes', {
+        method: 'POST',
+        body: JSON.stringify({
+          moduleId,
+          title,
+          description: desc,
+          fileUrl: pendingUploadedCloudinaryNotes.secureUrl,
+          pdfUrl: pendingUploadedCloudinaryNotes.secureUrl,
+          publicId: pendingUploadedCloudinaryNotes.publicId,
+          teacherId: currentTeacherId,
+        }),
+      });
+      createdNote = res && res.data ? res.data : res;
+      finalNotesUrl = pendingUploadedCloudinaryNotes.secureUrl;
+    }
+    else if (selectedNotesFile) {
+      statusText.textContent = 'Uploading PDF notes... 0%';
+      btn.textContent = 'Uploading... 0%';
+      progBar.style.width = '0%';
+      percentText.textContent = '0%';
+      const token = LiveAPI.getToken();
+
+      createdNote = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const uploadEndpoint = `${LiveAPI.baseUrl || 'http://localhost:5000/api'}/notes`;
+        xhr.open('POST', uploadEndpoint);
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        if (currentTeacherId) xhr.setRequestHeader('x-teacher-id', currentTeacherId);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progBar.style.width = `${percent}%`;
+            percentText.textContent = `${percent}%`;
+            if (percent < 100) {
+              statusText.textContent = `Uploading PDF notes... ${percent}%`;
+              btn.textContent = `Uploading... ${percent}%`;
+            } else {
+              statusText.textContent = 'PDF uploaded. Saving document record...';
+              btn.textContent = 'Publishing...';
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              resolve(res.data);
+            } catch (err) {
+              resolve(null);
+            }
+          } else {
+            let msg = 'PDF upload failed';
+            let parsed = null;
+            try {
+              parsed = JSON.parse(xhr.responseText);
+              msg = parsed.message || msg;
+            } catch (e) {}
+
+            if (parsed && (parsed.fileUrl || parsed.secureUrl)) {
+              pendingUploadedCloudinaryNotes = {
+                secureUrl: parsed.fileUrl || parsed.secureUrl,
+                publicId: parsed.publicId || '',
+              };
+            }
+            reject(new Error(msg));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during PDF upload'));
+        xhr.ontimeout = () => reject(new Error('PDF upload timed out'));
+
+        const formData = new FormData();
+        formData.append('file', selectedNotesFile);
+        formData.append('title', title);
+        formData.append('description', desc);
+        formData.append('moduleId', moduleId);
+        if (currentTeacherId) formData.append('teacherId', currentTeacherId);
+        xhr.send(formData);
+      });
+
+      if (createdNote && (createdNote.fileUrl || createdNote.pdfUrl)) {
+        finalNotesUrl = createdNote.fileUrl || createdNote.pdfUrl;
+      }
+    } else {
+      statusText.textContent = 'Saving document record in MongoDB...';
+      btn.textContent = 'Publishing Notes...';
+      progBar.style.width = '100%';
+      percentText.textContent = '100%';
+
+      const res = await LiveAPI.request('/notes', {
+        method: 'POST',
+        body: JSON.stringify({
+          moduleId,
+          title,
+          description: desc,
+          fileUrl: directUrl,
+          pdfUrl: directUrl,
+          teacherId: currentTeacherId,
+        }),
+      });
+      createdNote = res && res.data ? res.data : res;
+      finalNotesUrl = directUrl;
+    }
+
+    // Success State
+    statusText.textContent = '✓ PDF Notes Published Successfully!';
+    statusText.style.color = 'var(--accent)';
+    btn.textContent = 'Published ✓';
+    btn.disabled = true;
+
+    // Update local client Store immediately
+    if (createdNote) {
+      Store.addNote(currentSubjectId, moduleId, createdNote);
+    } else {
+      Store.addNote(currentSubjectId, moduleId, {
+        title,
+        description: desc,
+        fileUrl: finalNotesUrl,
+        pdfUrl: finalNotesUrl,
+        status: 'Published',
+      });
+    }
+
+    // Instantly refresh UI lists from MongoDB
+    await renderSubjectModules();
+    renderTeacherViews();
+
+    showToast(`✓ PDF Notes Published: "${title}"`);
+    selectedNotesFile = null;
+    pendingUploadedCloudinaryNotes = null;
+
+    setTimeout(() => {
+      closeModal('uploadNotesModal');
+    }, 600);
+
+  } catch (err) {
+    statusText.textContent = `Upload issue: ${err.message}`;
+    statusText.style.color = '#ff5c5c';
+    showToast(`PDF upload failed: ${err.message}`);
+
+    if (pendingUploadedCloudinaryNotes) {
+      btn.textContent = 'Retry Publish Notes';
+      btn.className = 'btn btn-accent';
+    } else {
+      btn.textContent = 'Upload & Publish Notes';
+      btn.className = 'btn btn-primary';
+    }
+    btn.disabled = false;
+  } finally {
+    isSubmittingNotes = false;
+  }
+}
+
+// 3. Manual Quiz
+function openCreateQuizModal(moduleId) {
+  document.getElementById('quizModuleId').value = moduleId;
+  document.getElementById('manualQuizTitle').value = '';
+  document.getElementById('mQText').value = '';
+  openModal('createQuizModal');
+}
+async function submitManualQuiz() {
+  const moduleId = document.getElementById('quizModuleId').value;
+  const title = document.getElementById('manualQuizTitle').value.trim() || 'Module Quiz';
+  const q = document.getElementById('mQText').value.trim();
+  const opt0 = document.getElementById('mOpt0').value.trim() || 'Option A';
+  const opt1 = document.getElementById('mOpt1').value.trim() || 'Option B';
+  const opt2 = document.getElementById('mOpt2').value.trim() || 'Option C';
+  const opt3 = document.getElementById('mOpt3').value.trim() || 'Option D';
+  const correct = parseInt(document.getElementById('mCorrectOpt').value) || 0;
+  const marks = parseInt(document.getElementById('mMarks').value) || 1;
+
+  if (!q) { showToast('Please write the question statement'); return; }
+
+  const options = [opt0, opt1, opt2, opt3];
+  const correctAnswer = options[correct] || opt0;
+
+  try {
+    await LiveAPI.createQuiz({
+      moduleId,
+      subjectId: currentSubjectId,
+      title,
+      questions: [
+        {
+          question: q,
+          options,
+          correctAnswer,
+          marks,
+          explanation: `Correct answer: ${correctAnswer}`,
+        }
+      ],
+      duration: 15,
+      status: 'Published',
+    });
+    showToast(`Quiz "${title}" saved in MongoDB and published!`);
+  } catch (err) {
+    showToast(`Failed to save quiz in database: ${err.message}`);
+  }
+
+  Store.addQuiz(currentSubjectId, moduleId, {
+    title,
+    questions: [
+      { q, options, correct, marks, explanation: `Correct answer: ${correctAnswer}` }
+    ]
+  });
+
+  closeModal('createQuizModal');
+  await renderSubjectModules();
+  await renderTeacherViews();
+}
+
+// 4. 🤖 AI Quiz Generator & Review System
+generatedAIQuestions = [];
+
+function openAIQuizModal(moduleId) {
+  document.getElementById('aiModuleId').value = moduleId;
+  document.getElementById('aiTopicInput').value = '';
+  document.getElementById('aiReviewSection').style.display = 'none';
+  document.getElementById('aiModalFooter').style.display = 'none';
+  document.getElementById('aiFormSection').style.display = 'block';
+  document.getElementById('aiGeneratingIndicator').style.display = 'none';
+  generatedAIQuestions = [];
+  openModal('aiQuizModal');
+}
+
+async function triggerAIGeneration() {
+  const topic = document.getElementById('aiTopicInput').value.trim();
+  const count = parseInt(document.getElementById('aiQCount').value) || 5;
+  const difficulty = document.getElementById('aiQDiff').value;
+  const contextNotes = document.getElementById('aiContextInput')?.value.trim() || '';
+
+  if (!topic) {
+    showToast('Please enter a topic for the AI Quiz');
+    return;
+  }
+
+  const btn = document.getElementById('btnDoGenerateAI');
+  const indicator = document.getElementById('aiGeneratingIndicator');
+  const formSec = document.getElementById('aiFormSection');
+
+  btn.disabled = true;
+  indicator.style.display = 'block';
+
+  try {
+    const res = await LiveAPI.generateAIQuiz({
+      topic,
+      numQuestions: count,
+      difficulty,
+      learningMaterial: contextNotes,
+    });
+
+    if (res && res.data && Array.isArray(res.data.questions) && res.data.questions.length > 0) {
+      generatedAIQuestions = res.data.questions.map((item, idx) => {
+        let correctIdx = 0;
+        if (Array.isArray(item.options)) {
+          const matchIdx = item.options.indexOf(item.correctAnswer);
+          if (matchIdx !== -1) correctIdx = matchIdx;
+        }
+        return {
+          q: item.question,
+          options: item.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+          correct: correctIdx,
+          explanation: item.explanation || 'Based on core curriculum concepts.',
+          difficulty: item.difficulty || difficulty,
+          marks: item.marks || 1,
+        };
+      });
+      renderAIGeneratedReview();
+      document.getElementById('aiReviewSection').style.display = 'block';
+      document.getElementById('aiModalFooter').style.display = 'flex';
+      showToast(`Generated ${generatedAIQuestions.length} MCQs! Please review, edit, or regenerate before publishing.`);
+    } else {
+      throw new Error(res.message || 'No questions returned by AI engine');
+    }
+  } catch (err) {
+    console.error('[AI Quiz Error]', err);
+    showToast(`AI generation failed: ${err.message}`);
+    document.getElementById('aiReviewSection').style.display = 'none';
+    document.getElementById('aiModalFooter').style.display = 'none';
+  } finally {
+    btn.disabled = false;
+    indicator.style.display = 'none';
+  }
+}
+
+function renderAIGeneratedReview() {
+  const container = document.getElementById('aiGeneratedCardsList');
+  container.innerHTML = '';
+
+  if (generatedAIQuestions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:14px;">All questions deleted. Click Generate above to retry.</div>';
+    return;
+  }
+
+  generatedAIQuestions.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'mcq-card';
+    card.style.background = 'var(--bg-secondary)';
+    card.style.border = '1px solid var(--border)';
+    card.style.borderRadius = 'var(--radius)';
+    card.style.padding = '14px';
+    card.style.marginBottom = '12px';
+
+    card.innerHTML = `
+      <div class="mcq-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="badge badge-pending">Q${idx + 1} · Draft Question</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-xs" onclick="regenerateAIQuestion(${idx})">✦ Regenerate</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteAIQuestion(${idx})">Delete</button>
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:11px;">Question Text</label>
+        <textarea class="form-control" rows="2" onchange="updateAIQuestionText(${idx}, this.value)">${item.q}</textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        ${item.options.map((opt, oIdx) => `
+          <div>
+            <label style="font-size:10.5px;color:var(--text-secondary);">Option ${String.fromCharCode(65 + oIdx)}</label>
+            <input class="form-control" style="font-size:12px;" value="${opt.replace(/"/g, '&quot;')}" onchange="updateAIOption(${idx}, ${oIdx}, this.value)"/>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="form-row" style="margin-bottom:6px;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:11px;">Correct Answer</label>
+          <select class="form-control" onchange="updateAICorrect(${idx}, this.value)">
+            ${item.options.map((opt, oIdx) => `
+              <option value="${oIdx}" ${oIdx === item.correct ? 'selected' : ''}>
+                Option ${String.fromCharCode(65 + oIdx)} (${opt.substring(0, 30)}...)
+              </option>
+            `).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:11px;">Marks</label>
+          <input class="form-control" type="number" value="${item.marks || 1}" min="1" onchange="updateAIMarks(${idx}, this.value)"/>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" style="font-size:11px;">Explanation for Students</label>
+        <input class="form-control" style="font-size:12px;" value="${(item.explanation || '').replace(/"/g, '&quot;')}" onchange="updateAIExplanation(${idx}, this.value)"/>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function updateAIQuestionText(idx, val) {
+  if (generatedAIQuestions[idx]) generatedAIQuestions[idx].q = val;
+}
+function updateAIOption(qIdx, optIdx, val) {
+  if (generatedAIQuestions[qIdx] && generatedAIQuestions[qIdx].options) {
+    generatedAIQuestions[qIdx].options[optIdx] = val;
+  }
+}
+function updateAICorrect(qIdx, optIdx) {
+  if (generatedAIQuestions[qIdx]) generatedAIQuestions[qIdx].correct = parseInt(optIdx);
+}
+function updateAIMarks(qIdx, val) {
+  if (generatedAIQuestions[qIdx]) generatedAIQuestions[qIdx].marks = parseInt(val) || 1;
+}
+function updateAIExplanation(qIdx, val) {
+  if (generatedAIQuestions[qIdx]) generatedAIQuestions[qIdx].explanation = val;
+}
+
+function regenerateAIQuestion(idx) {
+  const topic = document.getElementById('aiTopicInput').value.trim() || 'Advanced Subject Properties';
+  generatedAIQuestions[idx] = {
+    q: `Assessment Question: Explain the primary operational characteristic of ${topic}?`,
+    options: [
+      'Optimal search complexity with logarithmic structure',
+      'Continuous linear traversal without index ordering',
+      'Polynomial overhead scaling with cluster size',
+      'Static allocation without dynamic balancing',
+    ],
+    correct: 0,
+    explanation: `Logarithmic complexity is the standard optimal characteristic for ${topic}.`,
+    marks: 1,
+  };
+  renderAIGeneratedReview();
+  showToast(`Question ${idx + 1} updated!`);
+}
+
+function deleteAIQuestion(idx) {
+  generatedAIQuestions.splice(idx, 1);
+  renderAIGeneratedReview();
+  showToast('Question removed from quiz draft');
+}
+
+// Save as Draft
+async function saveAIQuizAsDraft() {
+  const success = await persistAIQuiz('Draft');
+  if (success) {
+    showToast('Quiz saved as Draft. It remains invisible to students until published.');
+    closeModal('aiQuizModal');
+    await renderSubjectModules();
+    await renderTeacherViews();
+  }
+}
+
+// Publish Quiz
+async function publishAIQuizToModule() {
+  const success = await persistAIQuiz('Published');
+  if (success) {
+    showToast('AI Quiz successfully reviewed and Published! Students can now attempt it.');
+    closeModal('aiQuizModal');
+    await renderSubjectModules();
+    await renderTeacherViews();
+  }
+}
+
+async function persistAIQuiz(targetStatus = 'Published') {
+  const moduleId = document.getElementById('aiModuleId').value;
+  const topic = document.getElementById('aiTopicInput').value.trim() || 'Core Assessment';
+  const quizTitle = `AI Assessment: ${topic}`;
+
+  if (generatedAIQuestions.length === 0) {
+    showToast('No questions to save');
+    return false;
+  }
+
+  const questionsPayload = generatedAIQuestions.map(item => ({
+    question: item.q,
+    options: item.options,
+    correctAnswer: item.options[item.correct] || item.options[0],
+    marks: item.marks || 1,
+    explanation: item.explanation || '',
+  }));
+
+  try {
+    const res = await LiveAPI.createQuiz({
+      moduleId,
+      subjectId: currentSubjectId,
+      title: quizTitle,
+      questions: questionsPayload,
+      duration: Math.max(10, questionsPayload.length * 2),
+      status: targetStatus,
+    });
+    if (res && res.success) {
+      return true;
+    }
+    throw new Error(res.message || 'Failed to save quiz');
+  } catch (err) {
+    showToast(`Failed to save quiz: ${err.message}`);
+    return false;
+  }
+}
+
+// Delete Content Helpers
+async function deleteVideoConfirm(videoId) {
+  if (!confirm('Are you sure you want to delete this lecture video?')) return;
+  try {
+    await LiveAPI.deleteVideo(videoId);
+    showToast('Video deleted successfully');
+    await renderSubjectModules();
+  } catch (err) {
+    showToast(`Failed to delete video: ${err.message}`);
+  }
+}
+
+async function deleteNoteConfirm(noteId) {
+  if (!confirm('Are you sure you want to delete these notes?')) return;
+  try {
+    await LiveAPI.deleteNote(noteId);
+    showToast('Notes deleted successfully');
+    await renderSubjectModules();
+  } catch (err) {
+    showToast(`Failed to delete notes: ${err.message}`);
+  }
+}
+
+async function deleteQuizConfirm(quizId) {
+  if (!confirm('Are you sure you want to delete this quiz?')) return;
+  try {
+    await LiveAPI.request(`/quizzes/${quizId}`, { method: 'DELETE' });
+    showToast('Quiz deleted successfully');
+    await renderSubjectModules();
+  } catch (err) {
+    showToast(`Failed to delete quiz: ${err.message}`);
+  }
+}
+
+// 5. Teacher Quiz Results
+async function renderTeacherQuizResults() {
+  const tbody = document.getElementById('teacherQuizResultsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:20px;">Fetching student attempt records...</td></tr>';
+
+  try {
+    const res = await LiveAPI.request('/quiz-attempts/teacher-results');
+    const records = (res && res.data) ? res.data : [];
+
+    if (records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:24px;">No student attempts recorded yet for your assigned courses.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    records.forEach(r => {
+      const d = r.attemptDate ? new Date(r.attemptDate).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Recent';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;font-size:13.5px;">${r.studentName}</td>
+        <td style="font-size:12.5px;color:var(--text-secondary);">${r.studentEmail}</td>
+        <td style="font-size:13px;font-weight:600;">${r.quizTitle}</td>
+        <td style="font-size:12.5px;color:var(--accent);">${r.courseTitle}</td>
+        <td style="font-weight:700;font-size:13.5px;">${r.score} / ${r.totalMarks}</td>
+        <td>
+          <span style="color:#4BB543;font-weight:700;font-size:12.5px;">✓ ${r.correctCount}</span>
+          <span style="color:#ff5c5c;font-weight:700;font-size:12.5px;margin-left:6px;">✗ ${r.wrongCount}</span>
+        </td>
+        <td>
+          <span class="badge ${r.percentage >= 70 ? 'badge-active' : 'badge-pending'}">
+            ${r.percentage}%
+          </span>
+        </td>
+        <td style="font-size:12px;color:var(--text-secondary);">${d}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.warn('[TeacherQuizResults Note]', err.message);
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:20px;">No attempt records found.</td></tr>';
+  }
+}
+
+async function openVideoPlayerView(subjectId, moduleId, videoId) {
+  activeVideoContext = { subjectId, moduleId, videoId };
+  let mods = Store.getSubjectModules(subjectId);
+  if (!mods || mods.length === 0) {
+    try {
+      const res = await LiveAPI.getModules(subjectId);
+      if (res && res.data) {
+        mods = res.data;
+        Store.setSubjectModules(subjectId, mods);
+      }
+    } catch(e) {}
+  }
+  const mod = (mods || []).find(m => (m.id || m._id) === moduleId);
+  let vid = mod ? (mod.videos || []).find(v => (v.id === videoId || v._id === videoId)) : null;
+  if (!vid) {
+    try {
+      const vRes = await LiveAPI.request(`/videos/${videoId}`);
+      if (vRes && vRes.data) vid = vRes.data;
+    } catch(e) {}
+  }
+  if (!vid) return;
+
+  document.getElementById('videoHeading').textContent = vid.title;
+  document.getElementById('videoDescription').textContent = vid.description || 'Lecture video recording.';
+
+  const player = document.getElementById('teacherVideoPlayer');
+  const source = document.getElementById('teacherVideoSource');
+  const videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
+  if (videoUrl && source && player) {
+    source.src = videoUrl;
+    player.load();
+  }
+
+  await loadAndRenderTeacherVideoComments(videoId);
+  showPage('video-view');
+}
+
+async function loadAndRenderTeacherVideoComments(videoId) {
+  const countEl = document.getElementById('videoCommentCount');
+  const list = document.getElementById('videoCommentsList');
+  if (!list) return;
+
+  try {
+    const res = await LiveAPI.getVideoComments(videoId);
+    const comments = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    if (countEl) countEl.textContent = res?.count || comments.length;
+    renderVideoComments(comments);
+  } catch (err) {
+    console.warn('[Teacher comments fetch notice]', err.message);
+    list.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;padding:12px 0;">No comments loaded yet.</div>';
+  }
+}
+
+function renderVideoComments(comments) {
+  const countEl = document.getElementById('videoCommentCount');
+  const list = document.getElementById('videoCommentsList');
+  if (!list) return;
+
+  if (countEl) countEl.textContent = comments.length;
+  list.innerHTML = '';
+
+  if (comments.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;padding:12px 0;">No questions or comments yet on this lecture.</div>';
+    return;
+  }
+
+  comments.forEach(c => {
+    const role = (c.userRole || c.role || 'student').toLowerCase();
+    const isTeacher = role === 'teacher';
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    const authorName = c.userName || c.author || 'User';
+    const initials = authorName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    const timeStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (c.time || 'Recent');
+
+    let roleTag = 'Student';
+    let roleClass = '';
+    if (isAdmin) {
+      roleTag = 'Admin';
+      roleClass = 'teacher';
+    } else if (isTeacher) {
+      roleTag = 'Instructor (You)';
+      roleClass = 'teacher';
+    }
+
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    item.innerHTML = `
+      <div class="avatar avatar-sm">${initials}</div>
+      <div class="comment-body">
+        <div class="comment-author-row">
+          <span class="comment-author-name">${authorName}</span>
+          <span class="comment-role-tag ${roleClass}">${roleTag}</span>
+          <span class="comment-time">${timeStr}</span>
+        </div>
+        <div class="comment-text">${escapeHtmlString(c.text || c.comment || '')}</div>
+        <div class="comment-actions-row">
+          <button class="comment-action-btn" onclick="replyToCommentAuthor('${authorName}', '${c._id}')">Reply to Student</button>
+          <button class="comment-action-btn" style="color:var(--text-secondary);" onclick="deleteTeacherComment('${c._id}')">Delete</button>
+        </div>
+        ${c.replies && c.replies.length > 0 ? renderTeacherRepliesHtml(c.replies) : ''}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function renderTeacherRepliesHtml(replies) {
+  return `
+    <div style="margin-top:10px;padding-left:14px;border-left:2px solid rgba(245,197,66,0.3);display:flex;flex-direction:column;gap:8px;">
+      ${replies.map(r => {
+        const isT = (r.userRole || r.role) === 'teacher';
+        const rName = r.userName || r.author || 'Instructor';
+        const rTime = r.createdAt ? new Date(r.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Recent';
+        return `
+          <div style="font-size:12.5px;background:var(--bg-primary);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-weight:700;color:var(--text-primary);">${rName}</span>
+                <span class="comment-role-tag ${isT ? 'teacher' : ''}" style="font-size:10px;">${isT ? 'Instructor Reply' : 'Student'}</span>
+                <span style="color:var(--text-secondary);font-size:11px;">${rTime}</span>
+              </div>
+              <button class="comment-action-btn" style="color:var(--text-secondary);font-size:11px;" onclick="deleteTeacherComment('${r._id}')">Delete</button>
+            </div>
+            <div style="color:var(--text-secondary);">${escapeHtmlString(r.text || '')}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function escapeHtmlString(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+let activeParentCommentReplyId = null;
+
+function replyToCommentAuthor(authorName, commentId = null) {
+  activeParentCommentReplyId = commentId;
+  const textarea = document.getElementById('teacherCommentText');
+  if (textarea) {
+    textarea.value = `@${authorName} `;
+    textarea.focus();
+  }
+}
+
+async function postTeacherVideoComment() {
+  const input = document.getElementById('teacherCommentText');
+  if (!input || !activeVideoContext.videoId) return;
+
+  const text = input.value.trim();
+  if (!text) {
+    showToast('Please type a reply before submitting.');
+    return;
+  }
+
+  try {
+    const payload = {
+      videoId: activeVideoContext.videoId,
+      text,
+    };
+    if (activeParentCommentReplyId) {
+      payload.parentCommentId = activeParentCommentReplyId;
+    }
+
+    const res = await LiveAPI.createComment(payload);
+    if (res && res.success) {
+      // Clear input ONLY after database confirmation
+      input.value = '';
+      activeParentCommentReplyId = null;
+      showToast('✓ Instructor reply published successfully!');
+      await loadAndRenderTeacherVideoComments(activeVideoContext.videoId);
+    } else {
+      throw new Error(res.message || 'Failed to post reply.');
+    }
+  } catch (err) {
+    console.error('Teacher reply error:', err);
+    showToast(`Error posting reply: ${err.message}`);
+  }
+}
+
+async function deleteTeacherComment(commentId) {
+  if (!confirm('Are you sure you want to delete this comment?')) return;
+  try {
+    const res = await LiveAPI.deleteComment(commentId);
+    if (res && res.success) {
+      showToast('✓ Comment deleted successfully');
+      await loadAndRenderTeacherVideoComments(activeVideoContext.videoId);
+    } else {
+      throw new Error(res.message || 'Failed to delete comment');
+    }
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`);
+  }
+}
+
+// ============================================================
+// STUDENT COMMENTS MANAGEMENT (ASSIGNED SUBJECTS AGGREGATOR)
+// ============================================================
+window.allTeacherComments = [];
+window.currentCommentStatusFilter = 'all';
+
+async function loadTeacherStudentComments(showToastNotice = false) {
+  const container = document.getElementById('teacherStudentCommentsContainer');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading student comments...</div>';
+
+  try {
+    const res = await LiveAPI.getTeacherStudentComments();
+    const comments = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    window.allTeacherComments = comments;
+
+    // Populate Subject Filter options
+    const filterSelect = document.getElementById('teacherCommentSubjectFilter');
+    if (filterSelect) {
+      const existingVal = filterSelect.value;
+      filterSelect.innerHTML = '<option value="">All Assigned Subjects</option>';
+      const uniqueSubjects = [];
+      comments.forEach(c => {
+        if (c.subjectId && !uniqueSubjects.some(s => s.id === c.subjectId.toString())) {
+          uniqueSubjects.push({ id: c.subjectId.toString(), name: c.subjectName || 'Subject' });
+        }
+      });
+      uniqueSubjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        if (opt.value === existingVal) opt.selected = true;
+        filterSelect.appendChild(opt);
+      });
+    }
+
+    filterTeacherCommentsView();
+
+    if (showToastNotice) {
+      showToast(`✓ Refreshed ${comments.length} student comments`);
+    }
+  } catch (err) {
+    console.error('Error loading teacher student comments:', err);
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:#ff5c5c;">Failed to load comments: ${escapeHtmlString(err.message)}</div>`;
+  }
+}
+
+function setCommentStatusFilter(chip, status) {
+  document.querySelectorAll('#page-comments .filter-chip').forEach(c => c.classList.remove('active'));
+  if (chip) chip.classList.add('active');
+  window.currentCommentStatusFilter = status;
+  filterTeacherCommentsView();
+}
+
+function filterTeacherCommentsView() {
+  const container = document.getElementById('teacherStudentCommentsContainer');
+  if (!container) return;
+
+  const searchInput = document.getElementById('teacherCommentSearchInput');
+  const query = (searchInput?.value || '').trim().toLowerCase();
+  const subjectId = document.getElementById('teacherCommentSubjectFilter')?.value || '';
+  const statusFilter = window.currentCommentStatusFilter || 'all';
+
+  const allComments = window.allTeacherComments || [];
+  const unrepliedCount = allComments.filter(c => !c.isReplied).length;
+
+  // Update counters & badge
+  const countAllEl = document.getElementById('countCommentAll');
+  const countUnrepliedEl = document.getElementById('countCommentUnreplied');
+  const badgeEl = document.getElementById('teacherCommentsBadge');
+
+  if (countAllEl) countAllEl.textContent = allComments.length;
+  if (countUnrepliedEl) countUnrepliedEl.textContent = unrepliedCount;
+  if (badgeEl) {
+    badgeEl.textContent = unrepliedCount;
+    badgeEl.style.display = unrepliedCount > 0 ? 'inline-block' : 'none';
+  }
+
+  let filtered = allComments.filter(c => {
+    // Subject filter
+    if (subjectId && (c.subjectId || '').toString() !== subjectId) {
+      return false;
+    }
+    // Status filter
+    if (statusFilter === 'unreplied' && c.isReplied) return false;
+    if (statusFilter === 'replied' && !c.isReplied) return false;
+    // Search query
+    if (query) {
+      const matchName = (c.studentName || '').toLowerCase().includes(query);
+      const matchEmail = (c.studentEmail || '').toLowerCase().includes(query);
+      const matchVideo = (c.videoTitle || '').toLowerCase().includes(query);
+      const matchSub = (c.subjectName || '').toLowerCase().includes(query);
+      const matchText = (c.commentText || c.text || '').toLowerCase().includes(query);
+      if (!matchName && !matchEmail && !matchVideo && !matchSub && !matchText) return false;
+    }
+    return true;
+  });
+
+  container.innerHTML = '';
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:12px;">💬</div>
+        <div style="font-size:16px;font-weight:700;color:#FFF;margin-bottom:6px;">No student comments found</div>
+        <div style="font-size:13px;color:var(--text-secondary);max-width:460px;margin:0 auto;">
+          ${allComments.length === 0 ? 'When students post questions or feedback under your assigned lecture videos, they will appear here for you to review and answer.' : 'No comments match your search criteria.'}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(c => {
+    const cId = c._id || c.commentId;
+    const authorName = c.studentName || c.userName || 'Student';
+    const authorEmail = c.studentEmail || c.userEmail || '';
+    const initials = authorName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    const timeStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+    const subName = c.subjectName || 'Curriculum Subject';
+    const vidTitle = c.videoTitle || 'Lecture Video';
+    const replies = c.replies || [];
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.border = c.isReplied ? '1px solid var(--border)' : '1px solid rgba(245,197,66,0.35)';
+    card.innerHTML = `
+      <div class="card-body" style="padding:18px 20px;">
+        <!-- Card Header with Student Info & Video Metadata -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="avatar avatar-sm" style="background:rgba(255,255,255,0.08);color:var(--accent);font-weight:700;">${initials}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:800;font-size:14px;color:#FFF;">${escapeHtmlString(authorName)}</span>
+                ${authorEmail ? `<span style="font-size:11.5px;color:var(--text-secondary);">(${escapeHtmlString(authorEmail)})</span>` : ''}
+                <span class="badge ${c.isReplied ? 'badge-active' : 'badge-pending'}" style="font-size:10px;">
+                  ${c.isReplied ? '✓ Replied' : 'Pending Reply'}
+                </span>
+              </div>
+              <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
+                Posted on ${timeStr}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="badge badge-active" style="font-size:11px;">📚 ${escapeHtmlString(subName)}</span>
+            <span style="font-size:12px;color:var(--accent);font-weight:600;">🎥 ${escapeHtmlString(vidTitle)}</span>
+          </div>
+        </div>
+
+        <!-- Comment Text -->
+        <div style="font-size:13.5px;color:var(--text);line-height:1.6;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;">
+          ${escapeHtmlString(c.commentText || c.text || '')}
+        </div>
+
+        <!-- Existing Instructor Replies -->
+        ${replies.length > 0 ? `
+          <div style="margin-bottom:14px;padding-left:14px;border-left:2px solid var(--accent);display:flex;flex-direction:column;gap:8px;">
+            ${replies.map(r => {
+              const isT = (r.userRole || r.role) === 'teacher';
+              const rName = r.userName || r.author || 'Instructor';
+              const rTime = r.createdAt ? new Date(r.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+              return `
+                <div style="font-size:12.5px;background:var(--bg-primary);padding:10px 14px;border-radius:6px;border:1px solid var(--border);">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span style="font-weight:700;color:var(--text);">${escapeHtmlString(rName)}</span>
+                      <span class="comment-role-tag teacher" style="font-size:10px;">${isT ? 'Instructor Reply' : 'Student'}</span>
+                      <span style="color:var(--text-secondary);font-size:11px;">${rTime}</span>
+                    </div>
+                    <button class="comment-action-btn" style="color:var(--text-secondary);font-size:11px;" onclick="confirmDeleteStudentComment('${r._id || r.commentId}')">Delete</button>
+                  </div>
+                  <div style="color:var(--text-secondary);line-height:1.5;">${escapeHtmlString(r.text || '')}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Actions Row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border);">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-xs" onclick="toggleReplyBox('${cId}')">
+              ✍ Reply to Student
+            </button>
+            <button class="btn btn-secondary btn-xs" onclick="openVideoPlayerView('${c.subjectId}', '${c.moduleId}', '${c.videoId}')">
+              Watch Video →
+            </button>
+          </div>
+          <button class="btn btn-danger btn-xs" onclick="confirmDeleteStudentComment('${cId}')">
+            Delete Comment
+          </button>
+        </div>
+
+        <!-- Collapsible Inline Reply Box -->
+        <div id="replyBox_${cId}" style="display:none;margin-top:12px;padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--accent);">
+            Instructor Reply to ${escapeHtmlString(authorName)}:
+          </div>
+          <textarea id="replyInput_${cId}" class="form-control" rows="2" style="font-size:13px;margin-bottom:8px;" placeholder="Type your explanation or response to the student..."></textarea>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-primary btn-xs" onclick="submitTeacherStudentReply('${cId}')">Post Reply</button>
+            <button class="btn btn-ghost btn-xs" onclick="toggleReplyBox('${cId}')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleReplyBox(commentId) {
+  const box = document.getElementById(`replyBox_${commentId}`);
+  if (!box) return;
+  const isHidden = box.style.display === 'none';
+  box.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    const input = document.getElementById(`replyInput_${commentId}`);
+    if (input) input.focus();
+  }
+}
+
+async function submitTeacherStudentReply(commentId) {
+  const input = document.getElementById(`replyInput_${commentId}`);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) {
+    showToast('Please enter reply text before submitting.');
+    return;
+  }
+
+  try {
+    showToast('Publishing instructor reply...');
+    const res = await LiveAPI.replyToComment(commentId, text);
+    if (res && res.success) {
+      showToast('✓ Reply published successfully!');
+      input.value = '';
+      toggleReplyBox(commentId);
+      await loadTeacherStudentComments();
+    } else {
+      throw new Error(res.message || 'Failed to post reply');
+    }
+  } catch (err) {
+    showToast(`Error: ${err.message}`);
+  }
+}
+
+async function confirmDeleteStudentComment(commentId) {
+  if (!confirm('Are you sure you want to permanently delete this comment?')) return;
+
+  try {
+    const res = await LiveAPI.deleteComment(commentId);
+    if (res && res.success) {
+      showToast('✓ Comment removed');
+      await loadTeacherStudentComments();
+    } else {
+      throw new Error(res.message || 'Failed to delete');
+    }
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`);
+  }
+}
+
+// Announcements (Common for all teachers - Real MongoDB Backend)
+async function renderAnnouncements() {
+  const list = document.getElementById('teacherAnnouncementsList');
+  if (!list) return;
+
+  try {
+    const res = await LiveAPI.getAnnouncements();
+    const items = (res && res.data && Array.isArray(res.data)) ? res.data : [];
+    list.innerHTML = '';
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-secondary);padding:24px;text-align:center;">No announcements yet</div>';
+      return;
+    }
+
+    items.forEach(a => {
+      const teacherName = a.teacherName || a.teacherId?.name || a.teacher || 'Faculty';
+      const subjectName = a.subjectName || a.subjectId?.name || a.subject || '';
+      const displayDate = a.date || (a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : 'Recent');
+
+      const card = document.createElement('div');
+      card.className = 'announcement-card';
+      card.innerHTML = `
+        <div class="announcement-accent"></div>
+        <div class="announcement-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="announcement-title">${a.title}</div>
+            <button class="btn btn-danger btn-xs" onclick="deleteNotice('${a._id || a.id}')">Delete</button>
+          </div>
+          <div class="announcement-meta">${teacherName} · ${displayDate} ${subjectName ? '· Subject: ' + subjectName : ''}</div>
+          <div class="announcement-text">${a.message}</div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (err) {
+    console.warn('[Announcements Fetch Error]', err.message);
+    list.innerHTML = '<div style="color:var(--text-secondary);padding:16px;">Unable to load announcements. Please check server connection.</div>';
+  }
+}
+
+async function submitTeacherNotice() {
+  const teacher = Store.getTeachers().find(t => (t.id || t._id).toString() === (currentTeacherId || '').toString());
+  const title = document.getElementById('annTitleInput').value.trim();
+  const annSubElem = document.getElementById('annSubjectSelect');
+  const subjectId = annSubElem ? annSubElem.value : null;
+  const selectedOpt = annSubElem ? annSubElem.options[annSubElem.selectedIndex] : null;
+  const subjectName = selectedOpt && subjectId ? selectedOpt.textContent : '';
+  const message = document.getElementById('annMessageInput').value.trim();
+  const date = document.getElementById('annDateInput').value;
+
+  if (!title || !message) {
+    showToast('Please enter title and message');
+    return;
+  }
+
+  const btn = document.querySelector('#publishNoticeModal .btn-primary');
+  if (btn) btn.disabled = true;
+
+  try {
+    const payload = {
+      title,
+      message,
+      subjectId: subjectId || null,
+      subjectName: subjectName || '',
+      teacherId: currentTeacherId,
+      teacherName: teacher ? teacher.name : 'Faculty',
+      date: date || new Date().toISOString().split('T')[0],
+      published: true,
+    };
+
+    const res = await LiveAPI.createAnnouncement(payload);
+    if (res.success) {
+      showToast('Announcement published and saved in MongoDB!');
+      closeModal('publishNoticeModal');
+      document.getElementById('annTitleInput').value = '';
+      document.getElementById('annMessageInput').value = '';
+      if (annSubElem) annSubElem.value = '';
+      await renderAnnouncements();
+    }
+  } catch (err) {
+    showToast(`Publish failed: ${err.message}`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function deleteNotice(id) {
+  if (!confirm('Are you sure you want to delete this announcement?')) return;
+  try {
+    await LiveAPI.deleteAnnouncement(id);
+    showToast('Announcement deleted from database');
+    await renderAnnouncements();
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`);
+  }
+}
+
+// E-Library (Common for all teachers)
+function setBookFilter(chip, cat) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  currentBookFilter = cat;
+  filterTeacherBooks();
+}
+
+let selectedBookFile = null;
+
+function handleBookFileSelection(input) {
+  const file = input.files[0];
+  const badge = document.getElementById('bookFileBadge');
+  if (!file) {
+    selectedBookFile = null;
+    badge.style.display = 'none';
+    return;
+  }
+  if (file.type !== 'application/pdf' && !file.name.match(/\.pdf$/i)) {
+    showToast('Please select a valid PDF file');
+    input.value = '';
+    badge.style.display = 'none';
+    return;
+  }
+  selectedBookFile = file;
+  badge.innerHTML = `<strong>Selected PDF:</strong> ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+  badge.style.display = 'block';
+}
+
+async function filterTeacherBooks() {
+  const q = (document.getElementById('elibrarySearchInput')?.value || '').toLowerCase();
+  const grid = document.getElementById('teacherBooksGrid');
+  grid.innerHTML = '<div style="color:var(--text-secondary);padding:20px;">Loading books...</div>';
+
+  let books = [];
+  try {
+    const res = await LiveAPI.getBooks(currentBookFilter === 'All' ? '' : currentBookFilter, q);
+    if (res && res.data && Array.isArray(res.data)) {
+      books = res.data;
+    }
+  } catch (err) {
+    console.warn('[E-Library fetch note]', err.message);
+  }
+
+  if (books.length === 0) {
+    books = Store.getBooks().filter(b => {
+      const matchCat = currentBookFilter === 'All' || b.category === currentBookFilter || b.subject === currentBookFilter;
+      const matchQ = !q || (b.bookName || b.name || '').toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q) || (b.subjectName || b.subject || '').toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+  }
+
+  grid.innerHTML = '';
+  if (books.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-secondary);padding:20px;">No books found in the digital library.</div>';
+    return;
+  }
+
+  books.forEach(b => {
+    const bookId = b._id || b.id;
+    const title = b.bookName || b.name;
+    const pdfUrl = b.fileUrl || b.url || '#';
+    const card = document.createElement('div');
+    card.className = 'library-card';
+    card.innerHTML = `
+      <div class="library-card-icon">📖</div>
+      <div>
+        <span class="library-card-subject">${b.category || b.subjectName || b.subject || 'Reference'}</span>
+        <div class="library-card-title" style="margin-top:6px;">${title}</div>
+        <div class="library-card-author">${b.author}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${b.description || 'Curriculum reference book and student study resource.'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;">
+        ${pdfUrl && pdfUrl !== '#' ? `<a class="btn btn-secondary btn-xs" href="${pdfUrl}" target="_blank">View / Download PDF 📄</a>` : `<button class="btn btn-secondary btn-xs" onclick="showToast('PDF not attached')">View PDF</button>`}
+        <button class="btn btn-ghost btn-xs" style="color:var(--text-secondary);" onclick="deleteBookItem('${bookId}')">Delete</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function submitUploadBook() {
+  const name = document.getElementById('bookNameInput').value.trim();
+  const author = document.getElementById('bookAuthorInput').value.trim();
+  const subject = document.getElementById('bookSubInput').value.trim() || 'General';
+  const category = document.getElementById('bookCatInput').value;
+  const description = document.getElementById('bookDescInput').value.trim();
+
+  if (!name || !author) {
+    showToast('Please enter book name and author');
+    return;
+  }
+  if (!selectedBookFile) {
+    showToast('Please select a PDF document to upload');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitBook');
+  btn.disabled = true;
+  btn.textContent = 'Uploading PDF to Cloudinary...';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', selectedBookFile);
+    formData.append('bookName', name);
+    formData.append('author', author);
+    formData.append('subjectName', subject);
+    formData.append('category', category);
+    formData.append('description', description);
+
+    await LiveAPI.createBook(formData);
+    showToast(`Book "${name}" uploaded to digital E-Library!`);
+    closeModal('uploadBookModal');
+    selectedBookFile = null;
+    const fileInput = document.getElementById('bookFileInput');
+    if (fileInput) fileInput.value = '';
+    const badge = document.getElementById('bookFileBadge');
+    if (badge) badge.style.display = 'none';
+    await filterTeacherBooks();
+  } catch (err) {
+    showToast(`Upload failed: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Upload to E-Library';
+  }
+}
+
+async function deleteBookItem(id) {
+  if (!confirm('Are you sure you want to remove this book from the digital library?')) return;
+  try {
+    await LiveAPI.deleteBook(id);
+    showToast('Book removed from database');
+  } catch (e) {
+    Store.deleteBook(id);
+    showToast('Book removed');
+  }
+  await filterTeacherBooks();
+}
+
+// ==========================================
+// 2-BOX CHAT SYSTEM (COMMON & STAFF CHAT)
+// ==========================================
+async function initTeacherChat(knownTeacher = null) {
+  let teacherObj = knownTeacher;
+  if (!teacherObj && currentTeacherId) {
+    const t = Store.getTeachers().find(x => (x.id || x._id || '').toString() === currentTeacherId.toString());
+    if (t) teacherObj = t;
+  }
+  if (!teacherObj) {
+    teacherObj = {
+      _id: currentTeacherId,
+      id: currentTeacherId,
+      name: document.getElementById('sidebarTeacherName')?.textContent || 'Teacher',
+      role: 'teacher',
+    };
+  }
+
+  if (!window.platformChat) {
+    window.platformChat = new ChatManager({
+      containerId: 'chatMessagesBox',
+      inputId: 'chatMessageInput',
+      sendBtnId: 'chatSendBtn',
+      tabsContainerId: 'chatRoomTabs',
+      roomTitleId: 'chatRoomTitle',
+      roomSubtitleId: 'chatRoomSubtitle',
+      currentUser: teacherObj,
+      currentRole: 'teacher',
+      defaultRoom: 'common',
+      allowedRooms: ['common', 'staff'],
+    });
+    window.platformChat.init();
+  } else {
+    window.platformChat.setRoleAndUser('teacher', teacherObj);
+    window.platformChat.fetchMessages(true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  AuthGuard.init('teacher', async (user) => {
+    await initTeacherPanel();
+  });
+});
+</script>
+</body>
+</html>
