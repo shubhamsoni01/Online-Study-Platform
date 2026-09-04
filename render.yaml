@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: online-study-platform
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: ADMIN_EMAIL
+        value: kumarshubham3187@gmail.com
+      - key: ADMIN_PASSWORD
+        value: 822115
