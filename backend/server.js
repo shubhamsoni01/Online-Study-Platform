@@ -6,6 +6,7 @@ try {
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config();
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'study_platform_secure_jwt_secret_2026_super_key';
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -39,6 +40,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const userRoutes = require('./routes/userRoutes');
+const mediaRoutes = require('./routes/mediaRoutes');
+const { viewPdfByQuery, downloadByQuery, streamByQuery } = require('./controllers/mediaController');
 
 // Connect to Database
 connectDB();
@@ -138,201 +141,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Universal File Download Endpoint (Mobile & Desktop Attachment Forced)
-app.get('/api/download', async (req, res) => {
-  try {
-    let { url, filename } = req.query;
-    if (!url) {
-      return res.status(400).json({ success: false, message: 'URL parameter is required' });
-    }
+// Unified Media Access Layer
+app.use('/api/media', mediaRoutes);
 
-    let fileUrl = decodeURIComponent(url).trim();
-    if (fileUrl.startsWith('/') && !fileUrl.startsWith('//')) {
-      fileUrl = `${req.protocol}://${req.get('host')}${fileUrl}`;
-    }
-
-    const extMatch = fileUrl.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
-    const ext = extMatch ? `.${extMatch[1]}` : '.pdf';
-    let safeFilename = (filename || 'study-document').replace(/[^a-zA-Z0-9._-]/g, '_');
-    if (!safeFilename.toLowerCase().endsWith(ext.toLowerCase())) {
-      safeFilename += ext;
-    }
-
-    // 1. Local filesystem handling
-    if (fileUrl.includes('/uploads/')) {
-      const fs = require('fs');
-      const relPath = fileUrl.split('/uploads/')[1].split('?')[0];
-      const localFilePath = path.join(__dirname, 'uploads', relPath);
-      if (fs.existsSync(localFilePath)) {
-        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
-        res.setHeader('Content-Type', ext === '.pdf' ? 'application/pdf' : 'application/octet-stream');
-        return res.sendFile(localFilePath);
-      }
-    }
-
-    // 2. Cloudinary attachment shortcut if Cloudinary URL
-    if (fileUrl.includes('cloudinary.com') && fileUrl.includes('/upload/') && !fileUrl.includes('fl_attachment')) {
-      fileUrl = fileUrl.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safeFilename)}/`);
-    }
-
-    // 3. Stream from remote HTTP/HTTPS resource
-    const isHttps = fileUrl.startsWith('https:');
-    const client = isHttps ? require('https') : require('http');
-
-    const downloadStream = (targetUrl, redirectsLeft = 3) => {
-      const parsedUrl = new URL(targetUrl);
-      const reqClient = parsedUrl.protocol === 'https:' ? require('https') : require('http');
-
-      reqClient.get(targetUrl, (proxyRes) => {
-        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location && redirectsLeft > 0) {
-          let redirUrl = proxyRes.headers.location;
-          if (redirUrl.startsWith('/')) {
-            redirUrl = `${parsedUrl.protocol}//${parsedUrl.host}${redirUrl}`;
-          }
-          return downloadStream(redirUrl, redirectsLeft - 1);
-        }
-
-        if (proxyRes.statusCode >= 400) {
-          return res.redirect(targetUrl);
-        }
-
-        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
-        res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'application/pdf');
-        if (proxyRes.headers['content-length']) {
-          res.setHeader('Content-Length', proxyRes.headers['content-length']);
-        }
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        proxyRes.pipe(res);
-      }).on('error', (err) => {
-        console.error('[Download proxy error]', err.message);
-        res.redirect(targetUrl);
-      });
-    };
-
-    downloadStream(fileUrl);
-  } catch (err) {
-    console.error('[Universal Download Error]', err);
-    res.status(500).json({ success: false, message: 'Failed to process file download' });
-  }
-});
-
-// Universal PDF Inline Viewer Endpoint (Desktop & Mobile native in-browser rendering)
-app.get('/api/view-pdf', async (req, res) => {
-  try {
-    let { url } = req.query;
-    if (!url) {
-      return res.status(400).json({ success: false, message: 'URL parameter is required' });
-    }
-
-    let fileUrl = decodeURIComponent(url).trim();
-    if (fileUrl.startsWith('/') && !fileUrl.startsWith('//')) {
-      fileUrl = `${req.protocol}://${req.get('host')}${fileUrl}`;
-    }
-
-    // 1. Local filesystem
-    if (fileUrl.includes('/uploads/')) {
-      const fs = require('fs');
-      const relPath = fileUrl.split('/uploads/')[1].split('?')[0];
-      const localFilePath = path.join(__dirname, 'uploads', relPath);
-      if (fs.existsSync(localFilePath)) {
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline');
-        return res.sendFile(localFilePath);
-      }
-    }
-
-    // 2. Remote HTTP/HTTPS resource
-    const parsedUrl = new URL(fileUrl);
-    const reqClient = parsedUrl.protocol === 'https:' ? require('https') : require('http');
-
-    const streamPdf = (targetUrl, redirectsLeft = 3) => {
-      reqClient.get(targetUrl, (proxyRes) => {
-        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location && redirectsLeft > 0) {
-          let redirUrl = proxyRes.headers.location;
-          if (redirUrl.startsWith('/')) {
-            redirUrl = `${parsedUrl.protocol}//${parsedUrl.host}${redirUrl}`;
-          }
-          return streamPdf(redirUrl, redirectsLeft - 1);
-        }
-
-        if (proxyRes.statusCode >= 400) {
-          return res.redirect(targetUrl);
-        }
-
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        if (proxyRes.headers['content-length']) {
-          res.setHeader('Content-Length', proxyRes.headers['content-length']);
-        }
-        proxyRes.pipe(res);
-      }).on('error', (err) => {
-        console.error('[View PDF proxy error]', err.message);
-        res.redirect(targetUrl);
-      });
-    };
-
-    streamPdf(fileUrl);
-  } catch (err) {
-    console.error('[View PDF Error]', err);
-    res.status(500).json({ success: false, message: 'Failed to stream PDF' });
-  }
-});
-
-// Universal Video Stream Endpoint with HTTP 206 Range Request Support
-app.get('/api/stream-video', async (req, res) => {
-  try {
-    let { url } = req.query;
-    if (!url) {
-      return res.status(400).json({ success: false, message: 'URL parameter is required' });
-    }
-
-    let videoUrl = decodeURIComponent(url).trim();
-    if (videoUrl.startsWith('/') && !videoUrl.startsWith('//')) {
-      videoUrl = `${req.protocol}://${req.get('host')}${videoUrl}`;
-    }
-
-    // If local file, stream with range
-    if (videoUrl.includes('/uploads/')) {
-      const fs = require('fs');
-      const relPath = videoUrl.split('/uploads/')[1].split('?')[0];
-      const localFilePath = path.join(__dirname, 'uploads', relPath);
-      if (fs.existsSync(localFilePath)) {
-        const stat = fs.statSync(localFilePath);
-        const fileSize = stat.size;
-        const range = req.headers.range;
-
-        if (range) {
-          const parts = range.replace(/bytes=/, '').split('-');
-          const start = parseInt(parts[0], 10);
-          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-          const chunksize = (end - start) + 1;
-          const file = fs.createReadStream(localFilePath, { start, end });
-          res.writeHead(206, {
-            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-            'Accept-Ranges': 'bytes',
-            'Content-Length': chunksize,
-            'Content-Type': 'video/mp4',
-          });
-          return file.pipe(res);
-        } else {
-          res.writeHead(200, {
-            'Content-Length': fileSize,
-            'Content-Type': 'video/mp4',
-            'Accept-Ranges': 'bytes',
-          });
-          return fs.createReadStream(localFilePath).pipe(res);
-        }
-      }
-    }
-
-    // Remote video: redirect or pipe
-    res.redirect(videoUrl);
-  } catch (err) {
-    console.error('[Stream Video Error]', err);
-    res.status(500).json({ success: false, message: 'Failed to stream video' });
-  }
-});
+// Backward-compatible query fallbacks
+app.get('/api/view-pdf', viewPdfByQuery);
+app.get('/api/download', downloadByQuery);
+app.get('/api/stream-video', streamByQuery);
 
 // API Routes Mounting
 app.use('/api/auth', authRoutes);

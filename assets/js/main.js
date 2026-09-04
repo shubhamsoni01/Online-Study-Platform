@@ -279,12 +279,17 @@ window.downloadStudyFile = function(fileUrl, filename) {
     showToast('📥 Starting PDF download...');
   }
 
-  // Backend download proxy (guarantees Content-Disposition: attachment header for instant mobile & desktop file save)
-  const proxyDownloadUrl = `${window.location.origin}/api/download?url=${encodeURIComponent(cleanUrl)}&filename=${encodeURIComponent(safeName)}`;
+  // If already a dedicated backend media download endpoint, use it directly; otherwise use the universal download handler
+  let finalDownloadUrl;
+  if (cleanUrl.includes('/api/media/') && cleanUrl.includes('/download')) {
+    finalDownloadUrl = cleanUrl;
+  } else {
+    finalDownloadUrl = `${window.location.origin}/api/media/download?url=${encodeURIComponent(cleanUrl)}&filename=${encodeURIComponent(safeName)}`;
+  }
 
-  // Synchronously trigger download directly in user gesture
+  // Synchronously trigger download directly within user gesture
   const link = document.createElement('a');
-  link.href = proxyDownloadUrl;
+  link.href = finalDownloadUrl;
   link.download = safeName;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';

@@ -43,7 +43,7 @@ const connectDB = async () => {
     return;
   }
 
-  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/OnlineStudyPlatform';
+  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://OnlineStudyPlatform:shubham%402026@cluster0.jesyh3v.mongodb.net/OnlineStudyPlatform?appName=Cluster0';
   const uri = sanitizeMongoUri(rawUri);
 
   try {

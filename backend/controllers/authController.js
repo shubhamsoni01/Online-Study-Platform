@@ -7,7 +7,8 @@ const Student = require('../models/Student');
 const { getOrCreateUnifiedUser } = require('../utils/multiRoleSync');
 
 const generateToken = (userId, role, roles = []) => {
-  return jwt.sign({ userId, role, roles }, process.env.JWT_SECRET, {
+  const jwtSecret = process.env.JWT_SECRET || 'study_platform_secure_jwt_secret_2026_super_key';
+  return jwt.sign({ userId, role, roles }, jwtSecret, {
     expiresIn: '30d',
   });
 };

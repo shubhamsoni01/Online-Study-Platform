@@ -17,7 +17,8 @@ const protect = async (req, res, next) => {
   // 1. If valid JWT Token is present, authenticate directly from JWT identity
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const jwtSecret = process.env.JWT_SECRET || 'study_platform_secure_jwt_secret_2026_super_key';
+      const decoded = jwt.verify(token, jwtSecret);
       const { userId, role } = decoded;
 
       let userDoc = null;
@@ -67,9 +68,10 @@ const protect = async (req, res, next) => {
         return next();
       }
     } catch (jwtError) {
+      console.error('[JWT Verify Error]', jwtError.message);
       return res.status(401).json({
         success: false,
-        message: 'Access denied: Invalid or expired authentication token',
+        message: 'Access denied: Invalid or expired authentication token (' + jwtError.message + ')',
       });
     }
   }
