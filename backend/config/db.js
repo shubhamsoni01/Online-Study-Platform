@@ -6,6 +6,7 @@ try {
 } catch (e) {}
 
 let isConnected = false;
+let lastDbError = null;
 
 function sanitizeMongoUri(rawUri) {
   if (!rawUri || typeof rawUri !== 'string') return rawUri;
