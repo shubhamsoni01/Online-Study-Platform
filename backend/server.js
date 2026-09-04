@@ -1,3 +1,8 @@
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {}
+
 require('dotenv').config();
 const path = require('path');
 const http = require('http');
@@ -103,6 +108,17 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api/auth/login', authLimiter);
+
+// Auto-ensure DB connection for API requests
+app.use('/api', async (req, res, next) => {
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (e) {}
+  }
+  next();
+});
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
