@@ -2,16 +2,43 @@ const mongoose = require('mongoose');
 
 let isConnected = false;
 
+function sanitizeMongoUri(rawUri) {
+  if (!rawUri || typeof rawUri !== 'string') return rawUri;
+  const prefix = rawUri.startsWith('mongodb+srv://') ? 'mongodb+srv://' : rawUri.startsWith('mongodb://') ? 'mongodb://' : '';
+  if (!prefix) return rawUri;
+
+  try {
+    const rest = rawUri.slice(prefix.length);
+    const lastAtIndex = rest.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const creds = rest.substring(0, lastAtIndex);
+      const hostAndParams = rest.substring(lastAtIndex + 1);
+      const firstColon = creds.indexOf(':');
+      if (firstColon !== -1) {
+        const username = creds.substring(0, firstColon);
+        let password = creds.substring(firstColon + 1);
+        // Replace unencoded @ with %40
+        if (password.includes('@') && !password.includes('%40')) {
+          password = password.replace(/@/g, '%40');
+        }
+        return `${prefix}${username}:${password}@${hostAndParams}`;
+      }
+    }
+  } catch (e) {}
+  return rawUri;
+}
+
 const connectDB = async () => {
   if (isConnected && mongoose.connection.readyState === 1) {
     return;
   }
 
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/OnlineStudyPlatform';
+  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/OnlineStudyPlatform';
+  const uri = sanitizeMongoUri(rawUri);
 
   try {
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 8000,
     });
     isConnected = true;
     console.log(`MongoDB connected successfully. Database: ${conn.connection.name}`);
