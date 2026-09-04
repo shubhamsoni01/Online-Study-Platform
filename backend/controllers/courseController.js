@@ -160,10 +160,11 @@ const getCourseContent = async (req, res, next) => {
     }).sort({ order: 1, createdAt: 1 });
     const moduleIds = modules.map(m => m._id);
 
-    // Published filter for students (accepts status: Published or published: true, excludes Draft)
-    const contentFilter = isStudent ? {
+    // Published filter condition for students
+    const studentStatusCondition = isStudent ? {
       $or: [
         { status: 'Published' },
+        { status: 'Active' },
         { status: { $exists: false } },
         { published: true },
         { isPublished: true },
@@ -171,41 +172,54 @@ const getCourseContent = async (req, res, next) => {
       status: { $nin: ['Draft', 'Archived'] },
     } : {};
 
+    // Search for materials matching any of: moduleIds, courseId, or subjectId
+    const materialScope = {
+      $or: [
+        ...(moduleIds.length > 0 ? [{ moduleId: { $in: moduleIds } }] : []),
+        { courseId: course._id },
+        ...(sId ? [{ subjectId: sId }] : []),
+      ],
+    };
+
+    const finalQuery = isStudent ? {
+      $and: [
+        materialScope,
+        studentStatusCondition,
+      ],
+    } : materialScope;
+
     const [videos, notes, quizzes, allocations, progressRecords] = await Promise.all([
-      Video.find({
-        $or: [
-          { moduleId: { $in: moduleIds } },
-          { courseId: course._id },
-          ...(sId ? [{ subjectId: sId }] : []),
-        ],
-        ...contentFilter,
-      }).sort({ createdAt: 1 }),
-      Note.find({
-        $or: [
-          { moduleId: { $in: moduleIds } },
-          { courseId: course._id },
-          ...(sId ? [{ subjectId: sId }] : []),
-        ],
-        ...contentFilter,
-      }).sort({ createdAt: 1 }),
-      Quiz.find({
-        $or: [
-          { moduleId: { $in: moduleIds } },
-          { courseId: course._id },
-          ...(sId ? [{ subjectId: sId }] : []),
-        ],
-        ...contentFilter,
-      }).sort({ createdAt: 1 }),
+      Video.find(finalQuery).sort({ createdAt: 1 }),
+      Note.find(finalQuery).sort({ createdAt: 1 }),
+      Quiz.find(finalQuery).sort({ createdAt: 1 }),
       TeacherAllocation.find({ status: 'Active' }).populate('teacherId', 'name photo department email'),
       isStudent ? Progress.find({ studentId: req.user._id, courseId: course._id, completed: true }) : Promise.resolve([]),
     ]);
 
     const completedVideoIds = new Set(progressRecords.map(p => p.videoId?.toString()).filter(Boolean));
 
+    // Track assigned IDs to catch any unassigned materials
+    const assignedVideoIds = new Set();
+    const assignedNoteIds = new Set();
+    const assignedQuizIds = new Set();
+
     const structuredModules = modules.map((m, idx) => {
-      const modVideos = videos.filter(v => v.moduleId && v.moduleId.toString() === m._id.toString());
-      const modNotes = notes.filter(n => n.moduleId && n.moduleId.toString() === m._id.toString());
-      const modQuizzes = quizzes.filter(q => q.moduleId && q.moduleId.toString() === m._id.toString());
+      const mIdStr = m._id.toString();
+      const modVideos = videos.filter(v => {
+        const matches = v.moduleId && v.moduleId.toString() === mIdStr;
+        if (matches) assignedVideoIds.add(v._id.toString());
+        return matches;
+      });
+      const modNotes = notes.filter(n => {
+        const matches = n.moduleId && n.moduleId.toString() === mIdStr;
+        if (matches) assignedNoteIds.add(n._id.toString());
+        return matches;
+      });
+      const modQuizzes = quizzes.filter(q => {
+        const matches = q.moduleId && q.moduleId.toString() === mIdStr;
+        if (matches) assignedQuizIds.add(q._id.toString());
+        return matches;
+      });
 
       // If student, strip correct answers & explanations from quizzes before attempting
       const safeQuizzes = modQuizzes.map(q => {
@@ -259,6 +273,100 @@ const getCourseContent = async (req, res, next) => {
         quizzes: safeQuizzes,
       };
     });
+
+    // Check for any unassigned videos/notes/quizzes
+    const unassignedVideos = videos.filter(v => !assignedVideoIds.has(v._id.toString()));
+    const unassignedNotes = notes.filter(n => !assignedNoteIds.has(n._id.toString()));
+    const unassignedQuizzes = quizzes.filter(q => !assignedQuizIds.has(q._id.toString()));
+
+    if (unassignedVideos.length > 0 || unassignedNotes.length > 0 || unassignedQuizzes.length > 0) {
+      if (structuredModules.length > 0) {
+        // Append to the first module
+        const firstMod = structuredModules[0];
+        const enrichedExtraVideos = unassignedVideos.map(v => {
+          const vObj = v.toObject();
+          let u = vObj.cloudinaryUrl || vObj.videoUrl || '';
+          u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+          vObj.videoUrl = u;
+          vObj.cloudinaryUrl = u;
+          vObj.completed = completedVideoIds.has(v._id.toString());
+          return vObj;
+        });
+        const enrichedExtraNotes = unassignedNotes.map(n => {
+          const nObj = n.toObject();
+          let u = nObj.cloudinaryUrl || nObj.fileUrl || nObj.pdfUrl || '';
+          u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+          nObj.pdfUrl = u;
+          nObj.fileUrl = u;
+          return nObj;
+        });
+        const safeExtraQuizzes = unassignedQuizzes.map(q => {
+          const qObj = q.toObject();
+          if (isStudent) {
+            qObj.questions = (qObj.questions || []).map(item => ({
+              _id: item._id,
+              question: item.question,
+              options: item.options,
+              marks: item.marks,
+            }));
+          }
+          return qObj;
+        });
+
+        firstMod.videos = [...firstMod.videos, ...enrichedExtraVideos];
+        firstMod.notes = [...firstMod.notes, ...enrichedExtraNotes];
+        firstMod.quizzes = [...firstMod.quizzes, ...safeExtraQuizzes];
+        firstMod.actualVideosCount = firstMod.videos.length;
+        firstMod.completedVideosCount = firstMod.videos.filter(v => v.completed).length;
+      } else {
+        // Create a default general module if none exists
+        const enrichedExtraVideos = unassignedVideos.map(v => {
+          const vObj = v.toObject();
+          let u = vObj.cloudinaryUrl || vObj.videoUrl || '';
+          u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+          vObj.videoUrl = u;
+          vObj.cloudinaryUrl = u;
+          vObj.completed = completedVideoIds.has(v._id.toString());
+          return vObj;
+        });
+        const enrichedExtraNotes = unassignedNotes.map(n => {
+          const nObj = n.toObject();
+          let u = nObj.cloudinaryUrl || nObj.fileUrl || nObj.pdfUrl || '';
+          u = u.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+          nObj.pdfUrl = u;
+          nObj.fileUrl = u;
+          return nObj;
+        });
+        const safeExtraQuizzes = unassignedQuizzes.map(q => {
+          const qObj = q.toObject();
+          if (isStudent) {
+            qObj.questions = (qObj.questions || []).map(item => ({
+              _id: item._id,
+              question: item.question,
+              options: item.options,
+              marks: item.marks,
+            }));
+          }
+          return qObj;
+        });
+
+        structuredModules.push({
+          moduleId: 'general_mod_1',
+          _id: 'general_mod_1',
+          id: 'general_mod_1',
+          title: 'Module 1: Course Lectures & Curriculum Notes',
+          description: 'Main lecture videos, reading notes and evaluations',
+          order: 1,
+          plannedClasses: 4,
+          expectedLectures: 4,
+          actualVideosCount: enrichedExtraVideos.length,
+          completedVideosCount: enrichedExtraVideos.filter(v => v.completed).length,
+          videos: enrichedExtraVideos,
+          notes: enrichedExtraNotes,
+          quizzes: safeExtraQuizzes,
+        });
+      }
+    }
 
     const primaryTeacher = allocations.find(
       a => (a.courseId && a.courseId.toString() === course._id.toString()) ||

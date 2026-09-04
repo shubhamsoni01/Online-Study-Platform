@@ -179,14 +179,51 @@ const LiveAPI = {
     return await this.request('/teachers/me');
   },
 
+  async updateTeacherMe(data) {
+    const isForm = data instanceof FormData;
+    return await this.request('/teachers/me', {
+      method: 'PUT',
+      body: isForm ? data : JSON.stringify(data),
+    });
+  },
+
+  async uploadTeacherPhoto(fileOrFormData) {
+    let formData;
+    if (fileOrFormData instanceof FormData) {
+      formData = fileOrFormData;
+    } else {
+      formData = new FormData();
+      formData.append('photo', fileOrFormData);
+    }
+    return await this.request('/teachers/me/photo', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   async getStudentMe() {
     return await this.request('/students/me');
   },
 
   async updateStudentMe(data) {
+    const isForm = data instanceof FormData;
     return await this.request('/students/me', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: isForm ? data : JSON.stringify(data),
+    });
+  },
+
+  async uploadStudentPhoto(fileOrFormData) {
+    let formData;
+    if (fileOrFormData instanceof FormData) {
+      formData = fileOrFormData;
+    } else {
+      formData = new FormData();
+      formData.append('photo', fileOrFormData);
+    }
+    return await this.request('/students/me/photo', {
+      method: 'POST',
+      body: formData,
     });
   },
 

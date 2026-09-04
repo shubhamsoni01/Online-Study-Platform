@@ -511,12 +511,22 @@
             <span class="card-title">Student Details</span>
           </div>
           <div class="card-body">
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
-              <div class="avatar avatar-lg" id="profileAvatar" style="font-size:22px;">ST</div>
-              <div>
+            <div style="display:flex;align-items:center;gap:18px;margin-bottom:20px;">
+              <div style="position:relative;display:inline-block;flex-shrink:0;">
+                <div class="avatar avatar-lg" id="profileAvatar" style="width:72px;height:72px;font-size:24px;border:2px solid var(--accent);overflow:hidden;border-radius:50%;">ST</div>
+                <button type="button" onclick="document.getElementById('studentPhotoFileInput').click()" style="position:absolute;bottom:0;right:0;background:var(--accent);color:#000;border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.5);" title="Upload / Change Photo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </button>
+                <input type="file" id="studentPhotoFileInput" accept="image/*" style="display:none;" onchange="handleStudentPhotoUpload(event)" />
+              </div>
+              <div style="flex:1;">
                 <div style="font-size:18px;font-weight:700;" id="profileStudentName">Student Name</div>
                 <div style="font-size:13px;color:var(--accent);font-weight:600;" id="profileStudentDept">Department: Computer Science</div>
                 <div style="font-size:12px;color:var(--text-secondary);" id="profileStudentEmail">student@university.edu</div>
+                <div style="margin-top:6px;">
+                  <button type="button" class="btn btn-secondary btn-xs" id="btnChangeStudentPhoto" onclick="document.getElementById('studentPhotoFileInput').click()">📷 Change Photo</button>
+                </div>
+                <div id="studentPhotoUploadStatus" style="font-size:11.5px;color:var(--accent);margin-top:4px;display:none;"></div>
               </div>
             </div>
 
@@ -553,7 +563,16 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Semester</label>
-                <input class="form-input" id="editProfileSemester" placeholder="1st Semester"/>
+                <select class="form-input" id="editProfileSemester" style="background:var(--bg-secondary);color:var(--text-primary);">
+                  <option value="Semester 1">Semester 1</option>
+                  <option value="Semester 2">Semester 2</option>
+                  <option value="Semester 3">Semester 3</option>
+                  <option value="Semester 4">Semester 4</option>
+                  <option value="Semester 5">Semester 5</option>
+                  <option value="Semester 6">Semester 6</option>
+                  <option value="Semester 7">Semester 7</option>
+                  <option value="Semester 8">Semester 8</option>
+                </select>
               </div>
               <div class="form-group">
                 <label class="form-label">New Password (optional)</label>
@@ -641,8 +660,17 @@
             <input class="form-input" type="text" id="regDepartment" placeholder="Computer Science" value="Computer Science"/>
           </div>
           <div>
-            <label class="form-label">Semester</label>
-            <input class="form-input" type="text" id="regSemester" placeholder="1st Semester" value="1st Semester"/>
+            <label class="form-label">Semester *</label>
+            <select class="form-input" id="regSemester" style="background:var(--bg-secondary);color:var(--text-primary);">
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5" selected>Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+              <option value="Semester 8">Semester 8</option>
+            </select>
           </div>
         </div>
         <button type="submit" class="btn btn-primary" id="btnSignUpSubmit" style="width:100%;justify-content:center;height:42px;font-size:14px;margin-top:6px;">Create Account ✓</button>
@@ -870,8 +898,8 @@ async function handleStudentSignUp(e) {
   const password = document.getElementById('regPassword').value.trim();
   const confirmPassword = document.getElementById('regConfirmPassword')?.value.trim() || password;
   const phone = document.getElementById('regPhone')?.value.trim() || '';
-  const department = document.getElementById('regDepartment')?.value.trim() || 'Information Technology';
-  const semester = document.getElementById('regSemester')?.value.trim() || '1st Semester';
+  const department = document.getElementById('regDepartment')?.value.trim() || 'Computer Science';
+  const semester = document.getElementById('regSemester')?.value.trim() || 'Semester 1';
   const btn = document.getElementById('btnSignUpSubmit');
   const errBox = document.getElementById('signUpErrorAlert');
 
@@ -988,9 +1016,12 @@ function navigateToProfile() {
 // 2. RENDER STUDENT DATA & DASHBOARD
 // ==========================================
 async function renderStudentViews(student) {
-  const initials = student.name ? student.name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'ST';
-  const avatarHtml = student.photo 
-    ? `<img src="${student.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+  const rawPhoto = student.profilePhoto?.url || student.photo || '';
+  const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
+  const safePhoto = (!isDemo && rawPhoto && (rawPhoto.startsWith('http') || rawPhoto.startsWith('/') || rawPhoto.startsWith('data:image'))) ? rawPhoto : '';
+  const initials = student.name ? student.name.split(' ').filter(Boolean).map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'ST';
+  const avatarHtml = safePhoto 
+    ? `<img src="${safePhoto}" alt="${student.name || 'Student'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${initials}'"/>`
     : initials;
 
   // Sidebar
@@ -1014,7 +1045,7 @@ async function renderStudentViews(student) {
   // Profile Page
   document.getElementById('profileAvatar').innerHTML = avatarHtml;
   document.getElementById('profileStudentName').textContent = student.name;
-  document.getElementById('profileStudentDept').textContent = `Department: ${student.department || 'Computer Science'} · ${student.semester || '1st Semester'}`;
+  document.getElementById('profileStudentDept').textContent = `Department: ${student.department || 'Computer Science'} · ${student.semester || 'Semester 1'}`;
   document.getElementById('profileStudentEmail').textContent = student.email;
   document.getElementById('profileStudentStatus').textContent = student.status || 'Active';
 
@@ -1022,7 +1053,75 @@ async function renderStudentViews(student) {
   document.getElementById('editProfileName').value = student.name || '';
   document.getElementById('editProfilePhone').value = student.phone || '';
   document.getElementById('editProfileDept').value = student.department || 'Computer Science';
-  document.getElementById('editProfileSemester').value = student.semester || '1st Semester';
+  if (document.getElementById('editProfileSemester')) {
+    document.getElementById('editProfileSemester').value = student.semester || 'Semester 1';
+  }
+
+  window.handleStudentPhotoUpload = async function(event) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('studentPhotoUploadStatus');
+    const changeBtn = document.getElementById('btnChangeStudentPhoto');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--accent)';
+      statusEl.textContent = 'Uploading profile photo...';
+    }
+    if (changeBtn) {
+      changeBtn.disabled = true;
+      changeBtn.textContent = 'Uploading...';
+    }
+
+    try {
+      const res = await LiveAPI.uploadStudentPhoto(file);
+      if (res && (res.success || res.data)) {
+        const updated = res.data || res;
+        const newUrl = updated.profilePhoto?.url || updated.photo;
+        if (currentAuthenticatedStudent) {
+          currentAuthenticatedStudent.photo = newUrl;
+          currentAuthenticatedStudent.profilePhoto = updated.profilePhoto || { url: newUrl };
+        }
+        const userStored = localStorage.getItem('osp_user');
+        if (userStored) {
+          try {
+            const u = JSON.parse(userStored);
+            u.photo = newUrl;
+            u.profilePhoto = updated.profilePhoto || { url: newUrl };
+            localStorage.setItem('osp_user', JSON.stringify(u));
+          } catch (e) {}
+        }
+        const newAvatarHtml = Store.formatAvatarHtml(newUrl, updated.name || 'Student', 'ST');
+        const pAv = document.getElementById('profileAvatar');
+        if (pAv) pAv.innerHTML = newAvatarHtml;
+        const sAv = document.getElementById('stdSidebarAvatar');
+        if (sAv) sAv.innerHTML = newAvatarHtml;
+        const topAv = document.getElementById('stdTopNavAvatar');
+        if (topAv) topAv.innerHTML = newAvatarHtml;
+        const dropAv = document.getElementById('stdDropdownAvatar');
+        if (dropAv) dropAv.innerHTML = newAvatarHtml;
+        showToast('✓ Profile photo updated successfully!');
+        if (statusEl) {
+          statusEl.textContent = '✓ Photo updated successfully!';
+          setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+        }
+      } else {
+        throw new Error(res?.message || 'Photo upload failed');
+      }
+    } catch (err) {
+      showToast(`Photo upload failed: ${err.message}`);
+      if (statusEl) {
+        statusEl.style.color = '#ff5c5c';
+        statusEl.textContent = `Upload failed: ${err.message}`;
+      }
+    } finally {
+      if (changeBtn) {
+        changeBtn.disabled = false;
+        changeBtn.textContent = '📷 Change Photo';
+      }
+      event.target.value = '';
+    }
+  };
 
   // Load Live Enrolled Courses, Books & Community Chat
   await Promise.all([

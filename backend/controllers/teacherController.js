@@ -541,10 +541,99 @@ const deleteTeacher = async (req, res, next) => {
   }
 };
 
+/**
+ * Update Current Authenticated Teacher Profile & Photo
+ * PUT /api/teachers/me
+ */
+const updateTeacherProfileMe = async (req, res, next) => {
+  try {
+    const { teacher } = await resolveTeacherAndAllocations(req);
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    const { name, phone, department, photo, password } = req.body;
+
+    if (name && name.trim()) teacher.name = name.trim();
+    if (phone !== undefined) teacher.phone = phone.trim();
+    if (department && department.trim()) teacher.department = department.trim();
+
+    // Handle file upload via Multer / Cloudinary
+    if (req.file) {
+      const uploadRes = await uploadToCloudinary(req.file.buffer, 'teachers', 'image', req.file.originalname);
+      teacher.photo = uploadRes.secureUrl;
+      teacher.profilePhoto = {
+        url: uploadRes.secureUrl,
+        publicId: uploadRes.publicId,
+      };
+    } else if (photo !== undefined && photo) {
+      teacher.photo = photo;
+      teacher.profilePhoto = {
+        url: photo,
+        publicId: req.body.publicId || '',
+      };
+    }
+
+    if (password && password.trim() && password.trim().length >= 6) {
+      teacher.password = password.trim();
+    }
+
+    await teacher.save();
+
+    // Sync Unified User
+    const User = require('../models/User');
+    const user = await User.findOne({ email: teacher.email.toLowerCase().trim() });
+    if (user) {
+      if (name) user.name = teacher.name;
+      if (phone !== undefined) user.phone = teacher.phone;
+      if (department) user.department = teacher.department;
+      if (teacher.photo) {
+        user.photo = teacher.photo;
+        user.profilePhoto = teacher.profilePhoto;
+      }
+      if (password && password.trim() && password.trim().length >= 6) {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        user.teacherPassword = await bcrypt.hash(password.trim(), salt);
+      }
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        _id: teacher._id,
+        id: teacher._id,
+        name: teacher.name,
+        email: teacher.email,
+        phone: teacher.phone,
+        department: teacher.department,
+        photo: teacher.photo,
+        profilePhoto: teacher.profilePhoto,
+        role: 'teacher',
+        status: teacher.status,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload Teacher Profile Photo
+ * POST /api/teachers/me/photo
+ */
+const uploadTeacherPhoto = async (req, res, next) => {
+  return updateTeacherProfileMe(req, res, next);
+};
+
 module.exports = {
   getTeachers,
   getTeacherById,
   getTeacherProfileMe,
+  updateTeacherProfileMe,
+  uploadTeacherPhoto,
   getTeacherAllocations,
   getMyAssignedSubjects,
   getTeacherDashboardStats,

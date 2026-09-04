@@ -4,6 +4,8 @@ const {
   getTeachers,
   getTeacherById,
   getTeacherProfileMe,
+  updateTeacherProfileMe,
+  uploadTeacherPhoto,
   createTeacher,
   updateTeacher,
   toggleTeacherStatus,
@@ -20,6 +22,8 @@ router.use(protect);
 
 // Teacher's own isolated routes
 router.get('/me', teacherOnly, getTeacherProfileMe);
+router.put('/me', teacherOnly, upload.single('photo'), updateTeacherProfileMe);
+router.post('/me/photo', teacherOnly, upload.single('photo'), uploadTeacherPhoto);
 router.get('/me/allocations', teacherOnly, getTeacherAllocations);
 router.get('/dashboard/my-stats', teacherOnly, getTeacherDashboardStats);
 router.get('/my-subjects', teacherOnly, getMyAssignedSubjects);

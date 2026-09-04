@@ -8,14 +8,17 @@ const {
   deleteStudent,
   getStudentProfileMe,
   updateStudentProfileMe,
+  uploadStudentPhoto,
 } = require('../controllers/studentController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/roleMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 router.use(protect);
 
 router.get('/me', getStudentProfileMe);
-router.put('/me', updateStudentProfileMe);
+router.put('/me', upload.single('photo'), updateStudentProfileMe);
+router.post('/me/photo', upload.single('photo'), uploadStudentPhoto);
 
 router.route('/')
   .get(adminOnly, getStudents)

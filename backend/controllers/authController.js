@@ -227,14 +227,14 @@ const login = async (req, res, next) => {
       id: finalDocId,
       _id: finalDocId,
       userId: unifiedUser ? unifiedUser._id : finalDocId,
-      name: authenticatedUser.name,
+      name: (finalRole === 'teacher' ? teacherDoc?.name : finalRole === 'student' ? studentDoc?.name : null) || authenticatedUser.name,
       email: cleanEmail,
       role: finalRole,
       roles: rolesArray,
-      photo: authenticatedUser.profilePhoto?.url || authenticatedUser.photo || '',
-      profilePhoto: authenticatedUser.profilePhoto || { url: authenticatedUser.photo || '' },
-      department: authenticatedUser.department || '',
-      semester: authenticatedUser.semester || '',
+      photo: (finalRole === 'teacher' ? (teacherDoc?.profilePhoto?.url || teacherDoc?.photo) : finalRole === 'student' ? (studentDoc?.profilePhoto?.url || studentDoc?.photo) : null) || authenticatedUser.profilePhoto?.url || authenticatedUser.photo || unifiedUser?.photo || '',
+      profilePhoto: (finalRole === 'teacher' ? (teacherDoc?.profilePhoto) : finalRole === 'student' ? (studentDoc?.profilePhoto) : null) || authenticatedUser.profilePhoto || { url: authenticatedUser.photo || '' },
+      department: (finalRole === 'teacher' ? teacherDoc?.department : finalRole === 'student' ? studentDoc?.department : null) || authenticatedUser.department || '',
+      semester: (finalRole === 'student' ? studentDoc?.semester : null) || authenticatedUser.semester || unifiedUser?.semester || '',
       status: authenticatedUser.status || 'Active',
     };
 
@@ -276,6 +276,9 @@ const registerStudent = async (req, res, next) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const targetDepartment = (department || 'Computer Science').trim();
+    const targetSemester = (semester || req.body.regSemester || 'Semester 1').trim();
+    const targetPhone = phone ? phone.trim() : '';
 
     // Check if unified user or student already exists
     let user = await User.findOne({ email: cleanEmail });
@@ -298,6 +301,9 @@ const registerStudent = async (req, res, next) => {
       }
       user.studentPassword = hashedPassword;
       if (!user.password) user.password = hashedPassword;
+      user.semester = targetSemester;
+      user.department = targetDepartment;
+      if (targetPhone) user.phone = targetPhone;
       await user.save();
     } else {
       user = await User.create({
@@ -306,9 +312,9 @@ const registerStudent = async (req, res, next) => {
         roles: ['student'],
         studentPassword: hashedPassword,
         password: hashedPassword,
-        phone: phone ? phone.trim() : '',
-        department: department ? department.trim() : 'Computer Science',
-        semester: semester ? semester.trim() : '1st Semester',
+        phone: targetPhone,
+        department: targetDepartment,
+        semester: targetSemester,
         status: 'Active',
       });
     }
@@ -316,10 +322,10 @@ const registerStudent = async (req, res, next) => {
     student = await Student.create({
       name: name.trim(),
       email: cleanEmail,
-      password: hashedPassword,
-      phone: phone ? phone.trim() : '',
-      department: department ? department.trim() : 'Computer Science',
-      semester: semester ? semester.trim() : '1st Semester',
+      password: password.trim(),
+      phone: targetPhone,
+      department: targetDepartment,
+      semester: targetSemester,
       role: 'student',
       status: 'Active',
     });

@@ -190,6 +190,8 @@ const getStudentProfileMe = async (req, res, next) => {
   }
 };
 
+const { uploadToCloudinary } = require('../services/cloudinaryService');
+
 /**
  * Update Authenticated Student Profile
  * PUT /api/students/me
@@ -197,9 +199,12 @@ const getStudentProfileMe = async (req, res, next) => {
 const updateStudentProfileMe = async (req, res, next) => {
   try {
     const studentId = req.user._id;
-    const student = await Student.findById(studentId);
+    let student = await Student.findById(studentId);
+    if (!student && req.user.email) {
+      student = await Student.findOne({ email: req.user.email.toLowerCase().trim() });
+    }
     if (!student) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
     }
 
     const { name, phone, department, semester, photo, password } = req.body;
@@ -208,31 +213,77 @@ const updateStudentProfileMe = async (req, res, next) => {
     if (phone !== undefined) student.phone = phone.trim();
     if (department && department.trim()) student.department = department.trim();
     if (semester && semester.trim()) student.semester = semester.trim();
-    if (photo !== undefined) student.photo = photo;
+
+    // Handle file upload via Multer / Cloudinary
+    if (req.file) {
+      const uploadRes = await uploadToCloudinary(req.file.buffer, 'students', 'image', req.file.originalname);
+      student.photo = uploadRes.secureUrl;
+      student.profilePhoto = {
+        url: uploadRes.secureUrl,
+        publicId: uploadRes.publicId,
+      };
+    } else if (photo !== undefined && photo) {
+      student.photo = photo;
+      student.profilePhoto = {
+        url: photo,
+        publicId: req.body.publicId || '',
+      };
+    }
+
     if (password && password.trim() && password.trim().length >= 6) {
       student.password = password.trim();
     }
 
     await student.save();
 
+    // Sync Unified User
+    const User = require('../models/User');
+    const user = await User.findOne({ email: student.email.toLowerCase().trim() });
+    if (user) {
+      if (name) user.name = student.name;
+      if (phone !== undefined) user.phone = student.phone;
+      if (department) user.department = student.department;
+      if (semester) user.semester = student.semester;
+      if (student.photo) {
+        user.photo = student.photo;
+        user.profilePhoto = student.profilePhoto;
+      }
+      if (password && password.trim() && password.trim().length >= 6) {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        user.studentPassword = await bcrypt.hash(password.trim(), salt);
+      }
+      await user.save();
+    }
+
     res.json({
       success: true,
       message: 'Profile updated successfully',
       data: {
         _id: student._id,
+        id: student._id,
         name: student.name,
         email: student.email,
         phone: student.phone,
         department: student.department,
         semester: student.semester,
         photo: student.photo,
-        role: student.role,
+        profilePhoto: student.profilePhoto,
+        role: student.role || 'student',
         status: student.status,
       },
     });
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * Upload Student Profile Photo
+ * POST /api/students/me/photo
+ */
+const uploadStudentPhoto = async (req, res, next) => {
+  return updateStudentProfileMe(req, res, next);
 };
 
 module.exports = {
@@ -243,4 +294,5 @@ module.exports = {
   deleteStudent,
   getStudentProfileMe,
   updateStudentProfileMe,
+  uploadStudentPhoto,
 };

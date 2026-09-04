@@ -465,16 +465,24 @@
         <div class="card" style="margin-bottom:20px;">
           <div class="card-body">
             <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;">
-              <div class="avatar avatar-lg" id="profileBigAvatar" style="width:68px;height:68px;font-size:22px;border:2px solid var(--accent);">TR</div>
-              <div>
+              <div style="position:relative;display:inline-block;flex-shrink:0;">
+                <div class="avatar avatar-lg" id="profileBigAvatar" style="width:72px;height:72px;font-size:24px;border:2px solid var(--accent);overflow:hidden;border-radius:50%;">TR</div>
+                <button type="button" onclick="document.getElementById('teacherPhotoFileInput').click()" style="position:absolute;bottom:0;right:0;background:var(--accent);color:#000;border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.5);" title="Upload / Change Photo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </button>
+                <input type="file" id="teacherPhotoFileInput" accept="image/*" style="display:none;" onchange="handleTeacherPhotoUpload(event)" />
+              </div>
+              <div style="flex:1;">
                 <div style="font-size:19px;font-weight:800;color:#FFF;" id="profileName">Faculty Member</div>
                 <div style="font-size:13px;color:var(--accent);margin-top:2px;" id="profileDept">Department of Computer Science</div>
                 <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;" id="profileEmail">faculty@university.edu</div>
                 <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Teacher ID: <span id="profileTeacherId" style="color:var(--accent);font-weight:600;">-</span></div>
-                <div style="display:flex;gap:8px;margin-top:8px;">
+                <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
                   <span class="badge badge-active" id="profileRole">Role: Teacher</span>
                   <span class="badge badge-pending" id="profileStatus">Status: Active</span>
+                  <button type="button" class="btn btn-secondary btn-xs" id="btnChangeTeacherPhoto" onclick="document.getElementById('teacherPhotoFileInput').click()" style="margin-left:auto;">📷 Change Photo</button>
                 </div>
+                <div id="teacherPhotoUploadStatus" style="font-size:12px;color:var(--accent);margin-top:6px;display:none;"></div>
               </div>
             </div>
 
@@ -1161,7 +1169,7 @@ async function renderTeacherViews(knownTeacher = null) {
   // Sync real profile identities across DOM
   const rawPhoto = teacher.profilePhoto?.url || teacher.photo || '';
   const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
-  const safePhoto = (!isDemo && rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
+  const safePhoto = (!isDemo && rawPhoto && (rawPhoto.startsWith('http') || rawPhoto.startsWith('/') || rawPhoto.startsWith('data:image'))) ? rawPhoto : '';
   const avatarHtml = Store.formatAvatarHtml(safePhoto, teacher.name, 'TR');
 
   document.getElementById('sidebarTeacherName').textContent = teacher.name;
@@ -1180,7 +1188,73 @@ async function renderTeacherViews(knownTeacher = null) {
   if (document.getElementById('profileTeacherId')) document.getElementById('profileTeacherId').textContent = (teacher._id || teacher.id).toString();
   if (document.getElementById('profileRole')) document.getElementById('profileRole').textContent = 'Role: Teacher';
   if (document.getElementById('profileStatus')) document.getElementById('profileStatus').textContent = `Status: ${teacher.status || 'Active'}`;
-  document.getElementById('commentMyAvatar').innerHTML = avatarHtml;
+  if (document.getElementById('commentMyAvatar')) document.getElementById('commentMyAvatar').innerHTML = avatarHtml;
+
+  window.handleTeacherPhotoUpload = async function(event) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('teacherPhotoUploadStatus');
+    const changeBtn = document.getElementById('btnChangeTeacherPhoto');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--accent)';
+      statusEl.textContent = 'Uploading profile photo to Cloudinary...';
+    }
+    if (changeBtn) {
+      changeBtn.disabled = true;
+      changeBtn.textContent = 'Uploading...';
+    }
+
+    try {
+      const res = await LiveAPI.uploadTeacherPhoto(file);
+      if (res && (res.success || res.data)) {
+        const updated = res.data || res;
+        const newUrl = updated.profilePhoto?.url || updated.photo;
+        if (currentAuthenticatedTeacher) {
+          currentAuthenticatedTeacher.photo = newUrl;
+          currentAuthenticatedTeacher.profilePhoto = updated.profilePhoto || { url: newUrl };
+        }
+        const userStored = localStorage.getItem('osp_user');
+        if (userStored) {
+          try {
+            const u = JSON.parse(userStored);
+            u.photo = newUrl;
+            u.profilePhoto = updated.profilePhoto || { url: newUrl };
+            localStorage.setItem('osp_user', JSON.stringify(u));
+          } catch (e) {}
+        }
+        const newAvatarHtml = Store.formatAvatarHtml(newUrl, updated.name || 'Faculty', 'TR');
+        const bigAv = document.getElementById('profileBigAvatar');
+        if (bigAv) bigAv.innerHTML = newAvatarHtml;
+        const sAv = document.getElementById('sidebarAvatar');
+        if (sAv) sAv.innerHTML = newAvatarHtml;
+        const topAv = document.getElementById('topNavAvatar');
+        if (topAv) topAv.innerHTML = newAvatarHtml;
+        const dropAv = document.getElementById('dropdownAvatar');
+        if (dropAv) dropAv.innerHTML = newAvatarHtml;
+        showToast('✓ Profile photo updated successfully!');
+        if (statusEl) {
+          statusEl.textContent = '✓ Photo updated successfully!';
+          setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+        }
+      } else {
+        throw new Error(res?.message || 'Photo upload failed');
+      }
+    } catch (err) {
+      showToast(`Photo upload failed: ${err.message}`);
+      if (statusEl) {
+        statusEl.style.color = '#ff5c5c';
+        statusEl.textContent = `Upload failed: ${err.message}`;
+      }
+    } finally {
+      if (changeBtn) {
+        changeBtn.disabled = false;
+        changeBtn.textContent = '📷 Change Photo';
+      }
+      event.target.value = '';
+    }
+  };
 
   // 2. Fetch specific teacher's allocations from backend
   let allocations = [];
