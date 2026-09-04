@@ -1582,17 +1582,20 @@ function openPdfViewerModal(pdfUrl, title) {
   if (notice) notice.style.display = 'block';
 
   if (frame) {
-    if (finalUrl.startsWith('http://') || finalUrl.startsWith('https://')) {
-      // Use Google Docs PDF viewer engine with embed mode
-      frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(finalUrl)}&embedded=true`;
-    } else {
-      frame.src = finalUrl;
-    }
+    const inlineViewerUrl = `${window.location.origin}/api/view-pdf?url=${encodeURIComponent(finalUrl)}`;
+    
+    // Always use our high-speed native inline PDF streaming endpoint
+    frame.src = inlineViewerUrl;
 
     frame.onload = () => {
       setTimeout(() => {
         if (notice) notice.style.display = 'none';
-      }, 1500);
+      }, 1000);
+    };
+
+    frame.onerror = () => {
+      // Fallback to Google Docs viewer if browser PDF engine is disabled
+      frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(finalUrl)}&embedded=true`;
     };
   }
 

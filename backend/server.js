@@ -216,6 +216,124 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
+// Universal PDF Inline Viewer Endpoint (Desktop & Mobile native in-browser rendering)
+app.get('/api/view-pdf', async (req, res) => {
+  try {
+    let { url } = req.query;
+    if (!url) {
+      return res.status(400).json({ success: false, message: 'URL parameter is required' });
+    }
+
+    let fileUrl = decodeURIComponent(url).trim();
+    if (fileUrl.startsWith('/') && !fileUrl.startsWith('//')) {
+      fileUrl = `${req.protocol}://${req.get('host')}${fileUrl}`;
+    }
+
+    // 1. Local filesystem
+    if (fileUrl.includes('/uploads/')) {
+      const fs = require('fs');
+      const relPath = fileUrl.split('/uploads/')[1].split('?')[0];
+      const localFilePath = path.join(__dirname, 'uploads', relPath);
+      if (fs.existsSync(localFilePath)) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+        return res.sendFile(localFilePath);
+      }
+    }
+
+    // 2. Remote HTTP/HTTPS resource
+    const parsedUrl = new URL(fileUrl);
+    const reqClient = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+
+    const streamPdf = (targetUrl, redirectsLeft = 3) => {
+      reqClient.get(targetUrl, (proxyRes) => {
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location && redirectsLeft > 0) {
+          let redirUrl = proxyRes.headers.location;
+          if (redirUrl.startsWith('/')) {
+            redirUrl = `${parsedUrl.protocol}//${parsedUrl.host}${redirUrl}`;
+          }
+          return streamPdf(redirUrl, redirectsLeft - 1);
+        }
+
+        if (proxyRes.statusCode >= 400) {
+          return res.redirect(targetUrl);
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        if (proxyRes.headers['content-length']) {
+          res.setHeader('Content-Length', proxyRes.headers['content-length']);
+        }
+        proxyRes.pipe(res);
+      }).on('error', (err) => {
+        console.error('[View PDF proxy error]', err.message);
+        res.redirect(targetUrl);
+      });
+    };
+
+    streamPdf(fileUrl);
+  } catch (err) {
+    console.error('[View PDF Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to stream PDF' });
+  }
+});
+
+// Universal Video Stream Endpoint with HTTP 206 Range Request Support
+app.get('/api/stream-video', async (req, res) => {
+  try {
+    let { url } = req.query;
+    if (!url) {
+      return res.status(400).json({ success: false, message: 'URL parameter is required' });
+    }
+
+    let videoUrl = decodeURIComponent(url).trim();
+    if (videoUrl.startsWith('/') && !videoUrl.startsWith('//')) {
+      videoUrl = `${req.protocol}://${req.get('host')}${videoUrl}`;
+    }
+
+    // If local file, stream with range
+    if (videoUrl.includes('/uploads/')) {
+      const fs = require('fs');
+      const relPath = videoUrl.split('/uploads/')[1].split('?')[0];
+      const localFilePath = path.join(__dirname, 'uploads', relPath);
+      if (fs.existsSync(localFilePath)) {
+        const stat = fs.statSync(localFilePath);
+        const fileSize = stat.size;
+        const range = req.headers.range;
+
+        if (range) {
+          const parts = range.replace(/bytes=/, '').split('-');
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+          const chunksize = (end - start) + 1;
+          const file = fs.createReadStream(localFilePath, { start, end });
+          res.writeHead(206, {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': chunksize,
+            'Content-Type': 'video/mp4',
+          });
+          return file.pipe(res);
+        } else {
+          res.writeHead(200, {
+            'Content-Length': fileSize,
+            'Content-Type': 'video/mp4',
+            'Accept-Ranges': 'bytes',
+          });
+          return fs.createReadStream(localFilePath).pipe(res);
+        }
+      }
+    }
+
+    // Remote video: redirect or pipe
+    res.redirect(videoUrl);
+  } catch (err) {
+    console.error('[Stream Video Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to stream video' });
+  }
+});
+
 // API Routes Mounting
 app.use('/api/auth', authRoutes);
 app.use('/api/admins', adminRoutes);

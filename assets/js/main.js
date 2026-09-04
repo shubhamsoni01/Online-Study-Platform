@@ -35,15 +35,34 @@ function initNavigation() {
       document.querySelector('.sidebar-overlay')?.classList.remove('open');
     });
   });
+
+  // Check initial hash on page load (e.g. #profile)
+  const initialPage = (window.location.hash || '').replace('#', '').trim();
+  if (initialPage && document.getElementById('page-' + initialPage)) {
+    showPage(initialPage, false);
+  }
 }
 
-function showPage(pageId) {
+function showPage(pageId, updateHash = true) {
+  if (!pageId) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
   if (target) {
     target.classList.add('active');
     const topbarTitle = document.querySelector('.topbar-title');
     if (topbarTitle) topbarTitle.textContent = target.dataset.title || pageId;
+
+    // Highlight active nav item
+    document.querySelectorAll('.nav-item[data-page]').forEach(n => {
+      if (n.dataset.page === pageId) n.classList.add('active');
+      else n.classList.remove('active');
+    });
+
+    if (updateHash && window.location.hash !== '#' + pageId) {
+      try {
+        history.replaceState(null, '', '#' + pageId);
+      } catch(e) {}
+    }
 
     if (pageId === 'chat' && window.platformChat && typeof window.platformChat.fetchMessages === 'function') {
       window.platformChat.fetchMessages(true);
