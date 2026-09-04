@@ -721,18 +721,25 @@
     </div>
 <!-- IN-APP MOBILE & DESKTOP PDF VIEWER MODAL -->
 <div class="modal-overlay" id="pdfViewerModal" style="display:none;z-index:10000;" onclick="if(event.target===this)closePdfViewerModal()">
-  <div class="modal" style="max-width:920px;width:96%;height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);background:#0f172a;border-radius:14px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+  <div class="modal" style="max-width:960px;width:96%;height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);background:#0f172a;border-radius:14px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
     <div style="padding:12px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:10px;min-width:180px;">
         <span style="font-size:20px;">📄</span>
         <div>
           <div id="pdfModalTitle" style="font-size:14.5px;font-weight:700;color:var(--text-primary);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Study Notes Document</div>
-          <div style="font-size:11.5px;color:var(--text-secondary);">In-App Reader &amp; Mobile Downloader</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);" id="pdfModalSubtitle">In-App Reader &amp; Mobile Downloader</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div id="pdfCanvasControls" style="display:none;align-items:center;gap:4px;background:#1e293b;padding:2px 8px;border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--text-primary);">
+          <button class="btn btn-ghost btn-xs" onclick="changePdfZoom(-0.2)" title="Zoom Out" style="padding:2px 6px;">−</button>
+          <span id="pdfZoomLevel">100%</span>
+          <button class="btn btn-ghost btn-xs" onclick="changePdfZoom(0.2)" title="Zoom In" style="padding:2px 6px;">+</button>
+          <span style="margin:0 4px;color:var(--border);">|</span>
+          <span id="pdfPageCount">Pages: -</span>
+        </div>
         <button id="pdfModalDownloadBtn" class="btn btn-primary btn-xs" onclick="handlePdfModalDownload()">
-          📥 Download PDF to Phone
+          📥 Download PDF
         </button>
         <a id="pdfModalDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" style="text-decoration:none;">
           ↗ Open in Tab
@@ -740,17 +747,19 @@
         <button class="btn btn-ghost btn-xs" onclick="closePdfViewerModal()" style="font-size:18px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
     </div>
-    <div style="flex:1;position:relative;background:#1e293b;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
-      <div id="pdfModalLoadingNotice" style="position:absolute;top:12px;z-index:2;background:rgba(15,23,42,0.85);backdrop-filter:blur(4px);padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:11.5px;color:var(--text-secondary);display:none;">
-        Loading PDF preview... If preview is blank on mobile, tap <strong>"Download PDF"</strong> or <strong>"Open in Tab"</strong>.
+    <div style="flex:1;position:relative;background:#1e293b;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;" id="pdfModalScrollBody">
+      <div id="pdfModalLoadingNotice" style="position:sticky;top:12px;z-index:10;background:rgba(15,23,42,0.9);backdrop-filter:blur(6px);padding:8px 18px;border-radius:20px;border:1px solid var(--border);font-size:12px;color:var(--text-primary);display:none;margin-top:10px;">
+        ⏳ Loading &amp; rendering PDF document...
       </div>
-      <iframe id="pdfModalFrame" style="width:100%;height:100%;border:none;background:#fff;" src="" allow="fullscreen"></iframe>
+      <div id="pdfPagesContainer" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 8px;"></div>
+      <iframe id="pdfModalFrame" style="width:100%;height:100%;border:none;background:#fff;display:none;" src="" allow="fullscreen"></iframe>
     </div>
   </div>
 </div>
 
 <div class="toast-container"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="assets/js/api-client.js"></script>
 <script src="assets/js/platform-store.js"></script>
 <script src="assets/js/auth-guard.js"></script>
@@ -1564,8 +1573,66 @@ async function openCourseLearning(courseId) {
 // ==========================================
 let currentActivePdfModalUrl = '';
 let currentActivePdfModalTitle = 'Study Document';
+let currentLoadedPdfDoc = null;
+let currentPdfScale = 1.0;
 
-function openPdfViewerModal(pdfUrl, title, noteId) {
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function renderPdfDocToContainer(pdfDoc, container, scale) {
+  container.innerHTML = '';
+  const numPages = pdfDoc.numPages;
+  const pageCountEl = document.getElementById('pdfPageCount');
+  if (pageCountEl) pageCountEl.textContent = `Pages: 1-${numPages}`;
+
+  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+    try {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: scale * 1.5 });
+      
+      const pageWrapper = document.createElement('div');
+      pageWrapper.style.cssText = 'background:#fff;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,0.3);position:relative;max-width:100%;overflow:hidden;margin-bottom:12px;';
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.width = `${Math.min(viewport.width / 1.5, window.innerWidth > 900 ? 840 : window.innerWidth - 48)}px`;
+      canvas.style.height = 'auto';
+      canvas.style.display = 'block';
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport
+      };
+
+      await page.render(renderContext).promise;
+      pageWrapper.appendChild(canvas);
+      container.appendChild(pageWrapper);
+    } catch (err) {
+      console.warn('[PDF.js Page Render Warning]', pageNum, err.message);
+    }
+  }
+}
+
+async function changePdfZoom(delta) {
+  if (!currentLoadedPdfDoc) return;
+  const newScale = Math.max(0.6, Math.min(2.5, currentPdfScale + delta));
+  currentPdfScale = Math.round(newScale * 10) / 10;
+  const zoomEl = document.getElementById('pdfZoomLevel');
+  if (zoomEl) zoomEl.textContent = `${Math.round(currentPdfScale * 100)}%`;
+  
+  const container = document.getElementById('pdfPagesContainer');
+  const notice = document.getElementById('pdfModalLoadingNotice');
+  if (notice) notice.style.display = 'block';
+  if (container) {
+    await renderPdfDocToContainer(currentLoadedPdfDoc, container, currentPdfScale);
+  }
+  if (notice) notice.style.display = 'none';
+}
+
+async function openPdfViewerModal(pdfUrl, title, noteId) {
   if (!pdfUrl || pdfUrl === '#' || pdfUrl === 'undefined') {
     showToast('PDF file URL not available');
     return;
@@ -1581,43 +1648,75 @@ function openPdfViewerModal(pdfUrl, title, noteId) {
     ? `${window.location.origin}/api/media/note/${noteId}/download`
     : finalUrl;
   currentActivePdfModalTitle = title || 'Study Document';
+  currentPdfScale = 1.0;
 
   const titleEl = document.getElementById('pdfModalTitle');
   const directLinkEl = document.getElementById('pdfModalDirectLink');
   const frame = document.getElementById('pdfModalFrame');
+  const container = document.getElementById('pdfPagesContainer');
+  const controls = document.getElementById('pdfCanvasControls');
   const modal = document.getElementById('pdfViewerModal');
   const notice = document.getElementById('pdfModalLoadingNotice');
 
   if (titleEl) titleEl.textContent = title || 'Study Notes PDF';
-  if (notice) notice.style.display = 'block';
-
+  if (notice) {
+    notice.style.display = 'block';
+    notice.innerHTML = '⏳ Loading &amp; rendering PDF document...';
+  }
+  if (container) container.innerHTML = '';
+  if (controls) controls.style.display = 'none';
   if (frame) {
-    const inlineViewerUrl = (noteId && noteId.length === 24)
-      ? `${window.location.origin}/api/media/note/${noteId}/view`
-      : `${window.location.origin}/api/media/view-pdf?url=${encodeURIComponent(finalUrl)}`;
-    
-    if (directLinkEl) {
-      directLinkEl.href = inlineViewerUrl;
-    }
+    frame.style.display = 'none';
+    frame.src = '';
+  }
 
-    // Always use our high-speed native inline PDF streaming endpoint
-    frame.src = inlineViewerUrl;
-
-    frame.onload = () => {
-      setTimeout(() => {
-        if (notice) notice.style.display = 'none';
-      }, 500);
-    };
-
-    frame.onerror = () => {
-      console.warn('[PDF Viewer Error] Failed to load frame:', inlineViewerUrl);
-      showToast('Unable to open this PDF. Please try again.');
-    };
+  const inlineViewerUrl = (noteId && noteId.length === 24)
+    ? `${window.location.origin}/api/media/note/${noteId}/view`
+    : `${window.location.origin}/api/media/view-pdf?url=${encodeURIComponent(finalUrl)}`;
+  
+  if (directLinkEl) {
+    directLinkEl.href = inlineViewerUrl;
   }
 
   if (modal) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+  }
+
+  // Attempt 1: High-Definition In-App Canvas Rendering via Mozilla PDF.js (100% Mobile & Desktop compatible)
+  let renderSuccess = false;
+  if (window.pdfjsLib && container) {
+    try {
+      const loadingTask = window.pdfjsLib.getDocument({
+        url: inlineViewerUrl,
+        withCredentials: true
+      });
+      const pdfDoc = await loadingTask.promise;
+      currentLoadedPdfDoc = pdfDoc;
+      await renderPdfDocToContainer(pdfDoc, container, currentPdfScale);
+      renderSuccess = true;
+      if (controls) controls.style.display = 'flex';
+      if (notice) notice.style.display = 'none';
+    } catch (pdfErr) {
+      console.warn('[PDF.js Renderer Notice] Falling back to standard viewer:', pdfErr.message);
+    }
+  }
+
+  // Attempt 2: Native inline frame fallback if PDF.js failed or unavailable
+  if (!renderSuccess && frame) {
+    if (container) container.innerHTML = '';
+    frame.style.display = 'block';
+    frame.src = inlineViewerUrl;
+    frame.onload = () => {
+      setTimeout(() => {
+        if (notice) notice.style.display = 'none';
+      }, 500);
+    };
+    frame.onerror = () => {
+      if (notice) {
+        notice.innerHTML = '⚠️ Preview unavailable. Click <strong>"Download PDF"</strong> or <strong>"Open in Tab"</strong> above.';
+      }
+    };
   }
 }
 
@@ -1632,7 +1731,13 @@ function handlePdfModalDownload() {
 function closePdfViewerModal() {
   const modal = document.getElementById('pdfViewerModal');
   const frame = document.getElementById('pdfModalFrame');
-  if (frame) frame.src = '';
+  const container = document.getElementById('pdfPagesContainer');
+  currentLoadedPdfDoc = null;
+  if (frame) {
+    frame.src = '';
+    frame.style.display = 'none';
+  }
+  if (container) container.innerHTML = '';
   if (modal) {
     modal.style.display = 'none';
     document.body.style.overflow = '';
