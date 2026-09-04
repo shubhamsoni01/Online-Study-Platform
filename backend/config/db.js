@@ -95,9 +95,11 @@ const connectDB = async () => {
       console.warn(`[Auto-Seed Notice] ${seedErr.message}`);
     }
   } catch (error) {
+    lastDbError = error.message;
     console.error(`MongoDB connection error: ${error.message}`);
     console.warn(`[DB Notice] Server running in fallback mode while database reconnects.`);
   }
 };
 
 module.exports = connectDB;
+module.exports.getLastError = () => lastDbError;

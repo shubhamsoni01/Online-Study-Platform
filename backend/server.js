@@ -127,7 +127,11 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Online Study Platform API is operating normally',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    databaseName: mongoose.connection.name,
+    databaseName: mongoose.connection.name || null,
+    dbReadyState: mongoose.connection.readyState,
+    dbError: connectDB.getLastError ? connectDB.getLastError() : null,
+    hasMongoUriEnv: !!process.env.MONGODB_URI,
+    mongoUriLength: (process.env.MONGODB_URI || '').length,
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
