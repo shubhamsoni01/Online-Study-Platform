@@ -429,12 +429,20 @@ const updateTeacher = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Teacher not found' });
     }
 
-    if (name) teacher.name = name;
+    if (name) teacher.name = name.trim();
     if (email) teacher.email = email.toLowerCase().trim();
-    if (department) teacher.department = department;
-    if (photo !== undefined) teacher.photo = photo;
+    if (department) teacher.department = department.trim();
+    if (photo !== undefined && photo) {
+      teacher.photo = photo;
+      teacher.profilePhoto = {
+        url: photo,
+        publicId: req.body.publicId || '',
+      };
+    }
     if (status) teacher.status = status;
-    if (password && password.trim()) teacher.password = password.trim();
+    if (password && password.trim() && password.trim().length >= 6) {
+      teacher.password = password.trim();
+    }
 
     if (req.file) {
       const uploadRes = await uploadToCloudinary(req.file.buffer, 'photos', 'image', req.file.originalname);
@@ -447,11 +455,31 @@ const updateTeacher = async (req, res, next) => {
 
     await teacher.save();
 
+    // Sync Unified User model
+    const User = require('../models/User');
+    const user = await User.findOne({ email: teacher.email.toLowerCase().trim() });
+    if (user) {
+      if (name) user.name = teacher.name;
+      if (department) user.department = teacher.department;
+      if (teacher.photo) {
+        user.photo = teacher.photo;
+        user.profilePhoto = teacher.profilePhoto;
+      }
+      if (status) user.status = teacher.status;
+      if (password && password.trim() && password.trim().length >= 6) {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        user.teacherPassword = await bcrypt.hash(password.trim(), salt);
+      }
+      await user.save();
+    }
+
     res.json({
       success: true,
       message: 'Teacher profile updated successfully',
       data: {
         _id: teacher._id,
+        id: teacher._id,
         name: teacher.name,
         email: teacher.email,
         department: teacher.department,

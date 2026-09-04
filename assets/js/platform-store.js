@@ -38,8 +38,8 @@ const Store = {
   },
 
   formatAvatarHtml(photo, name, fallback = 'TR') {
-    const isUrl = typeof photo === 'string' && (photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('/'));
-    const isDemo = isUrl && (photo.includes('cloudinary.com/demo') || photo.includes('sample.jpg') || photo.includes('sample.jpeg'));
+    const isUrl = typeof photo === 'string' && (photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('/') || photo.startsWith('data:image'));
+    const isDemo = isUrl && photo.includes('cloudinary.com/demo/image/upload/sample');
     const initials = name ? name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : fallback;
 
     if (isUrl && !isDemo) {
@@ -65,8 +65,8 @@ const Store = {
 
       const teachers = (tRes.status === 'fulfilled' && tRes.value?.data) ? tRes.value.data.map(t => {
         const rawPhoto = t.profilePhoto?.url || t.photo || '';
-        const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
-        const safePhoto = (!isDemo && rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
+        const isDemo = typeof rawPhoto === 'string' && rawPhoto.includes('cloudinary.com/demo/image/upload/sample');
+        const safePhoto = (!isDemo && rawPhoto && (rawPhoto.startsWith('http') || rawPhoto.startsWith('/') || rawPhoto.startsWith('data:image'))) ? rawPhoto : '';
         const initials = t.name ? t.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'TR';
 
         return {
@@ -76,7 +76,7 @@ const Store = {
           email: t.email,
           department: t.department,
           status: t.status,
-          photo: safePhoto || initials,
+          photo: safePhoto || '',
           profilePhoto: { url: safePhoto, publicId: t.profilePhoto?.publicId || '' },
           assignedSubjects: (t.allocatedSubjects || []).map(s => s._id || s),
           allocatedCourses: t.allocatedCourses || [],
@@ -116,9 +116,9 @@ const Store = {
       })) : [];
 
       const students = (stdRes.status === 'fulfilled' && stdRes.value?.data) ? stdRes.value.data.map(st => {
-        const rawPhoto = st.photo || '';
-        const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
-        const safePhoto = (!isDemo && rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
+        const rawPhoto = st.profilePhoto?.url || st.photo || '';
+        const isDemo = typeof rawPhoto === 'string' && rawPhoto.includes('cloudinary.com/demo/image/upload/sample');
+        const safePhoto = (!isDemo && rawPhoto && (rawPhoto.startsWith('http') || rawPhoto.startsWith('/') || rawPhoto.startsWith('data:image'))) ? rawPhoto : '';
         const initials = st.name ? st.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'ST';
 
         return {
@@ -129,7 +129,8 @@ const Store = {
           department: st.department,
           semester: st.semester,
           roll: st.rollNumber,
-          photo: safePhoto || initials,
+          photo: safePhoto || '',
+          profilePhoto: { url: safePhoto, publicId: st.profilePhoto?.publicId || '' },
           enrolledSubjects: st.enrolledSubjects || [],
           status: st.status,
         };

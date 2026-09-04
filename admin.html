@@ -688,8 +688,15 @@
         </div>
         <div class="form-group">
           <label class="form-label">Teacher Profile Photo (Upload)</label>
-          <input class="form-control" type="file" id="addTeacherPhotoFile" accept="image/*" onchange="handleAddTeacherPhotoFile(this)"/>
-          <div id="addTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload profile photo (Mobile &amp; Laptop)</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="addTeacherPhotoPreview" style="width:44px;height:44px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+              <span style="font-size:18px;">📷</span>
+            </div>
+            <div style="flex:1;">
+              <input class="form-control" type="file" id="addTeacherPhotoFile" accept="image/*" onchange="handleAddTeacherPhotoFile(this)"/>
+              <div id="addTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload profile photo (PNG, JPG, WebP)</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="form-row">
@@ -748,8 +755,15 @@
         </div>
         <div class="form-group">
           <label class="form-label">Teacher Profile Photo (Change)</label>
-          <input class="form-control" type="file" id="editTeacherPhotoFile" accept="image/*" onchange="handleEditTeacherPhotoFile(this)"/>
-          <div id="editTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload new photo to replace current</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="editTeacherPhotoPreview" style="width:44px;height:44px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+              <span style="font-size:18px;">📷</span>
+            </div>
+            <div style="flex:1;">
+              <input class="form-control" type="file" id="editTeacherPhotoFile" accept="image/*" onchange="handleEditTeacherPhotoFile(this)"/>
+              <div id="editTeacherPhotoInfo" style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;">Upload new photo to replace current</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="form-row">
@@ -1216,7 +1230,7 @@ async function renderAdmin() {
       tr.innerHTML = `
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
-            <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.photo, t.name, 'TR')}</div>
+            <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.profilePhoto?.url || t.photo, t.name, 'TR')}</div>
             <div>
               <div style="font-weight:700;font-size:13.5px;">${t.name}</div>
             </div>
@@ -1300,7 +1314,12 @@ async function renderAdmin() {
       }).join(', ');
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-weight:700;">${st.name}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar avatar-sm">${Store.formatAvatarHtml(st.profilePhoto?.url || st.photo, st.name, 'ST')}</div>
+            <div style="font-weight:700;font-size:13.5px;">${st.name}</div>
+          </div>
+        </td>
         <td style="color:var(--accent);font-weight:700;font-size:12.5px;">${st.roll || '-'}</td>
         <td style="color:var(--text-secondary);font-size:13px;">${st.email}</td>
         <td>${st.semester || '-'}</td>
@@ -1358,7 +1377,7 @@ function renderTeacherAllocationSection() {
     card.innerHTML = `
       <div class="alloc-teacher-title">
         <div style="display:flex;align-items:center;gap:8px;">
-          <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.photo, t.name, 'TR')}</div>
+          <div class="avatar avatar-sm">${Store.formatAvatarHtml(t.profilePhoto?.url || t.photo, t.name, 'TR')}</div>
           <div>
             <div>${t.name}</div>
             <div style="font-size:11.5px;color:var(--text-secondary);font-weight:normal;">${t.department} · ${t.email}</div>
@@ -1722,8 +1741,18 @@ function handleAddTeacherPhotoFile(input) {
   if (input.files && input.files[0]) {
     selectedAddTeacherPhotoFile = input.files[0];
     const info = document.getElementById('addTeacherPhotoInfo');
-    info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
-    info.style.color = 'var(--accent)';
+    const prevEl = document.getElementById('addTeacherPhotoPreview');
+    if (info) {
+      info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+      info.style.color = 'var(--accent)';
+    }
+    if (prevEl) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        prevEl.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 }
 
@@ -1731,8 +1760,18 @@ function handleEditTeacherPhotoFile(input) {
   if (input.files && input.files[0]) {
     selectedEditTeacherPhotoFile = input.files[0];
     const info = document.getElementById('editTeacherPhotoInfo');
-    info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
-    info.style.color = 'var(--accent)';
+    const prevEl = document.getElementById('editTeacherPhotoPreview');
+    if (info) {
+      info.textContent = `Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+      info.style.color = 'var(--accent)';
+    }
+    if (prevEl) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        prevEl.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 }
 
@@ -1776,6 +1815,8 @@ async function submitAddTeacher() {
     document.getElementById('addTeacherName').value = '';
     document.getElementById('addTeacherEmail').value = '';
     document.getElementById('addTeacherPassword').value = '';
+    const addPrev = document.getElementById('addTeacherPhotoPreview');
+    if (addPrev) addPrev.innerHTML = '<span style="font-size:18px;">📷</span>';
     if (document.getElementById('addTeacherSubjectInput')) {
       document.getElementById('addTeacherSubjectInput').value = '';
     }
@@ -1788,18 +1829,33 @@ async function submitAddTeacher() {
 
 // Edit Teacher
 function openEditTeacher(id) {
-  const t = Store.getTeachers().find(tea => tea.id === id);
+  const teachers = Store.getTeachers();
+  const t = teachers.find(tea => (tea.id || tea._id)?.toString() === id.toString() || tea.id === id || tea._id === id);
   if (!t) return;
-  document.getElementById('editTeacherId').value = t.id;
-  document.getElementById('editTeacherName').value = t.name;
-  document.getElementById('editTeacherEmail').value = t.email;
+  document.getElementById('editTeacherId').value = t.id || t._id;
+  document.getElementById('editTeacherName').value = t.name || '';
+  document.getElementById('editTeacherEmail').value = t.email || '';
   document.getElementById('editTeacherPassword').value = '';
-  document.getElementById('editTeacherDept').value = t.department;
-  document.getElementById('editTeacherStatus').value = t.status;
+  document.getElementById('editTeacherDept').value = t.department || 'Computer Science';
+  document.getElementById('editTeacherStatus').value = t.status || 'Active';
   selectedEditTeacherPhotoFile = null;
   document.getElementById('editTeacherPhotoFile').value = '';
-  document.getElementById('editTeacherPhotoInfo').textContent = t.photo ? 'Current photo loaded' : 'No photo uploaded yet';
-  document.getElementById('editTeacherPhotoInfo').style.color = 'var(--text-secondary)';
+  
+  const photoUrl = t.photo || t.profilePhoto?.url || '';
+  const prevEl = document.getElementById('editTeacherPhotoPreview');
+  if (prevEl) {
+    if (photoUrl) {
+      prevEl.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.innerHTML='<span style=\\'font-size:18px;\\'>📷</span>'"/>`;
+    } else {
+      prevEl.innerHTML = '<span style="font-size:18px;">📷</span>';
+    }
+  }
+
+  const info = document.getElementById('editTeacherPhotoInfo');
+  if (info) {
+    info.textContent = photoUrl ? 'Current photo loaded (Select file to change)' : 'No photo uploaded yet';
+    info.style.color = 'var(--text-secondary)';
+  }
   openModal('editTeacherModal');
 }
 
