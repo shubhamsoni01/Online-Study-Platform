@@ -131,8 +131,8 @@ const getCourseContent = async (req, res, next) => {
     const isStudent = req.user && req.user.role === 'student';
     const sId = course.subjectId?._id || course.subjectId;
 
-    // Verify enrollment for students
-    if (isStudent) {
+    // Auto-ensure active enrollment for students so lectures and notes are immediately accessible
+    if (isStudent && req.user?._id) {
       const isEnrolled = await Enrollment.findOne({
         studentId: req.user._id,
         $or: [
@@ -143,10 +143,14 @@ const getCourseContent = async (req, res, next) => {
       });
 
       if (!isEnrolled) {
-        return res.status(403).json({
-          success: false,
-          message: 'You are not enrolled in this course. Please enroll to access lectures and notes.',
-        });
+        await Enrollment.create({
+          studentId: req.user._id,
+          courseId: course._id,
+          status: 'Active',
+          progressPercentage: 0,
+          completedVideosCount: 0,
+          completedNotesCount: 0,
+        }).catch(() => {});
       }
     }
 
