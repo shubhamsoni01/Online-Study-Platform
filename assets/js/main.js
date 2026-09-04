@@ -238,3 +238,103 @@ document.addEventListener('DOMContentLoaded', () => {
   // Open first module by default
   document.querySelector('.module-item')?.classList.add('open');
 });
+
+// --- Universal Study Material & PDF Downloader (100% Mobile & Desktop Compatible) ---
+window.downloadStudyFile = async function(fileUrl, filename) {
+  if (!fileUrl || fileUrl === '#' || fileUrl === 'undefined') {
+    if (typeof showToast === 'function') showToast('Download link not available');
+    return;
+  }
+
+  let cleanUrl = fileUrl.trim();
+  if (cleanUrl.includes('localhost:') || cleanUrl.includes('127.0.0.1:')) {
+    cleanUrl = cleanUrl.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+  } else if (cleanUrl.startsWith('/') && !cleanUrl.startsWith('//')) {
+    cleanUrl = window.location.origin + cleanUrl;
+  }
+
+  const cleanName = (filename || 'study-document').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const safeName = cleanName.endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
+
+  if (typeof showToast === 'function') {
+    showToast('📥 Downloading document...');
+  }
+
+  // Strategy 1: Cloudinary direct attachment rewrite
+  let directAttachmentUrl = cleanUrl;
+  if (cleanUrl.includes('cloudinary.com') && cleanUrl.includes('/upload/') && !cleanUrl.includes('fl_attachment')) {
+    directAttachmentUrl = cleanUrl.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safeName)}/`);
+  }
+
+  // Strategy 2: Backend Download Proxy (Forces attachment headers on mobile)
+  const proxyDownloadUrl = `${window.location.origin}/api/download?url=${encodeURIComponent(cleanUrl)}&filename=${encodeURIComponent(safeName)}`;
+
+  // Try Fetch -> Blob for instantaneous background file save on supported mobile/desktop
+  try {
+    const res = await fetch(directAttachmentUrl, { mode: 'cors' });
+    if (res.ok) {
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = blobUrl;
+      a.download = safeName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+        if (a.parentNode) document.body.removeChild(a);
+      }, 1000);
+      return;
+    }
+  } catch (err) {
+    console.log('[Direct blob download notice, falling back to proxy]', err.message);
+  }
+
+  // Fallback: Trigger browser download via backend proxy
+  const link = document.createElement('a');
+  link.href = proxyDownloadUrl;
+  link.target = '_blank';
+  link.download = safeName;
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    if (link.parentNode) link.parentNode.removeChild(link);
+  }, 1000);
+};
+
+// --- Universal Video Embed URL Formatter ---
+window.formatVideoEmbedUrl = function(url) {
+  if (!url) return '';
+  let clean = url.trim();
+
+  // YouTube Shorts
+  const shortsMatch = clean.match(/(?:youtube\.com|youtu\.be)\/shorts\/([a-zA-Z0-9_-]+)/);
+  if (shortsMatch && shortsMatch[1]) {
+    return `https://www.youtube.com/embed/${shortsMatch[1]}?autoplay=1&playsinline=1&enablejsapi=1&rel=0`;
+  }
+
+  // YouTube standard watch, m.youtube.com, embed & youtu.be
+  const ytMatch = clean.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&playsinline=1&enablejsapi=1&rel=0`;
+  }
+
+  // Google Drive
+  const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  }
+  const driveOpenMatch = clean.match(/drive\.google\.com\/(?:open|uc)\?id=([a-zA-Z0-9_-]+)/);
+  if (driveOpenMatch && driveOpenMatch[1]) {
+    return `https://drive.google.com/file/d/${driveOpenMatch[1]}/preview`;
+  }
+
+  // Vimeo
+  const vimeoMatch = clean.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&playsinline=1`;
+  }
+
+  return clean;
+};

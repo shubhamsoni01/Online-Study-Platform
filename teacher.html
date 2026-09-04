@@ -276,12 +276,29 @@
         ← Back to Module Content
       </button>
 
-      <!-- Real HTML5 Video Player -->
-      <div style="position:relative;width:100%;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:16px;">
-        <video id="teacherVideoPlayer" controls playsinline style="width:100%;max-height:480px;display:block;background:#000;">
+      <!-- Real HTML5 Video Player & Embed Iframe -->
+      <div style="position:relative;width:100%;min-height:220px;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px;">
+        <video id="teacherVideoPlayer" controls playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5-page" preload="metadata" style="width:100%;max-height:480px;display:block;background:#000;">
           <source id="teacherVideoSource" src="" type="video/mp4"/>
           Your browser does not support HTML5 video playback.
         </video>
+        <iframe id="teacherVideoIframe" style="width:100%;min-height:280px;height:420px;display:none;border:none;" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+      </div>
+
+      <!-- Quick Video Control Toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;"></span>
+          <span>Faculty Stream Preview</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a id="teacherVideoExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" style="display:none;text-decoration:none;">
+            ↗ Open in App / Tab
+          </a>
+          <button id="teacherVideoDownloadBtn" class="btn btn-secondary btn-xs" style="display:none;" onclick="downloadTeacherLectureVideo()">
+            ⬇ Download Video
+          </button>
+        </div>
       </div>
 
       <div class="card" style="margin-bottom:20px;">
@@ -1598,7 +1615,8 @@ async function renderSubjectModules() {
             <div style="font-size:11px;color:var(--text-secondary);">${n.description || 'PDF Lecture notes'} · <span class="badge ${n.status === 'Draft' ? 'badge-pending' : 'badge-active'}" style="font-size:10px;">${n.status || 'Published'}</span></div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
-            <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank">View PDF 📄</a>
+            <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank">View 📄</a>
+            <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${nUrl}', '${n.title.replace(/'/g, "_")}.pdf')" title="Download PDF">⬇</button>
             <button class="btn btn-ghost btn-xs" onclick="openEditNotesModal('${noteId}', '${n.title.replace(/'/g, "\\'")}', '${(n.description||'').replace(/'/g, "\\'")}', '${n.status || 'Published'}')">Edit</button>
             <button class="btn btn-danger btn-xs" onclick="deleteNoteConfirm('${noteId}')" title="Delete Notes">Delete</button>
           </div>
@@ -2722,6 +2740,17 @@ async function renderTeacherQuizResults() {
   }
 }
 
+let currentActiveTeacherVideo = null;
+
+function downloadTeacherLectureVideo() {
+  if (currentActiveTeacherVideo && currentActiveTeacherVideo.videoUrl) {
+    window.downloadStudyFile(
+      currentActiveTeacherVideo.videoUrl,
+      `${currentActiveTeacherVideo.videoTitle || 'Faculty_Lecture'}.mp4`
+    );
+  }
+}
+
 async function openVideoPlayerView(subjectId, moduleId, videoId) {
   activeVideoContext = { subjectId, moduleId, videoId };
   let mods = Store.getSubjectModules(subjectId);
@@ -2749,10 +2778,59 @@ async function openVideoPlayerView(subjectId, moduleId, videoId) {
 
   const player = document.getElementById('teacherVideoPlayer');
   const source = document.getElementById('teacherVideoSource');
-  const videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
-  if (videoUrl && source && player) {
-    source.src = videoUrl;
+  const iframe = document.getElementById('teacherVideoIframe');
+  const extLink = document.getElementById('teacherVideoExternalLink');
+  const dlBtn = document.getElementById('teacherVideoDownloadBtn');
+
+  let videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
+  if (videoUrl.includes('localhost:') || videoUrl.includes('127.0.0.1:')) {
+    videoUrl = videoUrl.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+  } else if (videoUrl.startsWith('/') && !videoUrl.startsWith('//')) {
+    videoUrl = window.location.origin + videoUrl;
+  }
+
+  // Force HTTPS on mobile
+  if (videoUrl.startsWith('http://') && window.location.protocol === 'https:') {
+    videoUrl = videoUrl.replace('http://', 'https://');
+  }
+
+  currentActiveTeacherVideo = { subjectId, moduleId, videoId, videoUrl, videoTitle: vid.title };
+
+  const isEmbed = videoUrl.includes('youtube.com') ||
+                  videoUrl.includes('youtu.be') ||
+                  videoUrl.includes('drive.google.com') ||
+                  videoUrl.includes('vimeo.com');
+
+  if (extLink) {
+    extLink.href = videoUrl;
+    extLink.style.display = 'inline-flex';
+  }
+
+  if (isEmbed && iframe) {
+    if (dlBtn) dlBtn.style.display = 'none';
+    if (player) {
+      player.style.display = 'none';
+      player.pause();
+      player.src = '';
+    }
+    iframe.style.display = 'block';
+    iframe.src = window.formatVideoEmbedUrl(videoUrl);
+  } else if (player) {
+    if (dlBtn) dlBtn.style.display = 'inline-flex';
+    if (iframe) {
+      iframe.style.display = 'none';
+      iframe.src = '';
+    }
+    player.style.display = 'block';
+    player.src = videoUrl;
+    if (source) {
+      source.src = videoUrl;
+      source.type = 'video/mp4';
+    }
     player.load();
+    player.play().catch(e => {
+      console.log('[Mobile Video Notice: Autoplay requires user tap]', e.message);
+    });
   }
 
   await loadAndRenderTeacherVideoComments(videoId);
@@ -3355,8 +3433,13 @@ async function filterTeacherBooks() {
         <div class="library-card-author">${b.author}</div>
       </div>
       <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${b.description || 'Curriculum reference book and student study resource.'}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;">
-        ${pdfUrl && pdfUrl !== '#' ? `<a class="btn btn-secondary btn-xs" href="${pdfUrl}" target="_blank">View / Download PDF 📄</a>` : `<button class="btn btn-secondary btn-xs" onclick="showToast('PDF not attached')">View PDF</button>`}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;gap:6px;">
+        ${pdfUrl && pdfUrl !== '#' ? `
+          <div style="display:flex;gap:4px;">
+            <a class="btn btn-secondary btn-xs" href="${pdfUrl}" target="_blank">View 📄</a>
+            <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${pdfUrl}', '${(title||'Book').replace(/'/g, "_")}.pdf')" title="Download PDF">⬇</button>
+          </div>
+        ` : `<button class="btn btn-secondary btn-xs" onclick="showToast('PDF not attached')">View PDF</button>`}
         <button class="btn btn-ghost btn-xs" style="color:var(--text-secondary);" onclick="deleteBookItem('${bookId}')">Delete</button>
       </div>
     `;

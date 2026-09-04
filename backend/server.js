@@ -3,8 +3,9 @@ try {
   dns.setServers(['8.8.8.8', '8.8.4.4']);
 } catch (e) {}
 
-require('dotenv').config();
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config();
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -135,6 +136,84 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
+});
+
+// Universal File Download Endpoint (Mobile & Desktop Attachment Forced)
+app.get('/api/download', async (req, res) => {
+  try {
+    let { url, filename } = req.query;
+    if (!url) {
+      return res.status(400).json({ success: false, message: 'URL parameter is required' });
+    }
+
+    let fileUrl = decodeURIComponent(url).trim();
+    if (fileUrl.startsWith('/') && !fileUrl.startsWith('//')) {
+      fileUrl = `${req.protocol}://${req.get('host')}${fileUrl}`;
+    }
+
+    const extMatch = fileUrl.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+    const ext = extMatch ? `.${extMatch[1]}` : '.pdf';
+    let safeFilename = (filename || 'study-document').replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (!safeFilename.toLowerCase().endsWith(ext.toLowerCase())) {
+      safeFilename += ext;
+    }
+
+    // 1. Local filesystem handling
+    if (fileUrl.includes('/uploads/')) {
+      const fs = require('fs');
+      const relPath = fileUrl.split('/uploads/')[1].split('?')[0];
+      const localFilePath = path.join(__dirname, 'uploads', relPath);
+      if (fs.existsSync(localFilePath)) {
+        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+        res.setHeader('Content-Type', ext === '.pdf' ? 'application/pdf' : 'application/octet-stream');
+        return res.sendFile(localFilePath);
+      }
+    }
+
+    // 2. Cloudinary attachment shortcut if Cloudinary URL
+    if (fileUrl.includes('cloudinary.com') && fileUrl.includes('/upload/') && !fileUrl.includes('fl_attachment')) {
+      fileUrl = fileUrl.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safeFilename)}/`);
+    }
+
+    // 3. Stream from remote HTTP/HTTPS resource
+    const isHttps = fileUrl.startsWith('https:');
+    const client = isHttps ? require('https') : require('http');
+
+    const downloadStream = (targetUrl, redirectsLeft = 3) => {
+      const parsedUrl = new URL(targetUrl);
+      const reqClient = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+
+      reqClient.get(targetUrl, (proxyRes) => {
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location && redirectsLeft > 0) {
+          let redirUrl = proxyRes.headers.location;
+          if (redirUrl.startsWith('/')) {
+            redirUrl = `${parsedUrl.protocol}//${parsedUrl.host}${redirUrl}`;
+          }
+          return downloadStream(redirUrl, redirectsLeft - 1);
+        }
+
+        if (proxyRes.statusCode >= 400) {
+          return res.redirect(targetUrl);
+        }
+
+        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+        res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'application/pdf');
+        if (proxyRes.headers['content-length']) {
+          res.setHeader('Content-Length', proxyRes.headers['content-length']);
+        }
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        proxyRes.pipe(res);
+      }).on('error', (err) => {
+        console.error('[Download proxy error]', err.message);
+        res.redirect(targetUrl);
+      });
+    };
+
+    downloadStream(fileUrl);
+  } catch (err) {
+    console.error('[Universal Download Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to process file download' });
+  }
 });
 
 // API Routes Mounting

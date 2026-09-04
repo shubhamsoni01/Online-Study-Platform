@@ -272,12 +272,31 @@
         ← Back to Course Modules
       </button>
 
-      <div style="position:relative;width:100%;min-height:220px;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:16px;">
-        <video id="stdVideoPlayer" controls playsinline preload="auto" style="width:100%;max-height:480px;display:block;background:#000;">
+      <div style="position:relative;width:100%;min-height:220px;background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px;">
+        <video id="stdVideoPlayer" controls playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5-page" preload="metadata" style="width:100%;max-height:480px;display:block;background:#000;">
           <source id="stdVideoSource" src="" type="video/mp4"/>
           Your browser does not support HTML5 video playback.
         </video>
-        <iframe id="stdVideoIframe" style="width:100%;height:360px;display:none;border:none;" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        <iframe id="stdVideoIframe" style="width:100%;min-height:280px;height:420px;display:none;border:none;" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+      </div>
+
+      <!-- Mobile & Desktop Quick Video Control Strip -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;"></span>
+          <span>HD Lecture Stream</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-xs" onclick="reloadCurrentStudentVideo()" title="Reload Video Stream">
+            🔄 Reload Stream
+          </button>
+          <a id="stdVideoExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" style="display:none;text-decoration:none;">
+            ↗ Open in App / Tab
+          </a>
+          <button id="stdVideoDownloadBtn" class="btn btn-secondary btn-xs" style="display:none;" onclick="downloadCurrentLectureVideo()">
+            ⬇ Download Video
+          </button>
+        </div>
       </div>
 
       <div class="card" style="margin-bottom:20px;">
@@ -700,26 +719,32 @@
       <button class="btn btn-secondary modal-cancel" onclick="closeModal('submitQuizConfirmModal')">Review Answers</button>
       <button class="btn btn-primary" onclick="proceedSubmitQuiz()">Yes, Submit Quiz ✓</button>
     </div>
-<!-- IN-APP MOBILE PDF VIEWER MODAL -->
+<!-- IN-APP MOBILE & DESKTOP PDF VIEWER MODAL -->
 <div class="modal-overlay" id="pdfViewerModal" style="display:none;z-index:10000;" onclick="if(event.target===this)closePdfViewerModal()">
-  <div class="modal" style="max-width:860px;width:95%;height:88vh;padding:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);background:#0f172a;border-radius:14px;">
-    <div style="padding:12px 18px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:18px;">📄</span>
+  <div class="modal" style="max-width:920px;width:96%;height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);background:#0f172a;border-radius:14px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+    <div style="padding:12px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:180px;">
+        <span style="font-size:20px;">📄</span>
         <div>
-          <div id="pdfModalTitle" style="font-size:14.5px;font-weight:700;color:var(--text-primary);">Study Notes Document</div>
-          <div style="font-size:11.5px;color:var(--text-secondary);">In-App Document Reader</div>
+          <div id="pdfModalTitle" style="font-size:14.5px;font-weight:700;color:var(--text-primary);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Study Notes Document</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);">In-App Reader &amp; Mobile Downloader</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button id="pdfModalDownloadBtn" class="btn btn-primary btn-xs" onclick="handlePdfModalDownload()">
+          📥 Download PDF to Phone
+        </button>
         <a id="pdfModalDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" style="text-decoration:none;">
-          ⬇ Download / Open Tab
+          ↗ Open in Tab
         </a>
         <button class="btn btn-ghost btn-xs" onclick="closePdfViewerModal()" style="font-size:18px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
     </div>
-    <div style="flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;">
-      <iframe id="pdfModalFrame" style="width:100%;height:100%;border:none;background:#fff;" src=""></iframe>
+    <div style="flex:1;position:relative;background:#1e293b;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+      <div id="pdfModalLoadingNotice" style="position:absolute;top:12px;z-index:2;background:rgba(15,23,42,0.85);backdrop-filter:blur(4px);padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:11.5px;color:var(--text-secondary);display:none;">
+        Loading PDF preview... If preview is blank on mobile, tap <strong>"Download PDF"</strong> or <strong>"Open in Tab"</strong>.
+      </div>
+      <iframe id="pdfModalFrame" style="width:100%;height:100%;border:none;background:#fff;" src="" allow="fullscreen"></iframe>
     </div>
   </div>
 </div>
@@ -1468,9 +1493,9 @@ async function openCourseLearning(courseId) {
               <button class="btn btn-primary btn-xs" onclick="openPdfViewerModal('${nUrl}', '${safeTitle}')">
                 Read PDF 📄
               </button>
-              <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank" rel="noopener noreferrer" download title="Direct Download">
-                ⬇
-              </a>
+              <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${nUrl}', '${safeTitle}.pdf')" title="Download PDF to Phone">
+                ⬇ Download
+              </button>
             </div>
           </div>
         `;
@@ -1528,6 +1553,9 @@ async function openCourseLearning(courseId) {
 // ==========================================
 // 5. IN-APP PDF VIEWER MODAL CONTROLLERS
 // ==========================================
+let currentActivePdfModalUrl = '';
+let currentActivePdfModalTitle = 'Study Document';
+
 function openPdfViewerModal(pdfUrl, title) {
   if (!pdfUrl || pdfUrl === '#' || pdfUrl === 'undefined') {
     showToast('PDF file URL not available');
@@ -1540,26 +1568,45 @@ function openPdfViewerModal(pdfUrl, title) {
     finalUrl = window.location.origin + finalUrl;
   }
 
+  currentActivePdfModalUrl = finalUrl;
+  currentActivePdfModalTitle = title || 'Study Document';
+
   const titleEl = document.getElementById('pdfModalTitle');
   const directLinkEl = document.getElementById('pdfModalDirectLink');
   const frame = document.getElementById('pdfModalFrame');
   const modal = document.getElementById('pdfViewerModal');
+  const notice = document.getElementById('pdfModalLoadingNotice');
 
   if (titleEl) titleEl.textContent = title || 'Study Notes PDF';
   if (directLinkEl) directLinkEl.href = finalUrl;
+  if (notice) notice.style.display = 'block';
 
   if (frame) {
     if (finalUrl.startsWith('http://') || finalUrl.startsWith('https://')) {
-      // Use Google Docs PDF viewer engine for 100% Android/iOS cross-browser rendering
+      // Use Google Docs PDF viewer engine with embed mode
       frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(finalUrl)}&embedded=true`;
     } else {
       frame.src = finalUrl;
     }
+
+    frame.onload = () => {
+      setTimeout(() => {
+        if (notice) notice.style.display = 'none';
+      }, 1500);
+    };
   }
 
   if (modal) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+  }
+}
+
+function handlePdfModalDownload() {
+  if (currentActivePdfModalUrl) {
+    window.downloadStudyFile(currentActivePdfModalUrl, `${currentActivePdfModalTitle}.pdf`);
+  } else {
+    showToast('PDF link not available');
   }
 }
 
@@ -1578,22 +1625,27 @@ function closePdfViewerModal() {
 // ==========================================
 let videoProgressRecorded = false;
 let activeVideoMetadata = { courseTitle: '', moduleTitle: '', videoTitle: '' };
+let currentActiveStudentVideo = null;
 const videoAIConversationStore = {};
 
-function formatVideoEmbedUrl(url) {
-  if (!url) return '';
-  if (url.includes('youtube.com/watch?v=')) {
-    const vId = url.split('v=')[1]?.split('&')[0];
-    return `https://www.youtube.com/embed/${vId}?autoplay=1&playsinline=1&enablejsapi=1`;
+function reloadCurrentStudentVideo() {
+  if (currentActiveStudentVideo) {
+    openStudentVideoPlayer(
+      currentActiveStudentVideo.courseId,
+      currentActiveStudentVideo.moduleId,
+      currentActiveStudentVideo.videoId
+    );
+    showToast('🔄 Video stream refreshed');
   }
-  if (url.includes('youtu.be/')) {
-    const vId = url.split('youtu.be/')[1]?.split('?')[0];
-    return `https://www.youtube.com/embed/${vId}?autoplay=1&playsinline=1&enablejsapi=1`;
+}
+
+function downloadCurrentLectureVideo() {
+  if (currentActiveStudentVideo && currentActiveStudentVideo.videoUrl) {
+    window.downloadStudyFile(
+      currentActiveStudentVideo.videoUrl,
+      `${currentActiveStudentVideo.videoTitle || 'Lecture_Video'}.mp4`
+    );
   }
-  if (url.includes('drive.google.com')) {
-    return url.replace('/view', '/preview');
-  }
-  return url;
 }
 
 async function openStudentVideoPlayer(courseId, moduleId, videoId) {
@@ -1622,6 +1674,9 @@ async function openStudentVideoPlayer(courseId, moduleId, videoId) {
     const player = document.getElementById('stdVideoPlayer');
     const source = document.getElementById('stdVideoSource');
     const iframe = document.getElementById('stdVideoIframe');
+    const extLink = document.getElementById('stdVideoExternalLink');
+    const dlBtn = document.getElementById('stdVideoDownloadBtn');
+
     let videoUrl = vid.cloudinaryUrl || vid.videoUrl || '';
 
     if (videoUrl.includes('localhost:') || videoUrl.includes('127.0.0.1:')) {
@@ -1630,24 +1685,48 @@ async function openStudentVideoPlayer(courseId, moduleId, videoId) {
       videoUrl = window.location.origin + videoUrl;
     }
 
-    const isEmbed = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') || videoUrl.includes('drive.google.com') || videoUrl.includes('vimeo.com');
+    // Force HTTPS for mixed content safety on mobile
+    if (videoUrl.startsWith('http://') && window.location.protocol === 'https:') {
+      videoUrl = videoUrl.replace('http://', 'https://');
+    }
+
+    currentActiveStudentVideo = { courseId, moduleId, videoId, videoUrl, videoTitle };
+
+    const isEmbed = videoUrl.includes('youtube.com') ||
+                    videoUrl.includes('youtu.be') ||
+                    videoUrl.includes('drive.google.com') ||
+                    videoUrl.includes('vimeo.com');
+
+    if (extLink) {
+      extLink.href = videoUrl;
+      extLink.style.display = 'inline-flex';
+    }
 
     if (isEmbed && iframe) {
+      if (dlBtn) dlBtn.style.display = 'none';
       if (player) {
         player.style.display = 'none';
         player.pause();
+        player.src = '';
       }
       iframe.style.display = 'block';
-      iframe.src = formatVideoEmbedUrl(videoUrl);
-    } else if (player && source) {
+      iframe.src = window.formatVideoEmbedUrl(videoUrl);
+    } else if (player) {
+      if (dlBtn) dlBtn.style.display = 'inline-flex';
       if (iframe) {
         iframe.style.display = 'none';
         iframe.src = '';
       }
       player.style.display = 'block';
       player.src = videoUrl;
-      source.src = videoUrl;
+      if (source) {
+        source.src = videoUrl;
+        source.type = 'video/mp4';
+      }
       player.load();
+      player.play().catch(e => {
+        console.log('[Mobile Video Notice: Autoplay requires user tap]', e.message);
+      });
 
       // Real-time playback progress tracking
       player.ontimeupdate = async () => {
@@ -2364,7 +2443,10 @@ function filterStudentBooks() {
         <div class="library-card-author">Author: ${b.author || 'University Faculty'}</div>
       </div>
       <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${b.description || ''}</div>
-      <a class="btn btn-secondary btn-xs" style="margin-top:auto;" href="${pdfUrl}" target="_blank">Open PDF 📄</a>
+      <div style="display:flex;gap:6px;margin-top:auto;padding-top:8px;">
+        <button class="btn btn-primary btn-xs" style="flex:1;" onclick="openPdfViewerModal('${pdfUrl}', '${(b.name||'Book').replace(/'/g, "\\'")}')">Read PDF 📄</button>
+        <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${pdfUrl}', '${(b.name||'Book').replace(/'/g, '_')}.pdf')" title="Download PDF to Phone">⬇ Download</button>
+      </div>
     `;
     grid.appendChild(card);
   });
