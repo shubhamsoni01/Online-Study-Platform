@@ -9,11 +9,15 @@ let isConnected = false;
 
 function sanitizeMongoUri(rawUri) {
   if (!rawUri || typeof rawUri !== 'string') return rawUri;
-  const prefix = rawUri.startsWith('mongodb+srv://') ? 'mongodb+srv://' : rawUri.startsWith('mongodb://') ? 'mongodb://' : '';
-  if (!prefix) return rawUri;
+  let str = rawUri.trim();
+  str = str.replace(/^(MONGODB_URI|MONGO_URI)\s*=\s*/i, '');
+  str = str.replace(/^["']|["']$/g, '').trim();
+
+  const prefix = str.startsWith('mongodb+srv://') ? 'mongodb+srv://' : str.startsWith('mongodb://') ? 'mongodb://' : '';
+  if (!prefix) return str;
 
   try {
-    const rest = rawUri.slice(prefix.length);
+    const rest = str.slice(prefix.length);
     const lastAtIndex = rest.lastIndexOf('@');
     if (lastAtIndex !== -1) {
       const creds = rest.substring(0, lastAtIndex);
@@ -30,7 +34,7 @@ function sanitizeMongoUri(rawUri) {
       }
     }
   } catch (e) {}
-  return rawUri;
+  return str;
 }
 
 const connectDB = async () => {
