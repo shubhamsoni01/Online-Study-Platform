@@ -1,8 +1,6 @@
 node_modules/
 .env
 backend/.env
-uploads/
-backend/uploads/
 .DS_Store
 *.log
 cloudflared.exe
