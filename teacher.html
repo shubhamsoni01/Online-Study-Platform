@@ -1057,8 +1057,14 @@ document.addEventListener('click', (e) => {
 });
 
 function navigateToProfile() {
+  showPage('profile');
   const navItem = document.querySelector('.nav-item[data-page=profile]');
-  if (navItem) navItem.click();
+  if (navItem) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    navItem.classList.add('active');
+  }
+  document.querySelector('.sidebar')?.classList.remove('mobile-open');
+  document.querySelector('.sidebar-overlay')?.classList.remove('open');
 }
 
 function logoutTeacher() {

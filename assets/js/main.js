@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Universal Study Material & PDF Downloader (100% Mobile & Desktop Compatible) ---
-window.downloadStudyFile = async function(fileUrl, filename) {
+window.downloadStudyFile = function(fileUrl, filename) {
   if (!fileUrl || fileUrl === '#' || fileUrl === 'undefined') {
     if (typeof showToast === 'function') showToast('Download link not available');
     return;
@@ -276,49 +276,22 @@ window.downloadStudyFile = async function(fileUrl, filename) {
   const safeName = cleanName.endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
 
   if (typeof showToast === 'function') {
-    showToast('📥 Downloading document...');
+    showToast('📥 Starting PDF download...');
   }
 
-  // Strategy 1: Cloudinary direct attachment rewrite
-  let directAttachmentUrl = cleanUrl;
-  if (cleanUrl.includes('cloudinary.com') && cleanUrl.includes('/upload/') && !cleanUrl.includes('fl_attachment')) {
-    directAttachmentUrl = cleanUrl.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safeName)}/`);
-  }
-
-  // Strategy 2: Backend Download Proxy (Forces attachment headers on mobile)
+  // Backend download proxy (guarantees Content-Disposition: attachment header for instant mobile & desktop file save)
   const proxyDownloadUrl = `${window.location.origin}/api/download?url=${encodeURIComponent(cleanUrl)}&filename=${encodeURIComponent(safeName)}`;
 
-  // Try Fetch -> Blob for instantaneous background file save on supported mobile/desktop
-  try {
-    const res = await fetch(directAttachmentUrl, { mode: 'cors' });
-    if (res.ok) {
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = blobUrl;
-      a.download = safeName;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        window.URL.revokeObjectURL(blobUrl);
-        if (a.parentNode) document.body.removeChild(a);
-      }, 1000);
-      return;
-    }
-  } catch (err) {
-    console.log('[Direct blob download notice, falling back to proxy]', err.message);
-  }
-
-  // Fallback: Trigger browser download via backend proxy
+  // Synchronously trigger download directly in user gesture
   const link = document.createElement('a');
   link.href = proxyDownloadUrl;
-  link.target = '_blank';
   link.download = safeName;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
   document.body.appendChild(link);
   link.click();
   setTimeout(() => {
-    if (link.parentNode) link.parentNode.removeChild(link);
+    if (link.parentNode) document.body.removeChild(link);
   }, 1000);
 };
 

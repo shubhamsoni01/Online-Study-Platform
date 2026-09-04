@@ -1035,6 +1035,13 @@ function logoutStudent() {
 
 function navigateToProfile() {
   showPage('profile');
+  const navItem = document.querySelector('.nav-item[data-page=profile]');
+  if (navItem) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    navItem.classList.add('active');
+  }
+  document.querySelector('.sidebar')?.classList.remove('mobile-open');
+  document.querySelector('.sidebar-overlay')?.classList.remove('open');
 }
 
 // ==========================================
@@ -1491,10 +1498,10 @@ async function openCourseLearning(courseId) {
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
               <button class="btn btn-primary btn-xs" onclick="openPdfViewerModal('${nUrl}', '${safeTitle}')">
-                Read PDF 📄
+                👁 View PDF 📄
               </button>
-              <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${nUrl}', '${safeTitle}.pdf')" title="Download PDF to Phone">
-                ⬇ Download
+              <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${nUrl}', '${safeTitle}.pdf')" title="Download PDF Document">
+                ⬇ Download PDF
               </button>
             </div>
           </div>
@@ -1578,12 +1585,15 @@ function openPdfViewerModal(pdfUrl, title) {
   const notice = document.getElementById('pdfModalLoadingNotice');
 
   if (titleEl) titleEl.textContent = title || 'Study Notes PDF';
-  if (directLinkEl) directLinkEl.href = finalUrl;
   if (notice) notice.style.display = 'block';
 
   if (frame) {
     const inlineViewerUrl = `${window.location.origin}/api/view-pdf?url=${encodeURIComponent(finalUrl)}`;
     
+    if (directLinkEl) {
+      directLinkEl.href = inlineViewerUrl;
+    }
+
     // Always use our high-speed native inline PDF streaming endpoint
     frame.src = inlineViewerUrl;
 
