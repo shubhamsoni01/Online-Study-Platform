@@ -17,9 +17,7 @@ const connectDB = async () => {
     console.log(`MongoDB connected successfully. Database: ${conn.connection.name}`);
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);
-    if (!process.env.VERCEL) {
-      process.exit(1);
-    }
+    console.warn(`[DB Notice] Server running in fallback mode while database reconnects.`);
   }
 };
 
