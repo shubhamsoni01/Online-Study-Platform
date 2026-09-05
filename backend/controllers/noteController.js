@@ -81,13 +81,18 @@ const createNote = async (req, res, next) => {
 
     let finalUrl = fileUrl || req.body.url;
     let finalPublicId = req.body.publicId || '';
+    let finalGridfsId = '';
+    let finalStorageProvider = 'external';
     let finalFileName = fileName || (req.file ? req.file.originalname : `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`);
     let finalFileSize = fileSize || (req.file ? `${(req.file.size / (1024 * 1024)).toFixed(2)} MB` : '');
+    let originalName = req.file?.originalname || finalFileName;
 
     if (req.file) {
       const uploadResult = await uploadToCloudinary(req.file.buffer, 'notes', 'raw', req.file.originalname);
       finalUrl = uploadResult.secureUrl;
       finalPublicId = uploadResult.publicId;
+      finalGridfsId = uploadResult.gridfsId || '';
+      finalStorageProvider = uploadResult.storageProvider || 'gridfs';
       if (uploadResult.fileSize) finalFileSize = uploadResult.fileSize;
     }
 
@@ -107,10 +112,15 @@ const createNote = async (req, res, next) => {
       description: description ? description.trim() : '',
       fileUrl: finalUrl,
       pdfUrl: finalUrl,
+      cloudinaryUrl: finalUrl,
       fileName: finalFileName,
+      originalName,
       fileSize: finalFileSize,
       fileType: 'pdf',
+      mimeType: 'application/pdf',
       publicId: finalPublicId,
+      gridfsId: finalGridfsId,
+      storageProvider: finalStorageProvider,
       uploadedBy,
       uploadedByEmail,
       uploadedAt: new Date(),

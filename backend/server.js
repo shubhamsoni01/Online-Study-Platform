@@ -80,8 +80,22 @@ app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve real uploaded files statically (photos, videos, PDFs, books)
+// Serve real uploaded files statically with automatic MongoDB Atlas GridFS cloud fallback
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', async (req, res, next) => {
+  try {
+    const { findGridFSFile, openGridFSDownloadStream } = require('./services/storageService');
+    const cleanPath = req.path.replace(/^\//, '');
+    const gridDoc = await findGridFSFile(cleanPath);
+    if (gridDoc) {
+      const mime = gridDoc.contentType || (cleanPath.endsWith('.mp4') ? 'video/mp4' : cleanPath.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+      res.set('Content-Type', mime);
+      res.set('Accept-Ranges', 'bytes');
+      return openGridFSDownloadStream(gridDoc._id).pipe(res);
+    }
+  } catch (e) {}
+  res.status(404).json({ success: false, message: 'Requested uploaded file not found on server' });
+});
 
 // Serve frontend static files (HTML, JS, CSS, assets)
 const frontendDir = path.join(__dirname, '..');

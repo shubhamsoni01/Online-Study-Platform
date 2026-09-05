@@ -48,9 +48,26 @@ const noteSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    fileType: {
+    gridfsId: {
       type: String,
-      default: 'pdf',
+      default: '',
+    },
+    storageProvider: {
+      type: String,
+      enum: ['gridfs', 'cloudinary', 'local', 'external'],
+      default: 'gridfs',
+    },
+    originalName: {
+      type: String,
+      default: '',
+    },
+    mimeType: {
+      type: String,
+      default: 'application/pdf',
+    },
+    cloudinaryUrl: {
+      type: String,
+      default: '',
     },
     publicId: {
       type: String,

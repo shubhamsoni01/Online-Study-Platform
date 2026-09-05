@@ -95,15 +95,20 @@ const createVideo = async (req, res, next) => {
 
     let finalUrl = cloudinaryUrl || videoUrl || req.body.url;
     let finalPublicId = cloudinaryPublicId || publicId || '';
+    let finalGridfsId = '';
+    let finalStorageProvider = 'external';
     let finalDuration = duration || '15:00';
     let finalFileSize = fileSize || '';
     let finalResourceType = resourceType || 'video';
+    let originalName = req.file?.originalname || '';
 
     // If file was uploaded via Multer
     if (req.file) {
       const uploadResult = await uploadToCloudinary(req.file.buffer, 'videos', 'video', req.file.originalname);
       finalUrl = uploadResult.secureUrl;
       finalPublicId = uploadResult.publicId;
+      finalGridfsId = uploadResult.gridfsId || '';
+      finalStorageProvider = uploadResult.storageProvider || 'gridfs';
       if (uploadResult.duration) finalDuration = uploadResult.duration;
       if (uploadResult.fileSize) finalFileSize = uploadResult.fileSize;
       if (uploadResult.resourceType) finalResourceType = uploadResult.resourceType;
@@ -127,6 +132,10 @@ const createVideo = async (req, res, next) => {
       videoUrl: finalUrl,
       publicId: finalPublicId,
       cloudinaryPublicId: finalPublicId,
+      gridfsId: finalGridfsId,
+      storageProvider: finalStorageProvider,
+      originalName,
+      mimeType: 'video/mp4',
       duration: finalDuration,
       fileSize: finalFileSize,
       resourceType: finalResourceType,

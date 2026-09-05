@@ -40,6 +40,23 @@ const bookSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    gridfsId: {
+      type: String,
+      default: '',
+    },
+    storageProvider: {
+      type: String,
+      enum: ['gridfs', 'cloudinary', 'local', 'external'],
+      default: 'gridfs',
+    },
+    originalName: {
+      type: String,
+      default: '',
+    },
+    mimeType: {
+      type: String,
+      default: 'application/pdf',
+    },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Teacher',

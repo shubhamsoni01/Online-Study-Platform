@@ -52,6 +52,23 @@ const videoSchema = new mongoose.Schema(
       type: String,
       default: '00:00',
     },
+    gridfsId: {
+      type: String,
+      default: '',
+    },
+    storageProvider: {
+      type: String,
+      enum: ['gridfs', 'cloudinary', 'local', 'external'],
+      default: 'gridfs',
+    },
+    originalName: {
+      type: String,
+      default: '',
+    },
+    mimeType: {
+      type: String,
+      default: 'video/mp4',
+    },
     fileSize: {
       type: String,
       default: '',

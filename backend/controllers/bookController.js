@@ -49,11 +49,16 @@ const createBook = async (req, res, next) => {
 
     let finalUrl = fileUrl;
     let finalPublicId = '';
+    let finalGridfsId = '';
+    let finalStorageProvider = 'external';
+    let originalName = req.file?.originalname || `${bookName}.pdf`;
 
     if (req.file) {
-      const uploadResult = await uploadToCloudinary(req.file.buffer, 'study_platform/elibrary', 'raw');
+      const uploadResult = await uploadToCloudinary(req.file.buffer, 'study_platform/elibrary', 'raw', req.file.originalname);
       finalUrl = uploadResult.secureUrl;
       finalPublicId = uploadResult.publicId;
+      finalGridfsId = uploadResult.gridfsId || '';
+      finalStorageProvider = uploadResult.storageProvider || 'gridfs';
     }
 
     if (!finalUrl) {
@@ -69,6 +74,10 @@ const createBook = async (req, res, next) => {
       category: category || 'Other',
       fileUrl: finalUrl,
       publicId: finalPublicId,
+      gridfsId: finalGridfsId,
+      storageProvider: finalStorageProvider,
+      originalName,
+      mimeType: 'application/pdf',
       uploadedBy,
       status: 'Active',
     });

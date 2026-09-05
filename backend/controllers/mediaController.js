@@ -2,9 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+const mongoose = require('mongoose');
 const Video = require('../models/Video');
 const Note = require('../models/Note');
 const Book = require('../models/Book');
+const { findGridFSFile, openGridFSDownloadStream } = require('../services/storageService');
 
 /**
  * Helper: Resolve absolute local path from relative /uploads/... URL or storage path
@@ -86,7 +88,75 @@ function streamLocalFile(filePath, req, res, contentType = 'video/mp4', disposit
 }
 
 /**
- * Helper: Proxy external HTTP/HTTPS stream
+ * Helper: Stream file directly from MongoDB Atlas GridFS with HTTP 206 Range Support
+ */
+async function streamGridFSFile(gridFileDoc, req, res, contentType = '', disposition = 'inline', filename = '') {
+  try {
+    const fileSize = gridFileDoc.length;
+    const mimeType = contentType || gridFileDoc.contentType || (gridFileDoc.filename?.endsWith('.mp4') ? 'video/mp4' : gridFileDoc.filename?.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+    const range = req.headers.range;
+
+    const headers = {
+      'Content-Type': mimeType,
+      'Accept-Ranges': 'bytes',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': 'true',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    };
+
+    const outFilename = filename || gridFileDoc.metadata?.originalName || gridFileDoc.filename || 'study_document';
+    if (disposition === 'attachment') {
+      const cleanName = outFilename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      headers['Content-Disposition'] = `attachment; filename="${cleanName}"`;
+    } else {
+      headers['Content-Disposition'] = 'inline';
+    }
+
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize) {
+        res.status(416).set({
+          'Content-Range': `bytes */${fileSize}`,
+          'Accept-Ranges': 'bytes',
+        }).send('Requested range not satisfiable');
+        return;
+      }
+
+      const chunksize = (end - start) + 1;
+      const downloadStream = openGridFSDownloadStream(gridFileDoc._id, {
+        start: start,
+        end: end + 1,
+      });
+
+      res.writeHead(206, {
+        ...headers,
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Content-Length': chunksize,
+      });
+
+      downloadStream.pipe(res);
+    } else {
+      res.writeHead(200, {
+        ...headers,
+        'Content-Length': fileSize,
+      });
+
+      const downloadStream = openGridFSDownloadStream(gridFileDoc._id);
+      downloadStream.pipe(res);
+    }
+  } catch (err) {
+    console.error('[Stream GridFS Error]', err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Failed to stream file from cloud storage' });
+    }
+  }
+}
+
+/**
+ * Helper: Proxy external HTTP/HTTPS stream (e.g. Cloudinary)
  */
 function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet-stream', disposition = 'inline', filename = '') {
   try {
@@ -139,6 +209,71 @@ function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet
 }
 
 /**
+ * Helper: Universal Media Stream Resolver
+ * Resolves by GridFS ID -> Local Path -> Cloudinary / Remote -> GridFS search by filename
+ */
+async function streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, contentType, disposition, filename) {
+  // 1. Check GridFS by gridfsId or publicId
+  if (gridfsId || (publicId && /^[0-9a-fA-F]{24}$/.test(publicId))) {
+    const gId = gridfsId || publicId;
+    const gridFile = await findGridFSFile(gId);
+    if (gridFile) {
+      return streamGridFSFile(gridFile, req, res, contentType, disposition, filename);
+    }
+  }
+
+  // 2. Check local disk cache
+  if (fileUrl) {
+    const localPath = resolveLocalPath(fileUrl);
+    if (localPath) {
+      return streamLocalFile(localPath, req, res, contentType, disposition, filename);
+    }
+  }
+
+  // 3. Check Cloudinary or external URL
+  if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
+    if (fileUrl.includes('/api/media/file/')) {
+      const fId = fileUrl.split('/api/media/file/')[1];
+      const gridDoc = await findGridFSFile(fId);
+      if (gridDoc) return streamGridFSFile(gridDoc, req, res, contentType, disposition, filename);
+    }
+    return proxyRemoteStream(fileUrl, req, res, contentType, disposition, filename);
+  }
+
+  // 4. Fallback search in GridFS by filename or clean url
+  if (fileUrl || publicId) {
+    const targetSearch = fileUrl || publicId;
+    const gridDoc = await findGridFSFile(targetSearch);
+    if (gridDoc) {
+      return streamGridFSFile(gridDoc, req, res, contentType, disposition, filename);
+    }
+  }
+
+  res.status(404).json({ success: false, message: 'Requested media resource could not be found' });
+}
+
+/**
+ * GET /api/media/file/:id
+ * Direct GridFS file stream endpoint
+ */
+const streamFileById = async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const gridDoc = await findGridFSFile(fileId);
+    if (!gridDoc) {
+      return res.status(404).json({ success: false, message: 'File not found in persistent cloud storage' });
+    }
+
+    const disposition = req.query.download === 'true' ? 'attachment' : 'inline';
+    const filename = req.query.filename || gridDoc.metadata?.originalName || gridDoc.filename;
+    return streamGridFSFile(gridDoc, req, res, gridDoc.contentType, disposition, filename);
+  } catch (err) {
+    console.error('[Stream File By ID Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to stream file from cloud storage' });
+  }
+};
+
+/**
  * GET /api/media/video/:id/stream
  * Stream Video by ID with full HTTP 206 Partial Content support
  */
@@ -150,20 +285,11 @@ const streamVideoById = async (req, res) => {
     }
 
     const videoUrl = video.videoUrl || video.cloudinaryUrl || '';
-    if (!videoUrl) {
-      return res.status(404).json({ success: false, message: 'Video stream URL missing' });
-    }
+    const publicId = video.cloudinaryPublicId || video.publicId || '';
+    const gridfsId = video.gridfsId || '';
+    const filename = video.title ? `${video.title.replace(/[^a-zA-Z0-9._-]/g, '_')}.mp4` : 'lecture.mp4';
 
-    const localPath = resolveLocalPath(videoUrl);
-    if (localPath) {
-      return streamLocalFile(localPath, req, res, 'video/mp4', 'inline');
-    }
-
-    if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
-      return proxyRemoteStream(videoUrl, req, res, 'video/mp4', 'inline');
-    }
-
-    res.status(404).json({ success: false, message: 'Video media file not found' });
+    return streamUniversalMedia(videoUrl, publicId, gridfsId, req, res, 'video/mp4', 'inline', filename);
   } catch (err) {
     console.error('[Stream Video By ID Error]', err);
     res.status(500).json({ success: false, message: 'Failed to stream lecture video' });
@@ -181,21 +307,12 @@ const viewNotePdfById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Note not found' });
     }
 
-    const fileUrl = note.fileUrl || note.pdfUrl || '';
-    if (!fileUrl) {
-      return res.status(404).json({ success: false, message: 'PDF file URL missing' });
-    }
+    const fileUrl = note.fileUrl || note.pdfUrl || note.cloudinaryUrl || '';
+    const publicId = note.cloudinaryPublicId || note.publicId || '';
+    const gridfsId = note.gridfsId || '';
+    const filename = (note.title || 'study-document').replace(/[^a-zA-Z0-9._-]/g, '_') + '.pdf';
 
-    const localPath = resolveLocalPath(fileUrl);
-    if (localPath) {
-      return streamLocalFile(localPath, req, res, 'application/pdf', 'inline');
-    }
-
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
-      return proxyRemoteStream(fileUrl, req, res, 'application/pdf', 'inline');
-    }
-
-    res.status(404).json({ success: false, message: 'PDF file not found' });
+    return streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, 'application/pdf', 'inline', filename);
   } catch (err) {
     console.error('[View Note PDF Error]', err);
     res.status(500).json({ success: false, message: 'Failed to view PDF document' });
@@ -213,24 +330,14 @@ const downloadNotePdfById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Note not found' });
     }
 
-    const fileUrl = note.fileUrl || note.pdfUrl || '';
-    if (!fileUrl) {
-      return res.status(404).json({ success: false, message: 'PDF file URL missing' });
-    }
+    const fileUrl = note.fileUrl || note.pdfUrl || note.cloudinaryUrl || '';
+    const publicId = note.cloudinaryPublicId || note.publicId || '';
+    const gridfsId = note.gridfsId || '';
 
     const rawName = req.query.filename || note.fileName || note.title || 'study-notes';
     const filename = rawName.endsWith('.pdf') ? rawName : `${rawName}.pdf`;
 
-    const localPath = resolveLocalPath(fileUrl);
-    if (localPath) {
-      return streamLocalFile(localPath, req, res, 'application/pdf', 'attachment', filename);
-    }
-
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
-      return proxyRemoteStream(fileUrl, req, res, 'application/pdf', 'attachment', filename);
-    }
-
-    res.status(404).json({ success: false, message: 'PDF file not found' });
+    return streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, 'application/pdf', 'attachment', filename);
   } catch (err) {
     console.error('[Download Note PDF Error]', err);
     res.status(500).json({ success: false, message: 'Failed to download PDF document' });
@@ -245,13 +352,12 @@ const viewBookPdfById = async (req, res) => {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ success: false, message: 'Book not found' });
 
-    const fileUrl = book.fileUrl || '';
-    const localPath = resolveLocalPath(fileUrl);
-    if (localPath) return streamLocalFile(localPath, req, res, 'application/pdf', 'inline');
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
-      return proxyRemoteStream(fileUrl, req, res, 'application/pdf', 'inline');
-    }
-    res.status(404).json({ success: false, message: 'Book PDF not found' });
+    const fileUrl = book.fileUrl || book.pdfUrl || '';
+    const publicId = book.publicId || '';
+    const gridfsId = book.gridfsId || '';
+    const filename = (book.title || book.bookName || 'e-book').replace(/[^a-zA-Z0-9._-]/g, '_') + '.pdf';
+
+    return streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, 'application/pdf', 'inline', filename);
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to view book' });
   }
@@ -265,16 +371,14 @@ const downloadBookPdfById = async (req, res) => {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ success: false, message: 'Book not found' });
 
-    const fileUrl = book.fileUrl || '';
-    const rawName = req.query.filename || book.bookName || 'e-book';
+    const fileUrl = book.fileUrl || book.pdfUrl || '';
+    const publicId = book.publicId || '';
+    const gridfsId = book.gridfsId || '';
+
+    const rawName = req.query.filename || book.bookName || book.title || 'e-book';
     const filename = rawName.endsWith('.pdf') ? rawName : `${rawName}.pdf`;
 
-    const localPath = resolveLocalPath(fileUrl);
-    if (localPath) return streamLocalFile(localPath, req, res, 'application/pdf', 'attachment', filename);
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
-      return proxyRemoteStream(fileUrl, req, res, 'application/pdf', 'attachment', filename);
-    }
-    res.status(404).json({ success: false, message: 'Book PDF not found' });
+    return streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, 'application/pdf', 'attachment', filename);
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to download book' });
   }
@@ -282,80 +386,57 @@ const downloadBookPdfById = async (req, res) => {
 
 /**
  * GET /api/media/view-pdf?url=...
- * Universal query fallback
  */
 const viewPdfByQuery = async (req, res) => {
   try {
     let { url } = req.query;
-    if (!url) return res.status(400).send('Missing url parameter');
+    if (!url) return res.status(400).json({ success: false, message: 'Missing url parameter' });
 
     url = decodeURIComponent(url).trim();
-    const localPath = resolveLocalPath(url);
-    if (localPath) return streamLocalFile(localPath, req, res, 'application/pdf', 'inline');
-
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return proxyRemoteStream(url, req, res, 'application/pdf', 'inline');
-    }
-
-    res.status(404).send('PDF file not found');
+    return streamUniversalMedia(url, null, null, req, res, 'application/pdf', 'inline', 'document.pdf');
   } catch (err) {
     console.error('[View PDF Query Error]', err);
-    res.status(500).send('Failed to stream PDF');
+    res.status(500).json({ success: false, message: 'Failed to stream PDF' });
   }
 };
 
 /**
  * GET /api/media/download?url=...&filename=...
- * Universal query fallback
  */
 const downloadByQuery = async (req, res) => {
   try {
     let { url, filename } = req.query;
-    if (!url) return res.status(400).send('Missing url parameter');
+    if (!url) return res.status(400).json({ success: false, message: 'Missing url parameter' });
 
     url = decodeURIComponent(url).trim();
     const safeName = (filename || 'study-document').replace(/[^a-zA-Z0-9._-]/g, '_');
     const finalName = safeName.endsWith('.pdf') ? safeName : `${safeName}.pdf`;
 
-    const localPath = resolveLocalPath(url);
-    if (localPath) return streamLocalFile(localPath, req, res, 'application/pdf', 'attachment', finalName);
-
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return proxyRemoteStream(url, req, res, 'application/pdf', 'attachment', finalName);
-    }
-
-    res.status(404).send('Download file not found');
+    return streamUniversalMedia(url, null, null, req, res, 'application/pdf', 'attachment', finalName);
   } catch (err) {
     console.error('[Download Query Error]', err);
-    res.status(500).send('Failed to process download');
+    res.status(500).json({ success: false, message: 'Failed to process download' });
   }
 };
 
 /**
  * GET /api/media/stream?url=...
- * Universal video query fallback
  */
 const streamByQuery = async (req, res) => {
   try {
     let { url } = req.query;
-    if (!url) return res.status(400).send('Missing url parameter');
+    if (!url) return res.status(400).json({ success: false, message: 'Missing url parameter' });
 
     url = decodeURIComponent(url).trim();
-    const localPath = resolveLocalPath(url);
-    if (localPath) return streamLocalFile(localPath, req, res, 'video/mp4', 'inline');
-
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return proxyRemoteStream(url, req, res, 'video/mp4', 'inline');
-    }
-
-    res.status(404).send('Video not found');
+    return streamUniversalMedia(url, null, null, req, res, 'video/mp4', 'inline', 'lecture.mp4');
   } catch (err) {
     console.error('[Stream Query Error]', err);
-    res.status(500).send('Failed to stream video');
+    res.status(500).json({ success: false, message: 'Failed to stream video' });
   }
 };
 
 module.exports = {
+  streamFileById,
   streamVideoById,
   viewNotePdfById,
   downloadNotePdfById,

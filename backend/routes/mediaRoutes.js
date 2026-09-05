@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  streamFileById,
   streamVideoById,
   viewNotePdfById,
   downloadNotePdfById,
@@ -10,6 +11,9 @@ const {
   downloadByQuery,
   streamByQuery,
 } = require('../controllers/mediaController');
+
+// Direct GridFS File Stream
+router.get('/file/:id', streamFileById);
 
 // Dedicated Media Resource Endpoints
 router.get('/video/:id/stream', streamVideoById);
