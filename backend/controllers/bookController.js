@@ -57,8 +57,22 @@ const createBook = async (req, res, next) => {
       const uploadResult = await uploadToCloudinary(req.file.buffer, 'study_platform/elibrary', 'raw', req.file.originalname);
       finalUrl = uploadResult.secureUrl;
       finalPublicId = uploadResult.publicId;
-      finalGridfsId = uploadResult.gridfsId || '';
-      finalStorageProvider = uploadResult.storageProvider || 'gridfs';
+      finalStorageProvider = 'cloudinary';
+
+      // Optional GridFS backup for book PDF
+      try {
+        const { uploadToGridFS } = require('../services/storageService');
+        const gridRes = await uploadToGridFS(req.file.buffer, originalName, 'application/pdf', {
+          originalName: req.file.originalname,
+          publicId: finalPublicId,
+          bookName: bookName.trim(),
+        });
+        if (gridRes && gridRes.fileId) {
+          finalGridfsId = gridRes.fileId;
+        }
+      } catch (gErr) {
+        console.warn('[Book Upload] GridFS backup skipped:', gErr.message);
+      }
     }
 
     if (!finalUrl) {

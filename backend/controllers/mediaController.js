@@ -7,6 +7,7 @@ const Video = require('../models/Video');
 const Note = require('../models/Note');
 const Book = require('../models/Book');
 const { findGridFSFile, openGridFSDownloadStream } = require('../services/storageService');
+const { getAuthenticatedCloudinaryUrl } = require('../services/cloudinaryService');
 
 /**
  * Helper: Resolve absolute local path from relative /uploads/... URL or storage path
@@ -158,20 +159,46 @@ async function streamGridFSFile(gridFileDoc, req, res, contentType = '', disposi
 /**
  * Helper: Proxy external HTTP/HTTPS stream (e.g. Cloudinary)
  */
-function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet-stream', disposition = 'inline', filename = '') {
+function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet-stream', disposition = 'inline', filename = '', onFailCallback = null) {
   try {
     const isHttps = targetUrl.startsWith('https:');
     const client = isHttps ? https : http;
 
     const options = {
-      headers: { ...req.headers },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        ...req.headers,
+      },
     };
     delete options.headers.host;
 
-    client.get(targetUrl, options, (remoteRes) => {
-      // If remote redirected, follow
+    const remoteReq = client.get(targetUrl, options, (remoteRes) => {
+      // If remote redirected (301, 302, 307, 308), follow
       if (remoteRes.statusCode >= 300 && remoteRes.statusCode < 400 && remoteRes.headers.location) {
-        return proxyRemoteStream(remoteRes.headers.location, req, res, defaultType, disposition, filename);
+        let redirectUrl = remoteRes.headers.location;
+        if (redirectUrl.startsWith('/')) {
+          try {
+            const origin = new URL(targetUrl).origin;
+            redirectUrl = `${origin}${redirectUrl}`;
+          } catch (e) {}
+        }
+        return proxyRemoteStream(redirectUrl, req, res, defaultType, disposition, filename, onFailCallback);
+      }
+
+      // If remote returned an error (4xx or 5xx)
+      if (remoteRes.statusCode >= 400) {
+        console.warn(`[Media Proxy Warning] Remote returned HTTP ${remoteRes.statusCode} (${remoteRes.headers['x-cld-error'] || 'Error'}) for URL: ${targetUrl}`);
+        if (typeof onFailCallback === 'function') {
+          return onFailCallback();
+        }
+        if (!res.headersSent) {
+          res.status(remoteRes.statusCode).json({
+            success: false,
+            message: 'Unable to stream remote media resource',
+            status: remoteRes.statusCode,
+          });
+        }
+        return;
       }
 
       let finalContentType = defaultType;
@@ -203,16 +230,24 @@ function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet
 
       res.writeHead(remoteRes.statusCode, headers);
       remoteRes.pipe(res);
-    }).on('error', (err) => {
+    });
+
+    remoteReq.on('error', (err) => {
       console.error('[Media Proxy Error]', err.message);
+      if (typeof onFailCallback === 'function') {
+        return onFailCallback();
+      }
       if (!res.headersSent) {
-        res.redirect(targetUrl);
+        res.status(502).json({ success: false, message: 'Failed to connect to media host' });
       }
     });
   } catch (err) {
     console.error('[Media Proxy Exception]', err.message);
+    if (typeof onFailCallback === 'function') {
+      return onFailCallback();
+    }
     if (!res.headersSent) {
-      res.redirect(targetUrl);
+      res.status(500).json({ success: false, message: 'Media stream exception' });
     }
   }
 }
@@ -246,7 +281,27 @@ async function streamUniversalMedia(fileUrl, publicId, gridfsId, req, res, conte
       const gridDoc = await findGridFSFile(fId);
       if (gridDoc) return streamGridFSFile(gridDoc, req, res, contentType, disposition, filename);
     }
-    return proxyRemoteStream(fileUrl, req, res, contentType, disposition, filename);
+
+    let targetStreamUrl = fileUrl;
+    if (fileUrl.includes('cloudinary.com') || publicId) {
+      const rType = (contentType === 'application/pdf' || (filename && filename.toLowerCase().endsWith('.pdf')))
+        ? 'raw'
+        : (contentType === 'video/mp4' ? 'video' : 'auto');
+      targetStreamUrl = getAuthenticatedCloudinaryUrl(publicId, rType, fileUrl);
+    }
+
+    return proxyRemoteStream(targetStreamUrl, req, res, contentType, disposition, filename, async () => {
+      // Fallback on remote failure: search GridFS
+      if (gridfsId || publicId || fileUrl) {
+        const gridDoc = await findGridFSFile(gridfsId || publicId || fileUrl);
+        if (gridDoc) {
+          return streamGridFSFile(gridDoc, req, res, contentType, disposition, filename);
+        }
+      }
+      if (!res.headersSent) {
+        res.status(404).json({ success: false, message: 'Requested media resource is unavailable' });
+      }
+    });
   }
 
   // 4. Fallback search in GridFS by filename or clean url

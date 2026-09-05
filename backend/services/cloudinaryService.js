@@ -52,6 +52,8 @@ const uploadToCloudinary = async (buffer, folder = 'uploads', resourceType = 'au
     resource_type: resourceType,
     chunk_size: 6000000,
     timeout: 300000,
+    type: 'upload',
+    access_mode: 'public',
   };
 
   if (resourceType === 'raw' && originalName) {
@@ -89,6 +91,59 @@ const uploadToCloudinary = async (buffer, folder = 'uploads', resourceType = 'au
 };
 
 /**
+ * Generate an authenticated / signed Cloudinary URL for secure raw & media delivery
+ * Handles both publicId and raw Cloudinary URLs to prevent 401 ACL/permission errors.
+ *
+ * @param {string} publicId - Cloudinary Public ID
+ * @param {string} resourceType - 'raw' | 'video' | 'image' | 'auto'
+ * @param {string} originalUrl - Direct Cloudinary URL
+ * @returns {string} Signed download URL or original URL
+ */
+const getAuthenticatedCloudinaryUrl = (publicId, resourceType = 'raw', originalUrl = '') => {
+  if (!hasValidCloudinary()) {
+    return originalUrl || '';
+  }
+
+  try {
+    let resolvedPublicId = publicId;
+    let resolvedType = resourceType === 'auto' ? 'raw' : resourceType;
+
+    // If publicId is missing, extract it from originalUrl
+    if (!resolvedPublicId && originalUrl && originalUrl.includes('res.cloudinary.com')) {
+      const match = originalUrl.match(/res\.cloudinary\.com\/[^\/]+\/(image|video|raw)\/upload\/(?:s--[^\/]+--\/)?(?:v\d+\/)?(.+?)(?:\?.*)?$/);
+      if (match) {
+        resolvedType = match[1] || resolvedType;
+        resolvedPublicId = match[2];
+      }
+    }
+
+    if (resolvedPublicId) {
+      // 1. Generate private_download_url with 2 hours validity
+      const expiresAt = Math.floor(Date.now() / 1000) + 7200;
+      const signedDownload = cloudinary.utils.private_download_url(resolvedPublicId, '', {
+        resource_type: resolvedType,
+        type: 'upload',
+        expires_at: expiresAt,
+      });
+
+      if (signedDownload) return signedDownload;
+
+      // 2. Generate signed delivery URL as fallback
+      return cloudinary.url(resolvedPublicId, {
+        resource_type: resolvedType,
+        type: 'upload',
+        sign_url: true,
+        secure: true,
+      });
+    }
+  } catch (err) {
+    console.error(`[Cloudinary Sign Error] ${err.message}`);
+  }
+
+  return originalUrl || '';
+};
+
+/**
  * Delete resource from Cloudinary
  * @param {String} publicId - Cloudinary Public ID
  * @param {String} resourceType - 'image' | 'video' | 'raw'
@@ -112,5 +167,6 @@ const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
 module.exports = {
   hasValidCloudinary,
   uploadToCloudinary,
+  getAuthenticatedCloudinaryUrl,
   deleteFromCloudinary,
 };

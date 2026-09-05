@@ -91,9 +91,23 @@ const createNote = async (req, res, next) => {
       const uploadResult = await uploadToCloudinary(req.file.buffer, 'notes', 'raw', req.file.originalname);
       finalUrl = uploadResult.secureUrl;
       finalPublicId = uploadResult.publicId;
-      finalGridfsId = uploadResult.gridfsId || '';
-      finalStorageProvider = uploadResult.storageProvider || 'gridfs';
+      finalStorageProvider = 'cloudinary';
       if (uploadResult.fileSize) finalFileSize = uploadResult.fileSize;
+
+      // Optional GridFS backup for instant fallback and high reliability
+      try {
+        const { uploadToGridFS } = require('../services/storageService');
+        const gridRes = await uploadToGridFS(req.file.buffer, finalFileName, 'application/pdf', {
+          originalName: req.file.originalname,
+          publicId: finalPublicId,
+          noteTitle: title.trim(),
+        });
+        if (gridRes && gridRes.fileId) {
+          finalGridfsId = gridRes.fileId;
+        }
+      } catch (gErr) {
+        console.warn('[Note Upload] GridFS backup skipped:', gErr.message);
+      }
     }
 
     if (!finalUrl) {
