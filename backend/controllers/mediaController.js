@@ -174,8 +174,17 @@ function proxyRemoteStream(targetUrl, req, res, defaultType = 'application/octet
         return proxyRemoteStream(remoteRes.headers.location, req, res, defaultType, disposition, filename);
       }
 
+      let finalContentType = defaultType;
+      if (defaultType === 'application/pdf' || (filename && filename.toLowerCase().endsWith('.pdf'))) {
+        finalContentType = 'application/pdf';
+      } else if (defaultType === 'video/mp4' || (filename && filename.toLowerCase().endsWith('.mp4'))) {
+        finalContentType = 'video/mp4';
+      } else if (remoteRes.headers['content-type'] && remoteRes.headers['content-type'] !== 'application/octet-stream') {
+        finalContentType = remoteRes.headers['content-type'];
+      }
+
       const headers = {
-        'Content-Type': remoteRes.headers['content-type'] || defaultType,
+        'Content-Type': finalContentType,
         'Accept-Ranges': 'bytes',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': 'true',
