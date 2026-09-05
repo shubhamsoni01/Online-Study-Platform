@@ -5,6 +5,10 @@ const Video = require('../models/Video');
 const Note = require('../models/Note');
 const Quiz = require('../models/Quiz');
 const TeacherAllocation = require('../models/TeacherAllocation');
+const Teacher = require('../models/Teacher');
+const Student = require('../models/Student');
+const Subject = require('../models/Subject');
+const User = require('../models/User');
 const Progress = require('../models/Progress');
 
 /**
@@ -61,7 +65,30 @@ const enrollInCourse = async (req, res, next) => {
 const getMyEnrolledCourses = async (req, res, next) => {
   try {
     const studentId = req.user._id;
-    const enrollments = await Enrollment.find({ studentId, status: 'Active' })
+    let studentProfile = null;
+    try {
+      studentProfile = await Student.findOne({
+        $or: [
+          { userId: studentId },
+          ...(req.user.email ? [{ email: req.user.email.toLowerCase().trim() }] : [])
+        ]
+      });
+    } catch (e) {}
+
+    const orQuery = [
+      { studentId: studentId },
+    ];
+    if (studentProfile) {
+      orQuery.push({ studentId: studentProfile._id });
+    }
+    if (req.user.email) {
+      orQuery.push({ studentEmail: req.user.email.toLowerCase().trim() });
+    }
+
+    const enrollments = await Enrollment.find({
+      $or: orQuery,
+      status: 'Active',
+    })
       .populate({
         path: 'courseId',
         populate: { path: 'subjectId', select: 'name code semester' },

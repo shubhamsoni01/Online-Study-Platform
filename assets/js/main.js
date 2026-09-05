@@ -64,6 +64,9 @@ function showPage(pageId, updateHash = true) {
       } catch(e) {}
     }
 
+    if (pageId === 'my-courses' && typeof window.renderMyCourses === 'function') {
+      window.renderMyCourses();
+    }
     if (pageId === 'chat' && window.platformChat && typeof window.platformChat.fetchMessages === 'function') {
       window.platformChat.fetchMessages(true);
     }

@@ -1180,8 +1180,9 @@ async function renderStudentViews(student) {
 async function loadMyEnrollments() {
   try {
     const res = await LiveAPI.getMyEnrolledCourses();
-    cachedMyEnrollments = (res && res.success && Array.isArray(res.data)) ? res.data : [];
-    document.getElementById('myCoursesBadge').textContent = cachedMyEnrollments.length;
+    cachedMyEnrollments = (res && res.success && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+    const badge = document.getElementById('myCoursesBadge');
+    if (badge) badge.textContent = cachedMyEnrollments.length;
 
     renderMyCourses();
     renderDashboardEnrollments();
@@ -1192,6 +1193,8 @@ async function loadMyEnrollments() {
     renderMyCourses();
   }
 }
+window.loadMyEnrollments = loadMyEnrollments;
+window.renderMyCourses = renderMyCourses;
 
 async function loadAllCourses() {
   try {
