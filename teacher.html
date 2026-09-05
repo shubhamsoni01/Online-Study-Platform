@@ -1614,6 +1614,8 @@ async function renderSubjectModules() {
     const nList = (mod.notes || []).map(n => {
       const noteId = n._id || n.id;
       const nUrl = n.fileUrl || n.pdfUrl || '#';
+      const viewEndpoint = noteId ? `${window.location.origin}/api/media/note/${noteId}/view` : (nUrl.startsWith('http') ? nUrl : `${window.location.origin}/api/media/view-pdf?url=${encodeURIComponent(nUrl)}`);
+      const downloadEndpoint = noteId ? `${window.location.origin}/api/media/note/${noteId}/download` : nUrl;
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;">
           <div>
@@ -1621,8 +1623,8 @@ async function renderSubjectModules() {
             <div style="font-size:11px;color:var(--text-secondary);">${n.description || 'PDF Lecture notes'} · <span class="badge ${n.status === 'Draft' ? 'badge-pending' : 'badge-active'}" style="font-size:10px;">${n.status || 'Published'}</span></div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
-            <a class="btn btn-secondary btn-xs" href="${nUrl}" target="_blank">View 📄</a>
-            <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${nUrl}', '${n.title.replace(/'/g, "_")}.pdf')" title="Download PDF">⬇</button>
+            <a class="btn btn-secondary btn-xs" href="${viewEndpoint}" target="_blank" rel="noopener noreferrer">View 📄</a>
+            <button class="btn btn-secondary btn-xs" onclick="window.downloadStudyFile('${downloadEndpoint}', '${n.title.replace(/'/g, "_")}.pdf')" title="Download PDF">⬇</button>
             <button class="btn btn-ghost btn-xs" onclick="openEditNotesModal('${noteId}', '${n.title.replace(/'/g, "\\'")}', '${(n.description||'').replace(/'/g, "\\'")}', '${n.status || 'Published'}')">Edit</button>
             <button class="btn btn-danger btn-xs" onclick="deleteNoteConfirm('${noteId}')" title="Delete Notes">Delete</button>
           </div>
