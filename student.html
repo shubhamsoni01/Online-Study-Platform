@@ -760,11 +760,11 @@
 <div class="toast-container"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="assets/js/api-client.js"></script>
-<script src="assets/js/platform-store.js"></script>
-<script src="assets/js/auth-guard.js"></script>
-<script src="assets/js/chat-manager.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="assets/js/api-client.js?v=2.5"></script>
+<script src="assets/js/platform-store.js?v=2.5"></script>
+<script src="assets/js/auth-guard.js?v=2.5"></script>
+<script src="assets/js/chat-manager.js?v=2.5"></script>
+<script src="assets/js/main.js?v=2.5"></script>
 <script>
 let currentAuthenticatedStudent = null;
 let cachedAllCourses = [];
@@ -792,7 +792,7 @@ async function initStudentPanel() {
           studentData = meRes.data.user || meRes.data;
         }
       } catch (err) {
-        console.warn('Student me error:', err.message);
+        console.warn('[STUDENT INIT] me endpoint note:', err.message);
       }
     }
 
@@ -808,7 +808,7 @@ async function initStudentPanel() {
     currentAuthenticatedStudent = studentData;
     AuthGuard.removeOverlay();
     closeStudentLoginModal();
-    renderStudentViews(studentData);
+    await renderStudentViews(studentData);
   } catch (err) {
     console.error('Fatal Student Init Error:', err);
     AuthGuard.renderLoginForm('student');
@@ -862,8 +862,8 @@ function switchAuthTab(tab) {
 
 async function handleStudentSignIn(e) {
   e.preventDefault();
-  const email = document.getElementById('modalStudentEmail').value.trim();
-  const password = document.getElementById('modalStudentPassword').value.trim();
+  const email = document.getElementById('modalStudentEmail')?.value?.trim();
+  const password = document.getElementById('modalStudentPassword')?.value?.trim();
   const btn = document.getElementById('btnSignInSubmit');
   const errBox = document.getElementById('signInErrorAlert');
 
@@ -905,12 +905,12 @@ async function handleStudentSignIn(e) {
       const user = res.user || res.data?.user;
       if (user) {
         currentAuthenticatedStudent = user;
-        renderStudentViews(user);
+        await renderStudentViews(user);
       } else {
         await initStudentPanel();
       }
     } else {
-      throw new Error(res.message || 'Login failed');
+      throw new Error(res?.message || 'Login failed');
     }
   } catch (err) {
     if (errBox) {
@@ -927,13 +927,13 @@ async function handleStudentSignIn(e) {
 
 async function handleStudentSignUp(e) {
   e.preventDefault();
-  const name = document.getElementById('regFullName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const password = document.getElementById('regPassword').value.trim();
-  const confirmPassword = document.getElementById('regConfirmPassword')?.value.trim() || password;
-  const phone = document.getElementById('regPhone')?.value.trim() || '';
-  const department = document.getElementById('regDepartment')?.value.trim() || 'Computer Science';
-  const semester = document.getElementById('regSemester')?.value.trim() || 'Semester 1';
+  const name = document.getElementById('regFullName')?.value?.trim() || '';
+  const email = document.getElementById('regEmail')?.value?.trim() || '';
+  const password = document.getElementById('regPassword')?.value?.trim() || '';
+  const confirmPassword = document.getElementById('regConfirmPassword')?.value?.trim() || password;
+  const phone = document.getElementById('regPhone')?.value?.trim() || '';
+  const department = document.getElementById('regDepartment')?.value?.trim() || 'Computer Science';
+  const semester = document.getElementById('regSemester')?.value?.trim() || 'Semester 1';
   const btn = document.getElementById('btnSignUpSubmit');
   const errBox = document.getElementById('signUpErrorAlert');
 
@@ -999,12 +999,12 @@ async function handleStudentSignUp(e) {
       const user = res.user || res.data?.user;
       if (user) {
         currentAuthenticatedStudent = user;
-        renderStudentViews(user);
+        await renderStudentViews(user);
       } else {
         await initStudentPanel();
       }
     } else {
-      throw new Error(res.message || 'Registration failed');
+      throw new Error(res?.message || 'Registration failed');
     }
   } catch (err) {
     if (errBox) {
@@ -1034,7 +1034,7 @@ document.addEventListener('click', (e) => {
 });
 
 function logoutStudent() {
-  LiveAPI.clearToken();
+  LiveAPI.clearAuth();
   currentAuthenticatedStudent = null;
   cachedMyEnrollments = [];
   cachedAllCourses = [];
@@ -1057,6 +1057,7 @@ function navigateToProfile() {
 // 2. RENDER STUDENT DATA & DASHBOARD
 // ==========================================
 async function renderStudentViews(student) {
+  if (!student) return;
   const rawPhoto = student.profilePhoto?.url || student.photo || '';
   const isDemo = typeof rawPhoto === 'string' && (rawPhoto.includes('cloudinary.com/demo') || rawPhoto.includes('sample.jpg') || rawPhoto.includes('sample.jpeg'));
   const safePhoto = (!isDemo && rawPhoto && (rawPhoto.startsWith('http') || rawPhoto.startsWith('/') || rawPhoto.startsWith('data:image'))) ? rawPhoto : '';
@@ -1066,37 +1067,52 @@ async function renderStudentViews(student) {
     : initials;
 
   // Sidebar
-  document.getElementById('stdSidebarAvatar').innerHTML = avatarHtml;
-  document.getElementById('stdSidebarName').textContent = student.name;
-  document.getElementById('stdSidebarRoll').textContent = `Role: Student · ${student.semester || 'Semester 1'}`;
+  const sAv = document.getElementById('stdSidebarAvatar');
+  if (sAv) sAv.innerHTML = avatarHtml;
+  const sName = document.getElementById('stdSidebarName');
+  if (sName) sName.textContent = student.name || 'Student';
+  const sRoll = document.getElementById('stdSidebarRoll');
+  if (sRoll) sRoll.textContent = `Role: Student · ${student.semester || 'Semester 1'}`;
 
   // Topbar Dropdown
-  document.getElementById('stdTopNavAvatar').innerHTML = avatarHtml;
-  document.getElementById('stdDropdownAvatar').innerHTML = avatarHtml;
-  document.getElementById('stdDropdownName').textContent = student.name;
-  document.getElementById('stdDropdownEmail').textContent = student.email;
-  document.getElementById('stdDropdownDept').textContent = student.department || 'Computer Science';
+  const topAv = document.getElementById('stdTopNavAvatar');
+  if (topAv) topAv.innerHTML = avatarHtml;
+  const dropAv = document.getElementById('stdDropdownAvatar');
+  if (dropAv) dropAv.innerHTML = avatarHtml;
+  const dropName = document.getElementById('stdDropdownName');
+  if (dropName) dropName.textContent = student.name || 'Student';
+  const dropEmail = document.getElementById('stdDropdownEmail');
+  if (dropEmail) dropEmail.textContent = student.email || '';
+  const dropDept = document.getElementById('stdDropdownDept');
+  if (dropDept) dropDept.textContent = student.department || 'Computer Science';
 
   // Dashboard Welcome
-  document.getElementById('stdDashWelcome').textContent = `Welcome back, ${student.name.split(' ')[0]}!`;
-  if (document.getElementById('stdMyCommentAvatar')) {
-    document.getElementById('stdMyCommentAvatar').innerHTML = avatarHtml;
-  }
+  const welcome = document.getElementById('stdDashWelcome');
+  if (welcome) welcome.textContent = `Welcome back, ${(student.name || 'Student').split(' ')[0]}!`;
+  const commentAv = document.getElementById('stdMyCommentAvatar');
+  if (commentAv) commentAv.innerHTML = avatarHtml;
 
   // Profile Page
-  document.getElementById('profileAvatar').innerHTML = avatarHtml;
-  document.getElementById('profileStudentName').textContent = student.name;
-  document.getElementById('profileStudentDept').textContent = `Department: ${student.department || 'Computer Science'} · ${student.semester || 'Semester 1'}`;
-  document.getElementById('profileStudentEmail').textContent = student.email;
-  document.getElementById('profileStudentStatus').textContent = student.status || 'Active';
+  const pAv = document.getElementById('profileAvatar');
+  if (pAv) pAv.innerHTML = avatarHtml;
+  const pName = document.getElementById('profileStudentName');
+  if (pName) pName.textContent = student.name || 'Student';
+  const pDept = document.getElementById('profileStudentDept');
+  if (pDept) pDept.textContent = `Department: ${student.department || 'Computer Science'} · ${student.semester || 'Semester 1'}`;
+  const pEmail = document.getElementById('profileStudentEmail');
+  if (pEmail) pEmail.textContent = student.email || '';
+  const pStatus = document.getElementById('profileStudentStatus');
+  if (pStatus) pStatus.textContent = student.status || 'Active';
 
   // Populate Edit Form Inputs
-  document.getElementById('editProfileName').value = student.name || '';
-  document.getElementById('editProfilePhone').value = student.phone || '';
-  document.getElementById('editProfileDept').value = student.department || 'Computer Science';
-  if (document.getElementById('editProfileSemester')) {
-    document.getElementById('editProfileSemester').value = student.semester || 'Semester 1';
-  }
+  const editName = document.getElementById('editProfileName');
+  if (editName) editName.value = student.name || '';
+  const editPhone = document.getElementById('editProfilePhone');
+  if (editPhone) editPhone.value = student.phone || '';
+  const editDept = document.getElementById('editProfileDept');
+  if (editDept) editDept.value = student.department || 'Computer Science';
+  const editSem = document.getElementById('editProfileSemester');
+  if (editSem) editSem.value = student.semester || 'Semester 1';
 
   window.handleStudentPhotoUpload = async function(event) {
     const file = event.target?.files?.[0];
@@ -1133,13 +1149,9 @@ async function renderStudentViews(student) {
           } catch (e) {}
         }
         const newAvatarHtml = Store.formatAvatarHtml(newUrl, updated.name || 'Student', 'ST');
-        const pAv = document.getElementById('profileAvatar');
         if (pAv) pAv.innerHTML = newAvatarHtml;
-        const sAv = document.getElementById('stdSidebarAvatar');
         if (sAv) sAv.innerHTML = newAvatarHtml;
-        const topAv = document.getElementById('stdTopNavAvatar');
         if (topAv) topAv.innerHTML = newAvatarHtml;
-        const dropAv = document.getElementById('stdDropdownAvatar');
         if (dropAv) dropAv.innerHTML = newAvatarHtml;
         showToast('✓ Profile photo updated successfully!');
         if (statusEl) {
@@ -1164,8 +1176,8 @@ async function renderStudentViews(student) {
     }
   };
 
-  // Load Live Enrolled Courses, Books & Community Chat
-  await Promise.all([
+  // Load Live Enrolled Courses, Books & Community Chat in parallel
+  await Promise.allSettled([
     loadMyEnrollments(),
     loadAllCourses(),
     renderStudentAnnouncements(),
@@ -1178,19 +1190,34 @@ async function renderStudentViews(student) {
 // 3. LOAD ALL COURSES & MY ENROLLMENTS
 // ==========================================
 async function loadMyEnrollments() {
+  console.log('[MY COURSES] loadMyEnrollments called');
   try {
     const res = await LiveAPI.getMyEnrolledCourses();
-    cachedMyEnrollments = (res && res.success && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+    console.log('[MY COURSES] API response:', res);
+    if (res && res.success && Array.isArray(res.data)) {
+      cachedMyEnrollments = res.data;
+    } else if (res && Array.isArray(res.data)) {
+      cachedMyEnrollments = res.data;
+    } else if (res && Array.isArray(res.courses)) {
+      cachedMyEnrollments = res.courses;
+    } else if (res && Array.isArray(res.enrolledCourses)) {
+      cachedMyEnrollments = res.enrolledCourses;
+    } else if (Array.isArray(res)) {
+      cachedMyEnrollments = res;
+    } else {
+      cachedMyEnrollments = [];
+    }
+  } catch (err) {
+    console.error('[MY COURSES] Load enrollments error:', err.message);
+    cachedMyEnrollments = [];
+  } finally {
     const badge = document.getElementById('myCoursesBadge');
     if (badge) badge.textContent = cachedMyEnrollments.length;
 
     renderMyCourses();
     renderDashboardEnrollments();
     renderProfileBadges();
-  } catch (err) {
-    console.warn('Load enrollments error:', err.message);
-    cachedMyEnrollments = [];
-    renderMyCourses();
+    console.log('[MY COURSES] loading finished, rendered count:', cachedMyEnrollments.length);
   }
 }
 window.loadMyEnrollments = loadMyEnrollments;
@@ -1199,7 +1226,7 @@ window.renderMyCourses = renderMyCourses;
 async function loadAllCourses() {
   try {
     const res = await LiveAPI.getCourses();
-    cachedAllCourses = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+    cachedAllCourses = (res && res.success && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
     renderAllCourses();
     renderDashboardAvailable();
   } catch (err) {
@@ -1281,11 +1308,15 @@ async function enrollInCourse(courseId, courseTitle) {
 }
 
 function renderMyCourses() {
+  console.log('[MY COURSES] renderMyCourses called. cached count:', cachedMyEnrollments?.length);
   const grid = document.getElementById('myCoursesGrid');
-  if (!grid) return;
+  if (!grid) {
+    console.warn('[MY COURSES] myCoursesGrid element not found in DOM');
+    return;
+  }
   grid.innerHTML = '';
 
-  if (cachedMyEnrollments.length === 0) {
+  if (!cachedMyEnrollments || cachedMyEnrollments.length === 0) {
     grid.innerHTML = `
       <div style="color:var(--text-secondary);padding:36px;text-align:center;grid-column:1/-1;">
         You haven't enrolled in any course yet.
@@ -1298,18 +1329,18 @@ function renderMyCourses() {
   }
 
   cachedMyEnrollments.forEach(item => {
-    const c = item.course || item.courseId;
+    const c = item.course || item.courseId || item;
     if (!c) return;
-    const courseId = c._id || c.id;
-    const teacherName = c.primaryTeacher?.name || 'Faculty Instructor';
-    const progress = item.progressPercentage || 0;
+    const courseId = c._id || c.id || item.courseId;
+    const teacherName = c.primaryTeacher?.name || item.primaryTeacher?.name || 'Faculty Instructor';
+    const progress = item.progressPercentage !== undefined ? item.progressPercentage : (item.progress || 0);
 
     const card = document.createElement('div');
     card.className = 'subject-card';
     card.innerHTML = `
       <div class="subject-card-icon">📖</div>
       <div>
-        <div class="subject-card-name">${c.title}</div>
+        <div class="subject-card-name">${c.title || 'Course'}</div>
         <div class="subject-card-meta">Instructor: ${teacherName} · Code: ${c.courseCode || 'CS'}</div>
       </div>
       <div>
@@ -1502,7 +1533,6 @@ async function openCourseLearning(courseId) {
         } else if (nUrl.startsWith('/') && !nUrl.startsWith('//')) {
           nUrl = window.location.origin + nUrl;
         }
-        const noteId = n._id || n.id || '';
         let viewEndpoint;
         if (noteId && noteId.length === 24) {
           viewEndpoint = `${window.location.origin}/api/media/note/${noteId}/view`;

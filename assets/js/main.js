@@ -64,8 +64,13 @@ function showPage(pageId, updateHash = true) {
       } catch(e) {}
     }
 
-    if (pageId === 'my-courses' && typeof window.renderMyCourses === 'function') {
-      window.renderMyCourses();
+    if (pageId === 'my-courses') {
+      if (typeof window.renderMyCourses === 'function') {
+        window.renderMyCourses();
+      }
+      if (typeof window.loadMyEnrollments === 'function') {
+        window.loadMyEnrollments();
+      }
     }
     if (pageId === 'chat' && window.platformChat && typeof window.platformChat.fetchMessages === 'function') {
       window.platformChat.fetchMessages(true);
